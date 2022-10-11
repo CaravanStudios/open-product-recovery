@@ -29,8 +29,5 @@
   },
   "backendFetcher": {
     "type": "NOAUTH"
-  },
-  "whitelist": [
-    "https://a.example.org/opr/org.json"
-  ]
+  }
 }
