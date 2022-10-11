@@ -1,0 +1,11 @@
+{
+  "keys": [
+    {
+      "kty": "EC",
+      "crv": "P-256",
+      "x": "rSGY_zAh5_OKYo7lQBWsObKb7zFFUDyn35dKIdu-PS4",
+      "y": "Nq71ySDD1FfS0ui_cBZcdeqZmVNc-ChKe_KcnmyZvpM",
+      "alg": "ES256"
+    }
+  ]
+}

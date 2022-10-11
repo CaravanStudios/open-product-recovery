@@ -1,0 +1,33 @@
+{
+  "$id": "offercontact.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OfferContact",
+  "description": "Description of a person associated with an offer.",
+  "examples": [
+    {
+      "contactName": "Tyrion Lannister",
+      "contactEmail": "imp@casterlyrock.com"
+    }
+  ],
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "contactName": {
+      "comment": "The name of the person",
+      "type": "string"
+    },
+    "contactPhone": {
+      "comment": "The phone number for the person",
+      "type": "string"
+    },
+    "contactEmail": {
+      "comment": "The email address of the person",
+      "type": "string"
+    },
+    "contactSMS": {
+      "comment": "A phone number that the person can use to receive SMS messages",
+      "type": "string"
+    }
+  },
+  "required": ["contactName"]
+}

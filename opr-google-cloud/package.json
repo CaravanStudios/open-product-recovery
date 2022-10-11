@@ -1,0 +1,57 @@
+{
+  "name": "opr-google-cloud",
+  "version": "1.0.0",
+  "description": "Google Cloud OPR Implementations",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "start": "NODE_PATH=./build node build/index.js",
+    "build": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "test": "echo No tests yet",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm run compile",
+    "pretest": "npm run compile && npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "sso://foodforgood/opr-unified"
+  },
+  "author": "Google Food For Good <foodforgood-support-external@google.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/chai": "^4.3.1",
+    "@types/chai-as-promised": "^7.1.5",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^14.11.2",
+    "@types/node-fetch": "^2.6.2",
+    "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
+    "glob": "^8.0.3",
+    "glob-promise": "^5.0.0",
+    "gts": "^3.1.0",
+    "json-refs": "^3.0.15",
+    "mocha": "^10.0.0",
+    "nodemon": "^2.0.19",
+    "ts-node": "^10.8.2",
+    "tsconfig-paths": "^4.0.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^6.2.3",
+    "google-auth-library": "^8.1.1",
+    "loglevel": "^1.8.0",
+    "node-fetch": "^2.6.7",
+    "opr-core": "file:../opr-core",
+    "opr-models": "file:../opr-models"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}

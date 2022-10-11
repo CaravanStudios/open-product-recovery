@@ -1,0 +1,51 @@
+{
+  "description": "List endpoint bad backend responses",
+  "orgs": {
+    "$ref": "../../../sampledata/orgs.json"
+  },
+  "currentOrg": "https://fakeorga.org/org.json",
+  "targetOrg": "https://fakeorgb.org/org.json",
+  "tests": [
+    {
+      "description": "Should reject backend responses with extra properties",
+      "time": 0,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {}
+          },
+          "backendResponse": {
+            "plumbers": [],
+            "offers" : []
+          },
+          "expectedErrorCode": [
+            "NETWORK_FETCH_ERROR",
+            "INTERNAL_ERROR_MALFORMED_BACKEND_RESPONSE"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Should reject backend responses with missing properties",
+      "time": 0,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {}
+          },
+          "backendResponse": {
+            "offers" : [
+              {}
+            ]
+          },
+          "expectedErrorCode": [
+            "NETWORK_FETCH_ERROR",
+            "INTERNAL_ERROR_MALFORMED_BACKEND_RESPONSE"
+          ]
+        }
+      ]
+    }
+  ]
+}

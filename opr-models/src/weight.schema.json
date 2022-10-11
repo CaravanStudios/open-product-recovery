@@ -1,0 +1,39 @@
+{
+  "$id": "weight.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Weight",
+  "description": "An absolute weight of some physical quantity. A weight is always a combination of a unit, a dimension, and a value. This is typically, but not exclusively, used as a sub-type of Measurement.",
+  "examples": [
+    {
+      "unit": "pound",
+      "value": 60
+    },
+    {
+      "unit": "ounce",
+      "dimension": "weight",
+      "value": 23
+    }
+  ],
+  "properties": {
+    "unit": {
+      "type": "string",
+      "enum": [
+        "gram",
+        "kilogram",
+        "ounce",
+        "pound"
+      ]
+    },
+    "dimension": {
+      "const": "weight"
+    },
+    "value": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  },
+  "required": [
+    "unit",
+    "value"
+  ]
+}

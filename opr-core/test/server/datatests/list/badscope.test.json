@@ -1,0 +1,55 @@
+{
+  "description": "List endpoint bad scope token",
+  "orgs": {
+    "$ref": "../../../sampledata/orgs.json"
+  },
+  "currentOrg": "https://fakeorga.org/org.json",
+  "targetOrg": "https://fakeorgb.org/org.json",
+  "tests": [
+    {
+      "description": "Should reject token with bad scope",
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {},
+            "time": 0,
+            "auth": {
+              "iss": "https://fakeorga.org/org.json",
+              "aud": "https://fakeorgb.org/org.json",
+              "sub": "guy@fakeorga.org",
+              "scope": "LINKPRODUCTS",
+              "exp": 701
+            }
+          },
+          "expectedErrorCode": [
+            "NETWORK_FETCH_ERROR",
+            "AUTH_ERROR_MISSING_SCOPE"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Should accept token with good scope",
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {},
+            "time": 0,
+            "auth": {
+              "iss": "https://fakeorga.org/org.json",
+              "aud": "https://fakeorgb.org/org.json",
+              "sub": "guy@fakeorga.org",
+              "scope": "LISTPRODUCTS",
+              "exp": 701
+            }
+          },
+          "backendResponse": {
+            "offers": []
+          }
+        }
+      ]
+    }
+  ]
+}

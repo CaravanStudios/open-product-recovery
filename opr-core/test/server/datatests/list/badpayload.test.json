@@ -1,0 +1,55 @@
+{
+  "description": "List endpoint bad request payload",
+  "orgs": {
+    "$ref": "../../../sampledata/orgs.json"
+  },
+  "currentOrg": "https://fakeorga.org/org.json",
+  "targetOrg": "https://fakeorgb.org/org.json",
+  "tests": [
+    {
+      "description": "Should generate error for extra properties",
+      "time": 0,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {
+              "cats": "IN_THE_CRADLE"
+            }
+          },
+          "expectedErrorCode": ["NETWORK_FETCH_ERROR", "INVALID_REQUEST"]
+        }
+      ]
+    },
+    {
+      "description": "Should generate error for out of range property values",
+      "time": 0,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {
+              "changesSinceUTC": -100
+            }
+          },
+          "expectedErrorCode": ["NETWORK_FETCH_ERROR", "INVALID_REQUEST"]
+        }
+      ]
+    },
+    {
+      "description": "Should generate error for bad property value types",
+      "time": 0,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {
+              "changesSinceUTC": []
+            }
+          },
+          "expectedErrorCode": ["NETWORK_FETCH_ERROR", "INVALID_REQUEST"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Organization A, an Organization",
+  "organizationURL": "https://a.example.org/opr/org.json",
+  "orgFilePath": "/opr/org.json",
+  "jwksURL": "/opr/jwks.json",
+  "jwksProvider": {
+    "type": "FILE",
+    "path": "publickeys/"
+  }
+}

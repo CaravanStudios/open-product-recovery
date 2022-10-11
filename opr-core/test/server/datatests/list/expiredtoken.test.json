@@ -1,0 +1,88 @@
+{
+  "description": "List endpoint expired token",
+  "orgs": {
+    "$ref": "../../../sampledata/orgs.json"
+  },
+  "currentOrg": "https://fakeorga.org/org.json",
+  "targetOrg": "https://fakeorgb.org/org.json",
+  "tests": [
+    {
+      "description": "Should accept unexpired token",
+      "time": 599000,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {},
+            "auth": "eyJhbGciOiJFUzI1NiJ9.eyJzY29wZSI6IkxJU1RQUk9EVUNUUyIsImlhdCI6MCwiaXNzIjoiaHR0cHM6Ly9mYWtlb3JnYS5vcmcvb3JnLmpzb24iLCJhdWQiOiJodHRwczovL2Zha2VvcmdiLm9yZy9vcmcuanNvbiIsImV4cCI6NjAwfQ.jDJDoO9ufGiWQNTMDpbUCpzhhc-fbdrwzE7aGF0Lr0GUzu8AUFlCxEo6fs-yoriw620e0JfPZ8yNa7jhgNRcUg"
+          },
+          "backendResponse": {
+            "offers": []
+          }
+        }
+      ]
+    },
+    {
+      "description": "Should reject expired token",
+      "time": 601000,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {},
+            "auth": "eyJhbGciOiJFUzI1NiJ9.eyJzY29wZSI6IkxJU1RQUk9EVUNUUyIsImlhdCI6MCwiaXNzIjoiaHR0cHM6Ly9mYWtlb3JnYS5vcmcvb3JnLmpzb24iLCJhdWQiOiJodHRwczovL2Zha2VvcmdiLm9yZy9vcmcuanNvbiIsImV4cCI6NjAwfQ.jDJDoO9ufGiWQNTMDpbUCpzhhc-fbdrwzE7aGF0Lr0GUzu8AUFlCxEo6fs-yoriw620e0JfPZ8yNa7jhgNRcUg"
+          },
+          "expectedErrorCode": [
+            "NETWORK_FETCH_ERROR",
+            "AUTH_ERROR_TOKEN_EXPIRED"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Should accept unexpired token",
+      "time": 700000,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {},
+            "auth": {
+              "iss": "https://fakeorga.org/org.json",
+              "aud": "https://fakeorgb.org/org.json",
+              "sub": "guy@fakeorga.org",
+              "scope": "LISTPRODUCTS",
+              "exp": 701
+            }
+          },
+          "backendResponse": {
+            "offers": []
+          }
+        }
+      ]
+    },
+    {
+      "description": "Should reject expired token",
+      "time": 700000,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {},
+            "auth": {
+              "iss": "https://fakeorga.org/org.json",
+              "aud": "https://fakeorgb.org/org.json",
+              "sub": "guy@fakeorga.org",
+              "scope": "LISTPRODUCTS",
+              "exp": 690
+            }
+          },
+          "expectedErrorCode": [
+            "NETWORK_FETCH_ERROR",
+            "AUTH_ERROR_TOKEN_EXPIRED"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "description": "A fake test suite",
+  "tests": [
+    {
+      "description": "Regular calls with no initial value",
+      "calls": [
+        {
+          "op": "add",
+          "value": 6
+        },
+        {
+          "op": "getValue",
+          "expect": "expect(value).to.equal(6)"
+        }
+      ]
+    },
+    {
+      "description": "Regular calls with initial value",
+      "initialValue": 12,
+      "calls": [
+        {
+          "op": "getValue",
+          "comment": "The initial value below will not be used to construct",
+          "comment": "the test object, but it is available in expectations",
+          "initialValue": 42,
+          "expect": [
+            "expect(value).to.equal(12)",
+            "expect(initialValue).to.equal(42)"
+          ]
+        },
+        {
+          "op": "add",
+          "value": 3,
+          "comment": "Context values are inherited from the parent scope",
+          "expect": "expect(initialValue).to.equal(12)"
+        },
+        {
+          "op": "getValue",
+          "expect": "expect(value).to.equal(15)"
+        }
+      ]
+    },
+    {
+      "description": "Opposite day calls",
+      "isOppositeDay": true,
+      "calls": [
+        {
+          "op": "subtract",
+          "value": 3
+        },
+        {
+          "op": "getValue",
+          "expect": "expect(value).to.equal(3)"
+        },
+        {
+          "op": "getValue",
+          "isOppositeDay": false,
+          "expect": "expect(value).to.equal(-3)"
+        }
+      ]
+    },
+    {
+      "description": "Special secret values",
+      "calls": [
+        {
+          "op": "subtract",
+          "value": 4038
+        },
+        {
+          "op": "add",
+          "value": {
+            "$import": "./specialsecretterm.json"
+          }
+        },
+        {
+          "op": "getValue",
+          "secretExpectedValue": {
+            "$import": "./secretexpectedvalue.json"
+          },
+          "expect": "expect(value).to.equal(secretExpectedValue)"
+        }
+      ]
+    },
+    {
+      "description": "Special secret suite value",
+      "secretExpectedValue": {
+        "$import": "./secretexpectedvalue.json"
+      },
+      "tests": [
+        {
+          "description" : "Inherits imported context 1",
+          "calls": [
+            {
+              "op": "getValue",
+              "expect": "expect(secretExpectedValue).to.equal(20563)"
+            }
+          ]
+        },
+        {
+          "description" : "Overrides imported context",
+          "secretExpectedValue": 5,
+          "calls": [
+            {
+              "op": "getValue",
+              "expect": "expect(secretExpectedValue).to.equal(5)"
+            }
+          ]
+        },
+        {
+          "description" : "Inherits imported context 2",
+          "calls": [
+            {
+              "op": "getValue",
+              "expect": "expect(secretExpectedValue).to.equal(20563)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Error checking",
+      "initialValue": 16,
+      "calls": [
+        {
+          "op": "divide",
+          "value": 0,
+          "expectError" : [
+            "expect(error.message).to.equal('Divide by zero')"
+          ]
+        }
+      ]
+    }
+  ]
+}

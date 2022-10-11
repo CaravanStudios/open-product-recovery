@@ -1,0 +1,56 @@
+{
+  "name": "opr-sql-database",
+  "version": "1.0.0",
+  "description": "SQL Database Implementation for OPR",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "start": "NODE_PATH=./build node build/index.js",
+    "build": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "test": "mocha -r ts-node/register -R spec --diff 'test/**/*.spec.ts'",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm run compile",
+    "pretest": "npm run compile && npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "sso://foodforgood/opr-unified"
+  },
+  "author": "Google Food For Good <foodforgood-support-external@google.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@stoplight/json-ref-readers": "^1.2.2",
+    "@stoplight/json-ref-resolver": "^3.1.4",
+    "@types/chai": "^4.3.1",
+    "@types/chai-as-promised": "^7.1.5",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^14.18.26",
+    "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
+    "glob-promise": "^5.0.0",
+    "gts": "^3.1.0",
+    "mocha": "^10.0.0",
+    "opr-devtools": "file:../opr-devtools",
+    "pg": "^8.8.0",
+    "ts-node": "^10.8.2",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "loglevel": "^1.8.0",
+    "opr-core": "file:../opr-core",
+    "opr-models": "file:../opr-models",
+    "reflect-metadata": "^0.1.13",
+    "sqlite3": "^5.0.11",
+    "typeorm": "^0.3.9"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}

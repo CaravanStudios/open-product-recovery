@@ -1,0 +1,87 @@
+{
+  "$id": "offer.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Offer",
+  "description": "An offer",
+  "examples": [
+    {
+      "$ref": "exampleoffers/simpleoffer.json"
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "comment": "An identifier for this offer that is unique among all offers made by this organization.",
+      "type": "string"
+    },
+    "description": {
+      "comment": "The description of this offer as a whole",
+      "type": "string"
+    },
+    "notes": {
+      "comment": "Any human-readable notes for this offer",
+      "type": "string"
+    },
+    "contents": {
+      "comment": "The root product bundle describing the contents of this offer.",
+      "$ref": "productbundle.schema.json"
+    },
+    "reshareChain": {
+      "comment": "The reshare chain used to redeem friend-of-a-friend offers. Only present for reshared offers.",
+      "$ref": "resharechain.schema.json"
+    },
+    "transportationDetails": {
+      "comment": "Information about the offer's transportation",
+      "$ref": "transportationdetails.schema.json"
+    },
+    "contactInfo": {
+      "comment": "One or more people that can be contacted about this offer.",
+      "oneOf": [
+        {
+          "$ref": "offercontact.schema.json"
+        },
+        {
+          "type": "array",
+          "item": {
+            "$ref": "offercontact.schema.json"
+          },
+          "minItems": 1
+        }
+      ]
+    },
+    "offeredBy": {
+      "type": "string",
+      "format": "uri"
+    },
+    "offerLocation": {
+      "$ref": "offerlocation.schema.json"
+    },
+    "offerExpirationUTC": {
+      "comment": "The expiration time for this offer, expressed as a Unix timestamp in milliseconds since the epoch UTC",
+      "$ref": "timestamp.schema.json"
+    },
+    "offerCreationUTC": {
+      "comment": "The creation time for this offer, expressed as a Unix timestamp in milliseconds since the epoch UTC",
+      "$ref": "timestamp.schema.json"
+    },
+    "offerUpdateUTC": {
+      "comment": "The creation time for this offer, expressed as a Unix timestamp in milliseconds since the epoch UTC",
+      "$ref": "timestamp.schema.json"
+    },
+    "maxReservationTimeSecs": {
+      "comment" : "The maximum reservation time allowed for this offer, in seconds",
+      "type" : "integer",
+      "minimum" : 0
+    }
+  },
+  "required": [
+    "id",
+    "description",
+    "contents",
+    "contactInfo",
+    "offerLocation",
+    "offerExpirationUTC",
+    "offerCreationUTC"
+  ],
+  "type": "object"
+}

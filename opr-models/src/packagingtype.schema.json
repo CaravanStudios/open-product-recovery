@@ -1,0 +1,18 @@
+{
+  "$id": "packagingtype.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "All possible packing type values",
+  "examples": [
+    "pallet"
+  ],
+  "type": "string",
+  "enum": [
+    "none",
+    "box",
+    "bin",
+    "bag",
+    "pallet",
+    "shippingcontainer"
+  ],
+  "title": "PackagingType"
+}

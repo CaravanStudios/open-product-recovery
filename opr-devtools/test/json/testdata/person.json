@@ -1,0 +1,17 @@
+{
+  "name": "John",
+  "oldAddress": {
+    "street": "100 Easy Street",
+    "city": "Christiansted",
+    "state": "USVI",
+    "zip": "00808"
+  },
+  "newAddress": {
+    "street": "100 Hippie Way",
+    "city": "Boulder",
+    "state": "CO",
+    "zip": "80303"
+  },
+  "state" : "anxious",
+  "friends": ["Cesar", "Alex", "Kevin"]
+}

@@ -1,0 +1,14 @@
+{
+    "description": "Suite should never be loaded",
+    "tests": [
+      {
+        "description": "Replaced test should never be loaded",
+        "calls": [
+          {
+            "op": "getValue",
+            "expect": "expect(value).to.equal(0)"
+          }
+        ]
+      }
+    ]
+  }

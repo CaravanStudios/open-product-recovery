@@ -1,0 +1,25 @@
+{
+  "description": "List endpoint empty responses",
+  "orgs" : {
+    "$ref" : "../../../sampledata/orgs.json"    
+  },
+  "currentOrg": "https://fakeorga.org/org.json",
+  "targetOrg" : "https://fakeorgb.org/org.json",
+  "tests": [
+    {
+      "description": "Should handle empty responses",
+      "time": 0,
+      "calls": [
+        {
+          "request": {
+            "command" : "LIST",
+            "payload": {}
+          },
+          "backendResponse": {
+            "offers": []
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "$id": "jsonpath.schema.json",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "comment": "Copied and reformatted from source at https://json.schemastore.org/json-patch.json",
+  "description": "A JSON Pointer path.",
+  "title": "JSONPath",
+  "examples" : [
+    "",
+    "/abc"
+  ],
+  "type": "string"
+}

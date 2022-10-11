@@ -1,0 +1,33 @@
+{
+  "$id": "decodedresharechain.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DecodedReshareChain",
+  "description": "A decoded reshare chain, containing only the resharing org id and scope",
+  "examples": [
+    [
+      {
+        "sharingOrgUrl": "https://b.example.org/org.json",
+        "recipientOrgUrl": "https://a.example.org/org.json",
+        "scopes": [
+          "RESHARE",
+          "ACCEPT"
+        ],
+        "entitlements": "abc",
+        "signature": "fakesig"
+      },
+      {
+        "sharingOrgUrl": "https://a.example.org/org.json",
+        "recipientOrgUrl": "https://www.yourfoodbank.org/org.json",
+        "scopes": [
+          "ACCEPT"
+        ],
+        "entitlements": "fakesig",
+        "signature": "anotherfakesig"
+      }
+    ]
+  ],
+  "type": "array",
+  "items": {
+    "$ref": "decodedresharechainlink.schema.json"
+  }
+}

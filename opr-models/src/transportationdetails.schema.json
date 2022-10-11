@@ -1,0 +1,11 @@
+{
+  "$id" : "transportationdetails.schema.json",
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "title" : "TransportationDetails",
+  "description" : "Information about offer transportation",
+  "examples" : [
+    {}
+  ],
+  "type" : "object",
+  "additionalProperties" : false
+}

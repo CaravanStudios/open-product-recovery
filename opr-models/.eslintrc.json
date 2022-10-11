@@ -1,0 +1,18 @@
+{
+  "extends": "./node_modules/gts/",
+  "rules": {
+    "node/no-unpublished-import": [
+      "error",
+      {
+        "allowModules": [
+          "mocha",
+          "chai",
+          "chai-as-promised",
+          "json-refs",
+          "json-schema-to-typescript",
+          "glob-promise"
+        ]
+      }
+    ]
+  }
+}

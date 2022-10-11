@@ -1,0 +1,36 @@
+{
+  "$id": "list.payload.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ListOffersPayload",
+  "description": "Payload for a request to list offers.",
+  "examples": [
+    {},
+    {
+      "requestedResultFormat": "SNAPSHOT"
+    },
+    {
+      "pageToken": "page4874027",
+      "requestedResultFormat": "DIFF",
+      "diffStartTimestampUTC": 1660152248000
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "pageToken": {
+      "type" : "string"
+    },
+    "requestedResultFormat": {
+      "default": "snapshot",
+      "$ref": "listformat.schema.json"
+    },
+    "diffStartTimestampUTC": {
+      "$ref": "timestamp.schema.json"
+    },
+    "maxResultsPerPage": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "required": [],
+  "type": "object"
+}

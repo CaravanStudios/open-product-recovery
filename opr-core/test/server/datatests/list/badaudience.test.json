@@ -1,0 +1,33 @@
+{
+  "description": "List endpoint bad audience token",
+  "orgs": {
+    "$ref": "../../../sampledata/orgs.json"
+  },
+  "currentOrg": "https://fakeorga.org/org.json",
+  "targetOrg": "https://fakeorgb.org/org.json",
+  "tests": [
+    {
+      "description": "Should reject token with bad audience",
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {},
+            "time" : 0,
+            "auth": {
+              "iss": "https://fakeorga.org/org.json",
+              "aud": "https://fakeorgc.org/org.json",
+              "sub": "guy@fakeorga.org",
+              "scope": "LISTPRODUCTS",
+              "exp": 701
+            }
+          },
+          "expectedErrorCode": [
+            "NETWORK_FETCH_ERROR",
+            "AUTH_ERROR_AUD_INVALID"
+          ]
+        }
+      ]
+    }
+  ]
+}

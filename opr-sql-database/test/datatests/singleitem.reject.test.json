@@ -1,0 +1,60 @@
+{
+  "description": "Tests for reservations from a database with a single item",
+  "currentOrg": "https://citadelofdanas.org/org.json",
+  "listingOrgs": [
+    "https://fakeorga.org/org.json",
+    "https://fakeorgb.org/org.json"
+  ],
+  "tests": [
+    {
+      "description": "Check reserve",
+      "time": 1,
+      "calls": [
+        {
+          "op": "UPDATE",
+          "producerId": "https://citadelofdanas.org/org.json",
+          "param": {
+            "sourceOrgUrl": "https://citadelofdanas.org/org.json",
+            "offers": [
+              {
+                "$model": "SimpleOffer"
+              }
+            ],
+            "updateCurrentAsOfTimestampUTC": 0,
+            "earliestNextRequestUTC": 1000
+          }
+        },
+        {
+          "op": "REJECT",
+          "time": 2,
+          "orgUrl": "https://fakeorga.org/org.json",
+          "offerId": "abc"
+        },
+        {
+          "op": "LIST",
+          "comment": "The org that rejected should not be able to see the offer",
+          "orgUrl": "https://fakeorga.org/org.json",
+          "time": 3,
+          "payload": {
+            "requestedResultFormat": "SNAPSHOT"
+          },
+          "expect": [
+            "expect(offers.length, 'Wrong number of offers').to.equal(0)"
+          ]
+        },
+        {
+          "op": "LIST",
+          "comment": "Orgs that did not reject should be able to see the offer",
+          "orgUrl": "https://fakeorgb.org/org.json",
+          "time": 3,
+          "payload": {
+            "requestedResultFormat": "SNAPSHOT"
+          },
+          "expect": [
+            "expect(offers.length, 'Wrong number of offers').to.equal(1)"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "$id": "offerhistory.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OfferHistory",
+  "description": "Description of the history of an accepted offer",
+  "examples": [
+    {
+      "offer": {
+        "$ref": "exampleoffers/simpleoffer.json"
+      },
+      "acceptingOrganization": "https://b.example.org/opr/org.json",
+      "decodedReshareChain": [
+        {
+          "sharingOrgUrl": "https://b.example.org/opr/org.json",
+          "recipientOrgUrl": "https://a.example.org/opr/org.json",
+          "scopes": [
+            "RESHARE",
+            "ACCEPT"
+          ],
+          "entitlements": "abc",
+          "signature": "fakesig"
+        },
+        {
+          "sharingOrgUrl": "https://a.example.org/opr/org.json",
+          "recipientOrgUrl": "https://www.yourfoodbank.org/org.json",
+          "scopes": [
+            "ACCEPT"
+          ],
+          "entitlements": "fakesig",
+          "signature": "anotherfakesig"
+        }
+      ],
+      "acceptedAtUTC": 1660152248000
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "offer": {
+      "$ref": "offer.schema.json"
+    },
+    "acceptedAtUTC": {
+      "$ref": "timestamp.schema.json"
+    },
+    "decodedReshareChain": {
+      "$ref": "decodedresharechain.schema.json"
+    },
+    "acceptingOrganization": {
+      "type": "string",
+      "format": "uri"
+    }
+  },
+  "required": [
+    "offer",
+    "acceptingOrganization",
+    "acceptedAtUTC"
+  ],
+  "type": "object"
+}

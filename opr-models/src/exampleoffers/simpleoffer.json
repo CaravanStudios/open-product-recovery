@@ -1,0 +1,55 @@
+{
+  "id": "abc",
+  "description": "A fake offer",
+  "contents": {
+    "contents": [
+      {
+        "description": "apple",
+        "expirationTimestampUTC": 1663217495798,
+        "id": "ceeb0a85-c5ab-4467-81b4-3ac1338b811a",
+        "itemTypeIds": [
+          {
+            "itemId": "4145",
+            "vocabularyId": "plu"
+          }
+        ],
+        "price": {
+          "currency": "USD",
+          "value": 1.98
+        },
+        "quantity": 96
+      }
+    ],
+    "description": "boxes of apples",
+    "id": "f4ceefa5-d464-4fd1-bc77-99ceb66d2328",
+    "isGrossEstimate": false,
+    "packagingType": "box",
+    "price": {
+      "currency": "USD",
+      "value": 1.98
+    },
+    "quantity": 10,
+    "unitWeight": {
+      "dimension": "weight",
+      "unit": "pound",
+      "value": 5
+    }
+  },
+  "contactInfo": {
+    "contactName": "Lone Star Dana",
+    "contactEmail": "cowboyboots@citadelofdanas.org"
+  },
+  "offerLocation": {
+    "locationName": "The Alamo",
+    "locationAddress": "300 Alamo Plaza, San Antonio, TX 78205",
+    "accessWindows": [
+      {
+        "startTimeUTC": 1,
+        "endTimeUTC": 4000
+      }
+    ]
+  },
+  "offeredBy": "https://citadelofdanas.org/org.json",
+  "offerExpirationUTC": 4000,
+  "offerCreationUTC": 1
+}

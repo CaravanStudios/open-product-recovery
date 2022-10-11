@@ -1,0 +1,25 @@
+[
+  {
+    "title": "Excitebike",
+    "publisher": "Nintendo",
+    "system": {
+      "$import": "./nes.json",
+      "andAgain": {
+        "$import": "./nes.json"
+      },
+      "asyncValue" : {
+        "$import": "@chai:./package.json#description"
+      }
+    },
+    "letters": {
+      "$import": "./alphabet.json",
+      "$patch": [
+        {
+          "op": "remove",
+          "path": "/1"
+        }
+      ],
+      "$transform" : "join"
+    }
+  }
+]

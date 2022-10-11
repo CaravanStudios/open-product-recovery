@@ -1,0 +1,182 @@
+{
+  "description": "Tests for a database with a single item",
+  "currentOrg": "https://citadelofdanas.org/org.json",
+  "listingOrgs": [
+    "https://fakeorgb.org/org.json",
+    "https://fakeorgc.org/org.json"
+  ],
+  "tests": [
+    {
+      "description": "Populate with diff, result as snapshot",
+      "time": 1,
+      "calls": [
+        {
+          "op": "UPDATE",
+          "producerId": "https://citadelofdanas.org/org.json",
+          "param": {
+            "sourceOrgUrl": "https://citadelofdanas.org/org.json",
+            "delta": [
+              {
+                "op": "add",
+                "path": "/https:~1~1citadelofdanas.org~1org.json#abc",
+                "value": {
+                  "$model": "SimpleOffer"
+                }
+              }
+            ],
+            "diffStartTimeUTC": 0,
+            "updateCurrentAsOfTimestampUTC": 1,
+            "earliestNextRequestUTC": 1000
+          },
+          "expectChanges": [
+            {
+              "type": "ADD",
+              "timestampUTC": 1,
+              "newValue": {
+                "$model": "SimpleOffer"
+              }
+            }
+          ]
+        },
+        {
+          "op": "LIST",
+          "orgUrl": "https://fakeorgb.org/org.json",
+          "payload": {
+            "requestedResultFormat": "SNAPSHOT"
+          },
+          "expect": [
+            "expect(offers.length, 'Wrong number of offers').to.equal(1)",
+            "expect(offerSet['https://citadelofdanas.org/org.json#abc']).to.be.not.undefined",
+            "expect(offerSet['https://citadelofdanas.org/org.json#abc'].description).to.equal('A fake offer')"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Populate with snapshot, result as snapshot",
+      "time": 1,
+      "calls": [
+        {
+          "op": "UPDATE",
+          "producerId": "https://citadelofdanas.org/org.json",
+          "param": {
+            "sourceOrgUrl": "https://citadelofdanas.org/org.json",
+            "offers": [
+              {
+                "$model": "SimpleOffer"
+              }
+            ],
+            "updateCurrentAsOfTimestampUTC": 0,
+            "earliestNextRequestUTC": 1000
+          }
+        },
+        {
+          "op": "LIST",
+          "orgUrl": "https://fakeorgb.org/org.json",
+          "payload": {
+            "requestedResultFormat": "SNAPSHOT"
+          },
+          "expect": [
+            "expect(offers.length, 'Wrong number of offers').to.equal(1)",
+            "expect(offerSet['https://citadelofdanas.org/org.json#abc']).to.be.not.undefined",
+            "expect(offerSet['https://citadelofdanas.org/org.json#abc'].description).to.equal('A fake offer')"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Populate with snapshot, result as diff",
+      "time": 1,
+      "calls": [
+        {
+          "op": "UPDATE",
+          "producerId": "https://citadelofdanas.org/org.json",
+          "param": {
+            "sourceOrgUrl": "https://citadelofdanas.org/org.json",
+            "offers": [
+              {
+                "$model": "SimpleOffer"
+              }
+            ],
+            "updateCurrentAsOfTimestampUTC": 0,
+            "earliestNextRequestUTC": 1000
+          }
+        },
+        {
+          "op": "LIST",
+          "time": 2,
+          "orgUrl": "https://fakeorgb.org/org.json",
+          "payload": {
+            "requestedResultFormat": "DIFF",
+            "diffStartTimestampUTC": 0
+          },
+          "expectDiff": [
+            {
+              "op": "replace",
+              "path": "",
+              "value": {}
+            },
+            {
+              "op": "add",
+              "path": "/https:~1~1citadelofdanas.org~1org.json#abc",
+              "value": {
+                "$model": "SimpleOffer"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Populate with snapshot, delete with snapshot",
+      "time": 1,
+      "calls": [
+        {
+          "op": "UPDATE",
+          "producerId": "https://citadelofdanas.org/org.json",
+          "param": {
+            "sourceOrgUrl": "https://citadelofdanas.org/org.json",
+            "offers": [
+              {
+                "$model": "SimpleOffer"
+              }
+            ],
+            "updateCurrentAsOfTimestampUTC": 0,
+            "earliestNextRequestUTC": 1000
+          }
+        },
+        {
+          "op": "UPDATE",
+          "time": 2,
+          "producerId": "https://citadelofdanas.org/org.json",
+          "param": {
+            "sourceOrgUrl": "https://citadelofdanas.org/org.json",
+            "offers": [],
+            "updateCurrentAsOfTimestampUTC": 2,
+            "earliestNextRequestUTC": 1000
+          },
+          "expectChanges": [
+            {
+              "type": "DELETE",
+              "timestampUTC": 2,
+              "oldValue": {
+                "$model": "SimpleOffer"
+              }
+            }
+          ]
+        },
+        {
+          "op": "LIST",
+          "orgUrl": "https://fakeorgb.org/org.json",
+          "time": 2,
+          "payload": {
+            "requestedResultFormat": "SNAPSHOT"
+          },
+          "expect": [
+            "expect(offers.length, 'Wrong number of offers').to.equal(0)"
+          ]
+        }
+      ]
+    }
+  ]
+}
