@@ -1,0 +1,32 @@
+{
+  "$id": "latlong.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LatLong",
+  "description": "A latitude/longitude location pair.",
+  "examples": [
+    {
+      "latitude": 37.4220656,
+      "longitude": -122.0862784
+    }
+  ],
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "latitude": {
+      "comment": "The latitude of the location.",
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "longitude": {
+      "comment": "The longitude of the location.",
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
+    }
+  },
+  "required": [
+    "latitude",
+    "longitude"
+  ]
+}
