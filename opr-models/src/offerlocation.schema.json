@@ -20,6 +20,14 @@
       "pickupNotes": "Usually open Wednesdays from 9-10am. Call to schedule."
     },
     {
+      "locationName": "Some Business",
+      "locationAddress": "1600 Amphitheatre Pkwy, Mountain View, CA 94043",
+      "locationLatLong": {
+        "latitude": 37.4220656,
+        "longitude": -122.0862784
+      }
+    },
+    {
       "locationName": "The Red Keep",
       "locationAddress": "1 Street of Looms, King's Landing, Westeros",
       "accessWindows": [
@@ -41,6 +49,10 @@
     "locationAddress": {
       "comment": "The physical address of this location",
       "type": "string"
+    },
+    "locationLatLong": {
+      "comment": "The geographic location of this offer",
+      "$ref": "latlong.schema.json"
     },
     "accessWindows": {
       "comment": "Time windows when the offer can be picked up from this location.",

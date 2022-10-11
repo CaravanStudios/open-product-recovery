@@ -23,6 +23,7 @@ export {default as HistoryPayload} from '../history.payload.schema.json';
 export {default as HistoryResponse} from '../history.response.schema.json';
 export {default as JSONPatch} from '../jsonpatch.schema.json';
 export {default as JSONPath} from '../jsonpath.schema.json';
+export {default as LatLong} from '../latlong.schema.json';
 export {default as ListOffersPayload} from '../list.payload.schema.json';
 export {default as ListOffersResponse} from '../list.response.schema.json';
 export {default as ListFormat} from '../listformat.schema.json';

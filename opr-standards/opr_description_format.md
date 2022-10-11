@@ -248,20 +248,22 @@ Since this specification was first shared, a number of common questions have com
 
 **How do I indicate the category of an item in our organization's internal categorization system?**
 
-If your organization uses a published categorization system (that others can see and use), you can represent a category in that system as an item type id. An item type id includes a type identifier (that specifies which categorization system is in use) and an item identifier (indicating which category in that system applies to the current product). If your organization has created a categorization system, we suggest you create a type identifier for your categorization system using your organization's OPR organization description URL or a public website. For example, Feeding America references 31 broad categories of food in their Foods to Encourage report. Let's say Feeding America wanted to encourage food banks to categorize food using those categories.
+If your organization uses a published categorization system (that others can see and use), you can represent a category in that system as an item type id. An item type id includes a type identifier (that specifies which categorization system is in use) and an item identifier (indicating which category in that system applies to the current product). If your organization has created a categorization system, we suggest you create a type identifier for your categorization system using your organization's OPR organization description URL or a public website.
 
-We can identify this categorization system with a unique identifier for the organization that created it, and an id for this particular system (since Feeding America may have many food categorization systems). If the categorization is published in a structured, computable way, a link to the published version of the system is a great type identifier for terms in that system. Maybe something like:
+As an example, imagine if The Example Food Bank used 12 categories of food in their systems and wanted to encourage other organizations to categorize food using those categories.
 
-`https://feedingamerica.org/vocabularies/foodstoencourage.json`
+We can identify this categorization system with a unique identifier for the organization that created it, and an id for this particular system (since they might someday have many food categorization systems). If the categorization is published in a structured, computable way, a link to the published version of the system is a great type identifier for terms in that system. Maybe something like:
 
-That URL doesn't exist today, but it doesn't matter, we're just using it as an identifier. Ideally someone would eventually post this vocabulary at that URL. The more organizations that can see and understand your vocabulary, the more useful your item type ids become.
+`https://example.org/vocabularies/primary-categories.json`
 
-Now, we can treat every category name as an identifier. If we wanted to indicate that a product is juice, we can use the item type identifier:
+In this example, that URL is itself being used as the identifier. With the list then being at a public URL, it helps more organizations find and understand that vocabulary.
+
+Lastly, we can use items from that published taxonomy:
 
 ```
 {
-  "vocabularyId" : "https://feedingamerica.org/vocabularies/foodstoencourage.json",
-  "itemId":"Juice"
+  "vocabularyId" : "https://example.org/vocabularies/primary-categories.json",
+  "itemId":"Bread"
 }
 ```
 

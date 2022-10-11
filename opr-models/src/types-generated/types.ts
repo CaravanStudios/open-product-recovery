@@ -110,6 +110,14 @@ export type JSONPatch = (
 export type JSONPath = string;
 
 /**
+ * A latitude/longitude location pair.
+ */
+export interface LatLong {
+  latitude: number;
+  longitude: number;
+}
+
+/**
  * Payload for a request to list offers.
  */
 export interface ListOffersPayload {
@@ -180,6 +188,7 @@ export interface OfferHistory {
 export interface OfferLocation {
   locationName: string;
   locationAddress: string;
+  locationLatLong?: LatLong;
   /**
    * @minItems 0
    */
