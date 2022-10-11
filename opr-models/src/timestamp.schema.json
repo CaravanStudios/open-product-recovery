@@ -1,0 +1,12 @@
+{
+  "$id" : "timestamp.schema.json",
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "title" : "Timestamp",
+  "description" : "A positive timestamp, in UTC milliseconds",
+  "examples" : [
+    3600,
+    3923409324993
+  ],
+  "type" : "integer",
+  "exclusiveMinimum": 0
+}

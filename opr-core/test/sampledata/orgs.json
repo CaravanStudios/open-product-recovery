@@ -1,0 +1,63 @@
+[
+  {
+    "config": {
+      "$ref": "orga/org.json"
+    },
+    "jwks": {
+      "$ref": "orga/jwks.json"
+    },
+    "privateKey": {
+      "$ref": "orga/priv.key.json"
+    }
+  },
+  {
+    "config": {
+      "$ref": "orgb/org.json"
+    },
+    "jwks": {
+      "$ref": "orgb/jwks.json"
+    },
+    "privateKey": {
+      "$ref": "orgb/priv.key.json"
+    },
+    "frontendConfig" : {
+      "$ref" : "orgb/frontend.json"
+    }
+  },
+  {
+    "config": {
+      "$ref": "orgc/org.json"
+    },
+    "jwks": {
+      "$ref": "orgc/jwks.json"
+    },
+    "privateKey": {
+      "$ref": "orgc/priv.key.json"
+    }
+  },
+  {
+    "config": {
+      "$ref": "orgd/org.json"
+    },
+    "jwks": {
+      "$ref": "orgd/jwks.json"
+    },
+    "privateKey": {
+      "$ref": "orgd/priv.key.json"
+    }
+  },
+  {
+    "config": {
+      "$ref": "evilorg/org.json"
+    },
+    "jwks": {
+      "$ref": "evilorg/jwks.json"
+    },
+    "privateKey": {
+      "$ref": "evilorg/priv.key.json"
+    },
+    "frontendConfig" : {
+      "$ref" : "evilorg/frontend.json"
+    }
+  }
+]

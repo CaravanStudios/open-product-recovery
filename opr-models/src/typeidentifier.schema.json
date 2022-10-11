@@ -1,0 +1,41 @@
+{
+  "$id": "typeidentifier.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TypeIdentifier",
+  "description": "A reference to a term in a controlled vocabulary that describes a particular product",
+  "examples": [
+    {
+      "vocabularyId": "gtin",
+      "itemId": "0005100001261"
+    },
+    {
+      "vocabularyId": "plu",
+      "itemId": "4065"
+    },
+    {
+      "vocabularyId": "foodex2",
+      "itemId": "Z0005.0001.0002.0002"
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "vocabularyId": {
+      "comment": "A identifier for a controlled vocabulary",
+      "type": "string",
+      "enum": [
+        "gtin",
+        "foodex2",
+        "plu"
+      ]
+    },
+    "itemId": {
+      "comment": "The term from the controlled vocabulary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "vocabularyId",
+    "itemId"
+  ],
+  "type": "object"
+}

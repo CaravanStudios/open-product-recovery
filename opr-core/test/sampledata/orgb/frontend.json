@@ -1,0 +1,33 @@
+{
+  "name": "Organization B",
+  "organizationURL": "https://fakeorgb.org/org.json",
+  "jwksURL": "/jwks.json",
+  "listProductsMapping": {
+    "frontendPath": "/api/list",
+    "backendURL": "https://backend.fakeorgb.org/list"
+  },
+  "acceptProductMapping": {
+    "frontendPath": "/api/accept",
+    "backendURL": "https://backend.fakeorgb.org/accept"
+  },
+  "reserveProductMapping": {
+    "frontendPath": "/api/reserve",
+    "backendURL": "https://backend.fakeorgb.org/reserve"
+  },
+  "rejectProductMapping": {
+    "frontendPath": "/api/reject",
+    "backendURL": "https://backend.fakeorgb.org/reject"
+  },
+  "historyMapping": {
+    "frontendPath": "/api/history",
+    "backendURL": "https://backend.fakeorgb.org/history"
+  },
+  "backendFetcher": {
+    "type": "NOAUTH"
+  },
+  "accessControlList": [
+    "https://fakeorga.org/org.json",
+    "https://fakeorgc.org/org.json",
+    "https://fakeorgd.org/org.json"
+  ]
+}

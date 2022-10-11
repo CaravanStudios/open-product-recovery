@@ -1,0 +1,38 @@
+{
+  "$id": "price.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Price",
+  "description": "A stated price of a product or bundle, along with the ISO currency code",
+  "examples": [
+    {
+      "value": 8.50,
+      "currency": "USD"
+    },
+    {
+      "value": 8
+    },
+    {
+      "value": 0.50,
+      "currency": "EUR"
+    }
+  ],
+  "additionalProperties": false,
+  "type": "object",
+  "properties": {
+    "value": {
+      "comment": "The actual price, expressed as a positive number.",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "currency": {
+      "comment": "The ISO currency code used for the value",
+      "type": "string",
+      "default": "USD",
+      "minLength": 3,
+      "maxLength": 3
+    }
+  },
+  "required": [
+    "value"
+  ]
+}

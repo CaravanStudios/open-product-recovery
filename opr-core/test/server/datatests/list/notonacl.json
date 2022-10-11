@@ -1,0 +1,26 @@
+{
+  "description": "List endpoint not accessible",
+  "orgs": {
+    "$ref": "../../../sampledata/orgs.json"
+  },
+  "currentOrg": "https://evilorg.org/org.json",
+  "targetOrg": "https://fakeorgb.org/org.json",
+  "tests": [
+    {
+      "description": "Should reject calls from org not on ACL",
+      "time": 0,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {}
+          },
+          "expectedErrorCode": [
+            "NETWORK_FETCH_ERROR",
+            "AUTH_ERROR_ORG_NOT_AUTHORIZED"
+          ]
+        }
+      ]
+    }
+  ]
+}

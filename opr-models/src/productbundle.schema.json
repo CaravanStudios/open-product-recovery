@@ -1,0 +1,179 @@
+{
+  "$id": "productbundle.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProductBundle",
+  "description": "A collection of products and product bundles",
+  "examples": [
+    {
+      "contents": [
+        {
+          "description": "pears",
+          "id": "ed35ceeb-6d60-4fca-a116-ecc9cbb1ac62",
+          "itemTypeIds": [
+            {
+              "itemId": "4410",
+              "vocabularyId": "plu"
+            }
+          ],
+          "photoUris": [
+            "https://placekitten.com/578/895"
+          ],
+          "price": {
+            "currency": "USD",
+            "value": 1.39
+          },
+          "quantity": 43,
+          "unitWeight": {
+            "dimension": "weight",
+            "unit": "ounce",
+            "value": 7
+          }
+        },
+        {
+          "contents": [
+            {
+              "description": "apple",
+              "expirationTimestampUTC": 1663217495798,
+              "id": "ceeb0a85-c5ab-4467-81b4-3ac1338b811a",
+              "itemTypeIds": [
+                {
+                  "itemId": "4145",
+                  "vocabularyId": "plu"
+                }
+              ],
+              "price": {
+                "currency": "USD",
+                "value": 1.98
+              },
+              "quantity": 96
+            }
+          ],
+          "description": "boxes of apple",
+          "id": "f4ceefa5-d464-4fd1-bc77-99ceb66d2328",
+          "isGrossEstimate": false,
+          "packagingType": "box",
+          "price": {
+            "currency": "USD",
+            "value": 1.98
+          },
+          "quantity": 10,
+          "unitWeight": {
+            "dimension": "weight",
+            "unit": "pound",
+            "value": 5
+          }
+        },
+        {
+          "description": "ground beef",
+          "expirationTimestampUTC": 1663142699358,
+          "id": "2b5c8410-2d87-431b-8a35-2a02426fb89a",
+          "itemTypeIds": [
+            {
+              "itemId": "63206960",
+              "vocabularyId": "gtin"
+            }
+          ],
+          "photoUris": [
+            "https://dummyimage.com/174x85"
+          ],
+          "price": {
+            "currency": "USD",
+            "value": 0.66
+          },
+          "quantity": 31
+        }
+      ],
+      "description": "pear, apple, ground beef",
+      "id": "98965ee5-050b-4c6b-9a92-3cce6884f7bf",
+      "isGrossEstimate": false,
+      "packagingType": "pallet",
+      "price": {
+        "currency": "USD",
+        "value": 4.03
+      },
+      "quantity": 4,
+      "unitWeight": {
+        "dimension": "weight",
+        "unit": "ounce",
+        "value": 9
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "comment": "An optional id for this bundle",
+      "type": "string"
+    },
+    "description": {
+      "comment": "A human-readable description of the product bundle",
+      "type": "string"
+    },
+    "unitWeight": {
+      "comment": "A measurement weight unit that describes the weight of a single unit of quantity in this product bundle",
+      "$ref": "weight.schema.json"
+    },
+    "expirationTimestampUTC": {
+      "comment": "The time when the product will expire, expressed as a Unix timestamp in milliseconds since the epoch UTC",
+      "$ref": "timestamp.schema.json"
+    },
+    "contents": {
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "productbundle.schema.json"
+          },
+          {
+            "$ref": "product.schema.json"
+          }
+        ]
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "quantity": {
+      "comment": "The number of units of the packagingType described in this bundle",
+      "type": "number"
+    },
+    "packagingType": {
+      "comment": "The type of container(s) in which the contents of this bundle have been placed",
+      "$ref": "packagingtype.schema.json",
+      "default": "none"
+    },
+    "price": {
+      "comment": "The price for this product bundle",
+      "$ref": "price.schema.json"
+    },
+    "photoUris": {
+      "description": "A list of uris to photos showing this item. Multiple values are allowed. It is the responsibility of the submitter to ensure that photos are public and/or reachable by others.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 0,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "isGrossEstimate": {
+      "comment": "If true, the quantities and measurements expressed in this bundle should be considered to be a gross estimate. Actual contents may vary from what is stated in the object.",
+      "type": "boolean",
+      "default": false
+    },
+    "otherUnitMeasurements": {
+      "description": "A list of physical measurements for each instance of this item, such as volume, length, etc. Only one value may be specified for each unit of measure. This field specifies the measurements for a single instance of this item. If a quantity is specified for this product, these measurements apply to a SINGLE item in the line, not all items in the line.",
+      "items": {
+        "$ref": "othermeasurement.schema.json"
+      },
+      "minItems": 1,
+      "type": "array"
+    }
+  },
+  "required": [
+    "description",
+    "unitWeight",
+    "contents",
+    "quantity"
+  ],
+  "type": "object"
+}

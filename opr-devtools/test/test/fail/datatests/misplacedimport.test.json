@@ -1,0 +1,15 @@
+{
+  "description": "Illegal import at top level of test suite",
+  "$import" : "./validimportdata.json",
+  "tests": [
+    {
+      "description": "Zombie test under illegal top-level import",
+      "calls": [
+        {
+          "op": "getValue",
+          "expect": "expect(value).to.equal(0)"
+        }
+      ]
+    }
+  ]
+}

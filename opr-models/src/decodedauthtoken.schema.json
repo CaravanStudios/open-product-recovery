@@ -1,0 +1,34 @@
+{
+  "$id": "decodedauthtoken.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DecodedAuthToken",
+  "description": "A decoded auth token",
+  "examples": [
+    {
+      "iss": "https://b.example.org/org.json",
+      "aud": "https://a.example.org/org.json"
+    },
+    {
+      "iss": "https://b.example.org/org.json",
+      "aud": "https://a.example.org/org.json",
+      "sub": "mike@b.example.org"
+    }
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "iss": {
+      "type": "string"
+    },
+    "sub": {
+      "type": "string"
+    },
+    "aud": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "iss",
+    "aud"
+  ],
+  "type": "object"
+}

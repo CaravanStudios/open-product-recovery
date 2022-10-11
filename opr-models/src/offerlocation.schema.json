@@ -1,0 +1,65 @@
+{
+  "$id": "offerlocation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OfferLocation",
+  "description": "Description of the location of an offer.",
+  "examples": [
+    {
+      "locationName": "The Red Keep",
+      "locationAddress": "1 Street of Looms, King's Landing, Westeros",
+      "accessWindows": [
+        {
+          "startTimeUTC": 1000,
+          "endTimeUTC": 1000000
+        }
+      ]
+    },
+    {
+      "locationName": "The Red Keep",
+      "locationAddress": "1 Street of Looms, King's Landing, Westeros",
+      "pickupNotes": "Usually open Wednesdays from 9-10am. Call to schedule."
+    },
+    {
+      "locationName": "The Red Keep",
+      "locationAddress": "1 Street of Looms, King's Landing, Westeros",
+      "accessWindows": [
+        {
+          "startTimeUTC": 1000,
+          "endTimeUTC": 1000000
+        }
+      ],
+      "pickupNotes": "Call for appointment after accepting."
+    }
+  ],
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "locationName": {
+      "comment": "The name of the location.",
+      "type": "string"
+    },
+    "locationAddress": {
+      "comment": "The physical address of this location",
+      "type": "string"
+    },
+    "accessWindows": {
+      "comment": "Time windows when the offer can be picked up from this location.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "timerange.schema.json"
+      },
+      "minItems": 0
+    },
+    "pickupNotes": {
+      "comment": "Human readable notes about the pickup process or accessWindows.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "locationName",
+    "locationAddress"
+  ]
+}

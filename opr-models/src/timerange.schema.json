@@ -1,0 +1,23 @@
+{
+  "$id": "timerange.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TimeRange",
+  "description": "A range of time with an absolute start and endpoint.",
+  "examples": [{
+    "startTimeUTC" : 5,
+    "endTimeUTC" : 10
+  }],
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "startTimeUTC": {
+      "comment": "The starting time, inclusive, for this time range, expressed as a Unix timestamp in milliseconds since the epoch UTC",
+      "$ref" : "timestamp.schema.json"
+    },
+    "endTimeUTC": {
+      "comment": "The ending time, inclusive, for this time range, expressed as a Unix timestamp in milliseconds since the epoch UTC",
+      "$ref" : "timestamp.schema.json"
+    }
+  },
+  "required": ["startTimeUTC", "endTimeUTC"]
+}

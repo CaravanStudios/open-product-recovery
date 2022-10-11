@@ -1,0 +1,10 @@
+# API keys and secrets
+.env
+.gcloud
+
+# Dependency directory
+node_modules
+
+# Ignore built ts files
+dist/**/*
+build/**/*

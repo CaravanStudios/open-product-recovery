@@ -1,0 +1,10 @@
+{
+  "name": "Evil Org",
+  "organizationURL": "https://evilorg.org/org.json",
+  "jwksURL": "https://evilorg.org/jwks.json",
+  "listProductsEndpointURL": "https://evilorg.org/api/list",
+  "acceptProductsEndpointURL": "https://evilorg.org/api/accept",
+  "reserveProductsEndpointURL": "https://evilorg.org/api/reserve",
+  "rejectProductsEndpointURL": "https://evilorg.org/api/reject",
+  "acceptHistoryEndpointURL": "https://evilorg.org/api/history"
+}

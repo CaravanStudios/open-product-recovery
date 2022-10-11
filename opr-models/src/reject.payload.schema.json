@@ -1,0 +1,22 @@
+{
+  "$id": "reject.payload.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RejectOfferPayload",
+  "description": "Payload for a request to reject an offer.",
+  "examples": [
+    {
+      "offerId": "abc"
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "offerId": {
+      "type": "string"
+    },
+    "offeredByUrl": {
+      "type": "string"
+    }
+  },
+  "required": ["offerId"],
+  "type": "object"
+}

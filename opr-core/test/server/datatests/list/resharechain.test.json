@@ -1,0 +1,187 @@
+{
+  "description": "List endpoint reshare chains",
+  "orgs": {
+    "$ref": "../../../sampledata/orgs.json"
+  },
+  "currentOrg": "https://fakeorga.org/org.json",
+  "targetOrg": "https://fakeorgb.org/org.json",
+  "tests": [
+    {
+      "description": "Should extend reshare chains without directives",
+      "time": 0,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {}
+          },
+          "backendResponse": {
+            "offers": [
+              {
+                "id": "fakeid",
+                "description": "Fake item",
+                "contents": {
+                  "id": "fakecontents",
+                  "description": "Some items or somesuch"
+                },
+                "contactInfo": {
+                  "contactName": "Daney Crockett",
+                  "contactEmail": "wildfrontier@citadelofdanas.org"
+                },
+                "offerLocation": {
+                  "locationName": "Davy Crockett Cabin Museum",
+                  "locationAddress": "219 N. Trenton St., Old Hwy. 45 W., Rutherford, TN 38369",
+                  "accessWindows": [
+                    {
+                      "startTimeUTC": 1000,
+                      "endTimeUTC": 1000000
+                    }
+                  ]
+                },
+                "decodedReshareChain": [
+                  {
+                    "iss": "https://fakeorgc.org/org.json",
+                    "sub": "https://fakeorgb.org/org.json",
+                    "scope": "RESHARE ACCEPT"
+                  }
+                ],
+                "offerExpirationUTC": 1660152249000,
+                "offerCreationUTC": 1660152247000
+              }
+            ]
+          },
+          "expectedResponse": {
+            "offers": [
+              {
+                "id": "fakeid",
+                "description": "Fake item",
+                "contents": {
+                  "id": "fakecontents",
+                  "description": "Some items or somesuch"
+                },
+                "contactInfo": {
+                  "contactName": "Daney Crockett",
+                  "contactEmail": "wildfrontier@citadelofdanas.org"
+                },
+                "offerLocation": {
+                  "locationName": "Davy Crockett Cabin Museum",
+                  "locationAddress": "219 N. Trenton St., Old Hwy. 45 W., Rutherford, TN 38369",
+                  "accessWindows": [
+                    {
+                      "startTimeUTC": 1000,
+                      "endTimeUTC": 1000000
+                    }
+                  ]
+                },
+                "decodedReshareChain": [
+                  {
+                    "iss": "https://fakeorgc.org/org.json",
+                    "sub": "https://fakeorgb.org/org.json",
+                    "scope": "RESHARE ACCEPT"
+                  },
+                  {
+                    "iss": "https://fakeorgb.org/org.json",
+                    "sub": "https://fakeorga.org/org.json",
+                    "scope": "ACCEPT"
+                  }
+                ],
+                "offerExpirationUTC": 1660152249000,
+                "offerCreationUTC": 1660152247000
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "description": "Should extend reshare chains with directives",
+      "time": 0,
+      "calls": [
+        {
+          "request": {
+            "command": "LIST",
+            "payload": {}
+          },
+          "backendResponse": {
+            "offers": [
+              {
+                "offer": {
+                  "id": "fakeid",
+                  "description": "Fake item",
+                  "contents": {
+                    "id": "fakecontents",
+                    "description": "Some items or somesuch"
+                  },
+                  "contactInfo": {
+                    "contactName": "Daney Crockett",
+                    "contactEmail": "wildfrontier@citadelofdanas.org"
+                  },
+                  "offerLocation": {
+                    "locationName": "Davy Crockett Cabin Museum",
+                    "locationAddress": "219 N. Trenton St., Old Hwy. 45 W., Rutherford, TN 38369",
+                    "accessWindows": [
+                      {
+                        "startTimeUTC": 1000,
+                        "endTimeUTC": 1000000
+                      }
+                    ]
+                  },
+                  "decodedReshareChain": [
+                    {
+                      "iss": "https://fakeorgc.org/org.json",
+                      "sub": "https://fakeorgb.org/org.json",
+                      "scope": "RESHARE ACCEPT"
+                    }
+                  ],
+                  "offerExpirationUTC": 1660152249000,
+                  "offerCreationUTC": 1660152247000
+                },
+                "reshareScopes": ["RESHARE"]
+              }
+            ]
+          },
+          "expectedResponse": {
+            "offers": [
+              {
+                "id": "fakeid",
+                "description": "Fake item",
+                "contents": {
+                  "id": "fakecontents",
+                  "description": "Some items or somesuch"
+                },
+                "contactInfo": {
+                  "contactName": "Daney Crockett",
+                  "contactEmail": "wildfrontier@citadelofdanas.org"
+                },
+                "offerLocation": {
+                  "locationName": "Davy Crockett Cabin Museum",
+                  "locationAddress": "219 N. Trenton St., Old Hwy. 45 W., Rutherford, TN 38369",
+                  "accessWindows": [
+                    {
+                      "startTimeUTC": 1000,
+                      "endTimeUTC": 1000000
+                    }
+                  ]
+                },
+                "decodedReshareChain": [
+                  {
+                    "iss": "https://fakeorgc.org/org.json",
+                    "sub": "https://fakeorgb.org/org.json",
+                    "scope": "RESHARE ACCEPT"
+                  },
+                  {
+                    "iss": "https://fakeorgb.org/org.json",
+                    "sub": "https://fakeorga.org/org.json",
+                    "scope": "RESHARE"
+                  }
+                ],
+                "offerExpirationUTC": 1660152249000,
+                "offerCreationUTC": 1660152247000
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

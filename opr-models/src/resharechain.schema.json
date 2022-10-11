@@ -1,0 +1,17 @@
+{
+    "$id" : "resharechain.schema.json",
+    "$schema" : "https://json-schema.org/draft/2020-12/schema",
+    "title" : "ReshareChain",
+    "description" : "An offer",
+    "examples" : [
+      [
+        "abc.qrs.xyz",
+        "abc00.qrs01.xyz01"
+      ]
+    ],
+    "type" : "array",
+    "items" : {
+      "type" : "string",
+      "pattern" : "^[\\w-]+\\.[\\w-]+\\.[\\w-]+$"
+    }
+}

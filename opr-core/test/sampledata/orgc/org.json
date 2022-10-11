@@ -1,0 +1,5 @@
+{
+  "name": "Fake Org C",
+  "organizationURL": "https://fakeorgc.org/org.json",
+  "jwksURL": "https://fakeorgc.org/jwks.json"
+}

@@ -1,0 +1,21 @@
+{
+  "$id": "reserve.response.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReserveOfferResponse",
+  "description": "Response to a request to reserve an offer.",
+  "examples": [
+    {
+      "reservationExpirationUTC" : 1660152248000
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "reservationExpirationUTC" : {
+      "$ref" : "timestamp.schema.json"
+    }
+  },
+  "required": [
+    "reservationExpirationUTC"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,4 @@
+{
+  "https://b.example.org(/.*)": "http://localhost:4000$1",
+  "https://a.example.org(/.*)": "http://localhost:4010$1"
+}

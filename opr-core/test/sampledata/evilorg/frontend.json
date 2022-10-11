@@ -1,0 +1,34 @@
+{
+  "name": "Evil Organization",
+  "organizationURL": "https://evilorg.org/org.json",
+  "jwksURL": "/jwks.json",
+  "listProductsMapping": {
+    "frontendPath": "/api/list",
+    "backendURL": "https://backend.evilorg.org/list"
+  },
+  "acceptProductMapping": {
+    "frontendPath": "/api/accept",
+    "backendURL": "https://backend.evilorg.org/accept"
+  },
+  "reserveProductMapping": {
+    "frontendPath": "/api/reserve",
+    "backendURL": "https://backend.evilorg.org/reserve"
+  },
+  "rejectProductMapping": {
+    "frontendPath": "/api/reject",
+    "backendURL": "https://backend.evilorg.org/reject"
+  },
+  "historyMapping": {
+    "frontendPath": "/api/history",
+    "backendURL": "https://backend.evilorg.org/history"
+  },
+  "backendFetcher": {
+    "type": "NOAUTH"
+  },
+  "accessControlList": [
+    "https://fakeorga.org/org.json",
+    "https://fakeorgb.org/org.json",
+    "https://fakeorgc.org/org.json",
+    "https://fakeorgd.org/org.json"
+  ]
+}

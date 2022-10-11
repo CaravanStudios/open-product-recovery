@@ -1,0 +1,11 @@
+{
+  "$id": "accept.response.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AcceptOfferResponse",
+  "description": "Response to a request to accept an offer.",
+  "examples": [
+    {}
+  ],
+  "type": "object",
+  "additionalProperties" : "false"
+}

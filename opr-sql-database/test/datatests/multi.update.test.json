@@ -1,0 +1,126 @@
+{
+  "description": "Tests for a database with a multiple items",
+  "currentOrg": "https://a.example.org/opr/org.json",
+  "listingOrgs": [
+    "https://b.example.org/opr/org.json"
+  ],
+  "tests": [
+    {
+      "description": "Populate and update with snapshot, result as snapshot",
+      "calls": [
+        {
+          "op": "UPDATE",
+          "producerId": "local",
+          "time": 1665081573141,
+          "param": {
+            "offers": [
+              {
+                "id": "beer",
+                "description": "98 bottles of beer on the wall",
+                "contents": {
+                  "id": "xyz",
+                  "description": "Wall of 98 bottles of beer",
+                  "quantity": 1,
+                  "packagingType": "shippingcontainer",
+                  "contents": [
+                    {
+                      "description": "Bottle of beer on the wall",
+                      "expirationTimestampUTC": 1663217495798,
+                      "itemTypeIds": [
+                        {
+                          "itemId": "022100013926",
+                          "vocabularyId": "gtin"
+                        }
+                      ],
+                      "quantity": 98
+                    }
+                  ],
+                  "unitWeight": {
+                    "unit": "pound",
+                    "value": 245
+                  }
+                },
+                "contactInfo": {
+                  "contactName": "Lone Star Dana",
+                  "contactEmail": "cowboyboots@citadelofdanas.org"
+                },
+                "offerLocation": {
+                  "locationName": "The Alamo",
+                  "locationAddress": "300 Alamo Plaza, San Antonio, TX 78205",
+                  "accessWindows": [
+                    {
+                      "startTimeUTC": 1665081570132,
+                      "endTimeUTC": 1665083010132
+                    }
+                  ]
+                },
+                "offeredBy": "https://a.example.org/opr/org.json",
+                "offerExpirationUTC": 1665083010132,
+                "offerCreationUTC": 1665081570132,
+                "offerUpdateUTC": 1665081573141
+              },
+              {
+                "id": "kombucha",
+                "description": "99 bottles of kombucha on the wall",
+                "contents": {
+                  "id": "xyz",
+                  "description": "Wall of 99 bottles of kombucha",
+                  "quantity": 1,
+                  "packagingType": "shippingcontainer",
+                  "contents": [
+                    {
+                      "description": "Bottle of beer on the wall",
+                      "expirationTimestampUTC": 1663217495798,
+                      "itemTypeIds": [
+                        {
+                          "itemId": "022100013926",
+                          "vocabularyId": "gtin"
+                        }
+                      ],
+                      "quantity": 99
+                    }
+                  ],
+                  "unitWeight": {
+                    "unit": "pound",
+                    "value": 247.5
+                  }
+                },
+                "contactInfo": {
+                  "contactName": "Lone Star Dana",
+                  "contactEmail": "cowboyboots@citadelofdanas.org"
+                },
+                "offerLocation": {
+                  "locationName": "The Alamo",
+                  "locationAddress": "300 Alamo Plaza, San Antonio, TX 78205",
+                  "accessWindows": [
+                    {
+                      "startTimeUTC": 1665081573141,
+                      "endTimeUTC": 1665083013141
+                    }
+                  ]
+                },
+                "offeredBy": "https://a.example.org/opr/org.json",
+                "offerExpirationUTC": 1665083013141,
+                "offerCreationUTC": 1665081573141
+              }
+            ],
+            "updateCurrentAsOfTimestampUTC": 1665081573141,
+            "earliestNextRequestUTC": 1665081574141,
+            "sourceOrgUrl": "https://a.example.org/opr/org.json"
+          }
+        },
+        {
+          "op": "LIST",
+          "orgUrl": "https://b.example.org/opr/org.json",
+          "time": 1665081573142,
+          "payload": {
+            "requestedResultFormat": "SNAPSHOT"
+          },
+          "expect": [
+            "expect(offers.length, 'Wrong number of offers').to.equal(2)"
+          ]
+        }
+      ]
+    }
+  ]
+}

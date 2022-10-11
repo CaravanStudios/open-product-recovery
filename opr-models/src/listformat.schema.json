@@ -1,0 +1,11 @@
+{
+  "$id": "listformat.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ListFormat",
+  "description": "Enum of possible formats for responses to the list endpoint",
+  "examples": [
+    "SNAPSHOT",
+    "DIFF"
+  ],
+  "enum" : ["SNAPSHOT", "DIFF"]
+}

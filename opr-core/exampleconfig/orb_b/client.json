@@ -1,0 +1,7 @@
+{
+  "org": "https://b.example.org/opr/org.json",
+  "signer": {
+    "type": "FILE",
+    "path": "privatekey.json"
+  }
+}

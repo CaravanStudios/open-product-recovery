@@ -1,0 +1,13 @@
+{
+  "description": "Bad import",
+  "tests": [
+    {
+      "description": "Import missing file",
+      "calls": [
+        {
+          "$import": "./missingfile.json"
+        }
+      ]
+    }
+  ]
+}

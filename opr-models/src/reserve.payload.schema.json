@@ -1,0 +1,36 @@
+{
+    "$id" : "reserve.payload.schema.json",
+    "$schema" : "https://json-schema.org/draft/2020-12/schema",
+    "title" : "ReserveOfferPayload",
+    "description" : "Payload for a request to reserve an offer.",
+    "examples" : [
+      {
+        "offerId" : "abc"
+      },
+      {
+        "offerId" : "xyz",
+        "reshareChain" : [
+          "a.b.c",
+          "d.e.f"
+        ],
+        "requestedReservationSecs" : 3600
+      }
+    ],
+    "additionalProperties" : false,
+    "properties" : {
+      "offerId" : {
+        "type" : "string"
+      },
+      "reshareChain" : {
+        "$ref": "resharechain.schema.json"
+      },
+      "requestedReservationSecs" : {
+        "$ref": "timestamp.schema.json"
+      }
+    },
+    "required" : [
+      "offerId"
+    ],
+    "type" : "object"
+  }
+  

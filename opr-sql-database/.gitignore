@@ -1,0 +1,14 @@
+# API keys and secrets
+.env
+.gcloud
+
+# Dependency directory
+node_modules
+
+# Ignore built ts files
+dist/**/*
+build/**/*
+
+# IDE Settings
+.vscode/*
+# !.vscode/settings.json # Optional example we could enable if we want to share settings

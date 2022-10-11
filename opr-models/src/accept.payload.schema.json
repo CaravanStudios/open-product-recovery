@@ -1,0 +1,29 @@
+{
+  "$id": "accept.payload.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AcceptOfferPayload",
+  "description": "Payload for a request to accept an offer.",
+  "examples": [
+    {
+      "offerId": "abc"
+    },
+    {
+      "offerId": "xyz",
+      "reshareChain": ["a.b.c", "d.e.f"]
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "offerId": {
+      "type": "string"
+    },
+    "ifNotNewerThanTimestampUTC": {
+      "$ref" : "timestamp.schema.json"
+    },
+    "reshareChain": {
+      "$ref": "resharechain.schema.json"
+    }
+  },
+  "required": ["offerId"],
+  "type": "object"
+}

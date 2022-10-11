@@ -1,0 +1,36 @@
+{
+  "name": "B Organization",
+  "organizationURL": "https://b.example.org/opr/org.json",
+  "orgFilePath": "/opr/org.json",
+  "listProductsMapping": {
+    "frontendPath": "/opr/api/list",
+    "backendURL": "http://localhost:3000/list"
+  },
+  "acceptProductMapping": {
+    "frontendPath": "/opr/api/accept",
+    "backendURL": "http://localhost:3000/accept"
+  },
+  "reserveProductMapping": {
+    "frontendPath": "/opr/api/reserve",
+    "backendURL": "http://localhost:3000/reserve"
+  },
+  "rejectProductMapping": {
+    "frontendPath": "/opr/api/reject",
+    "backendURL": "http://localhost:3000/reject"
+  },
+  "historyMapping": {
+    "frontendPath": "/opr/api/history",
+    "backendURL": "http://localhost:3000/history"
+  },
+  "jwksURL": "/opr/jwks.json",
+  "jwksProvider": {
+    "type": "FILE",
+    "path": "publickeys/"
+  },
+  "backendFetcher": {
+    "type": "NOAUTH"
+  },
+  "whitelist": [
+    "https://a.example.org/opr/org.json"
+  ]
+}

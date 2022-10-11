@@ -1,0 +1,10 @@
+{
+  "name": "Fake Org B",
+  "organizationURL": "https://fakeorgb.org/org.json",
+  "jwksURL": "https://fakeorgb.org/jwks.json",
+  "listProductsEndpointURL": "https://fakeorgb.org/api/list",
+  "acceptProductsEndpointURL": "https://fakeorgb.org/api/accept",
+  "reserveProductsEndpointURL": "https://fakeorgb.org/api/reserve",
+  "rejectProductsEndpointURL": "https://fakeorgb.org/api/reject",
+  "acceptHistoryEndpointURL": "https://fakeorgb.org/api/history"
+}

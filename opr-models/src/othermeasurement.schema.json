@@ -1,0 +1,154 @@
+{
+  "$id": "othermeasurement.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OtherMeasurement",
+  "description": "An absolute measurement of some physical quantity. A measurement is always a combination of a unit, a dimension, and a value. For some measurements, the dimension must be specified explicitly (i.e. a measurement in 'inches' must specify a physical dimension being measured, like 'height'). However, for some measurements the dimension is implied by the unit (i.e. 'count' is always a measure of quantity), so the dimension does not need to be specified explicitly, although it is legal to do so.",
+  "examples": [
+    {
+      "unit": "inch",
+      "dimension": "length",
+      "value": 4
+    },
+    {
+      "unit": "celcius",
+      "dimension": "temperature-min",
+      "value": -3
+    },
+    {
+      "unit": "count",
+      "value": 12
+    }
+  ],
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "const": "count"
+        },
+        "dimension": {
+          "const": "quantity"
+        },
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "unit",
+        "value"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "type": "string",
+          "enum": [
+            "celcius",
+            "farenheit"
+          ]
+        },
+        "dimension": {
+          "type": "string",
+          "enum": [
+            "temperature-max",
+            "temperature-min",
+            "temperature-ideal"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "minimum": -459.67
+        }
+      },
+      "required": [
+        "unit",
+        "dimension",
+        "value"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "type": "string",
+          "enum": [
+            "cubiccentimeter",
+            "cubicfoot",
+            "cubicinch",
+            "cubicmeter",
+            "pallet"
+          ]
+        },
+        "dimension": {
+          "const": "volume"
+        },
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "unit",
+        "value"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "type": "string",
+          "enum": [
+            "fluidounce",
+            "gallon",
+            "liter"
+          ]
+        },
+        "dimension": {
+          "const": "volume-liquid"
+        },
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "unit",
+        "value"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "type": "string",
+          "enum": [
+            "centimeter",
+            "foot",
+            "inch",
+            "meter",
+            "yard"
+          ]
+        },
+        "dimension": {
+          "type": "string",
+          "enum": [
+            "length",
+            "width",
+            "height"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "unit",
+        "dimension",
+        "value"
+      ]
+    }
+  ]
+}
