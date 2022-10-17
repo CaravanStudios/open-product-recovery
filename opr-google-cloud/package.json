@@ -46,6 +46,7 @@
   "dependencies": {
     "@google-cloud/storage": "^6.2.3",
     "google-auth-library": "^8.1.1",
+    "googleapis": "^108.0.0",
     "loglevel": "^1.8.0",
     "node-fetch": "^2.6.7",
     "opr-core": "file:../opr-core",

@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-export * from './auth/cloudstoragejwksprovider';
-export * from './auth/cloudstoragekeysigner';
-export * from './config/cloudstoragefrontendconfigprovider';
-export * from './net/authenticatedjsonfetcher';
-export * from './policy/cloudstoragefeedconfigprovider';
-export * from './policy/cloudstorageserveraccesscontrollist';
-export * from './util/gcs';
-export * from './offerproducer/googlesheetsofferproducer';
-export * from './googlesheets/googlesheetsclient';
-export * from './googlesheets/googlesheetsformat';
-export * from './googlesheets/simplesheetformat';
+import {Offer} from 'opr-models';
+import {GoogleSheetsClient} from './googlesheetsclient';
+
+/**
+ * Interface that defines how a spreadsheet represents a collection of offers.
+ */
+export interface GoogleSheetsFormat {
+  getOffers(reader: GoogleSheetsClient): Promise<Array<Offer>>;
+  writeAccept(reader: GoogleSheetsClient, offerId: string): Promise<void>;
+}
