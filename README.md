@@ -35,23 +35,27 @@ subdirectories to find out more about the libraries in each component.
 
 ### Install deps and build
 
-First, install the node dependencies and run npm build on each package. You can do this manually, but there are dependencies between the packages, so it has to be done in a particular order. The easiest way to install all the dependencies and build the packages is to run:
+First, run lerna bootstrap to install all package dependencies and compile local libraries in the correct order.
 
-```
-./setup.sh
+```console
+npx lerna bootstrap --hoist
 ```
 
-from the root directory.
+NOTE: You can omit the `--hoist` parameter if you plan to use tools that are incompatible with lerna's built in [hoisting](https://lerna.js.org/docs/concepts/hoisting) approach. All off-the-shelf code in this library is compatible with lerna hoisting, and specifying this parameter can greatly improve the performance and disk usage of your local development environment.
 
 ### Run the unit tests
 
 Run
 
-```
-./test.sh
+```console
+npx lerna run test
 ```
 
 from the root directory to run all the unit tests. If you want to run the Postgres tests in opr-sql-database, you need to have a working installation of Postgres and the `initdb`, `postgres` and `psql` commands must be in your `PATH` environment variable. If those commands aren't available, the Postgres tests will be skipped.
+
+### Read the standards
+
+This library is the reference implementation for [the Open Product Recovery standards](opr-standards/README.md). You may want to read the standards docs before you dive into setting up your own server.
 
 ### Start configuring your own OPR server
 

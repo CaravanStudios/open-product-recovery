@@ -3,11 +3,11 @@
 .gcloud
 
 # Dependency directory
-node_modules
+**/node_modules
 
 # Ignore built ts files
-dist/**/*
-build/**/*
+**/dist/**/*
+**/build/**/*
 
 # IDE Settings
 .vscode/*

@@ -13,15 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Build model code
-echo Cleaning models...
-cd opr-models
-rm -r -f build
-rm -r -f node_modules
-cd ..
-echo Cleaning core...
-cd opr-core
-rm -r -f build
-rm -r -f node_modules
-cd ..
-echo Projects cleaned
+rm -rf node_modules
+rm -f package-lock.json
+rm -rf opr-*/build
+rm -rf opr-*/node_modules
+rm -f opr-*/package-lock.json

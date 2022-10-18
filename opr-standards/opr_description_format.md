@@ -2,37 +2,37 @@
 
 This defines a standard JSON format for describing food (or other consumer products) that is available for transfer between organizations. This design doc does not specify how this standard format should be used, but it was designed as the primary datamodel for the transfer protocol described in Design Doc Proposal - The Open Product Recovery Transfer API.
 
-- **Version:** `.9.0.1`
+- **Version:** `0.5.0`
 - **Last Updated:** October 10, 2022
 - **Drafted by:** John Richter & Mike Ryckman
 - **Initial draft:** May 18, 2022
 
 # Table of Contents <!-- omit in toc -->
 
-- [The Open Product Recovery Description Format](#the-open-product-recovery-description-format)
-- [1. Background](#1-background)
-- [2. Concepts](#2-concepts)
-  - [2.1. Offer](#21-offer)
-  - [2.2. Product](#22-product)
-  - [2.3. ProductBundle](#23-productbundle)
-- [3. Datamodels](#3-datamodels)
-  - [3.1. Basic Types](#31-basic-types)
-    - [3.1.1. PlaintextDescription](#311-plaintextdescription)
-    - [3.1.2. TypeIdentifier](#312-typeidentifier)
-      - [3.1.2.1. Vocabulary Aliases](#3121-vocabulary-aliases)
-    - [3.1.3. Measurement](#313-measurement)
-      - [3.1.3.1. Supported Units and Dimensions](#3131-supported-units-and-dimensions)
-    - [3.1.4. PackagingType](#314-packagingtype)
-    - [3.1.5. Transportation Details](#315-transportation-details)
-    - [3.1.6. Price](#316-price)
-  - [3.2. Product](#32-product)
-  - [3.3. ProductBundle](#33-productbundle)
-  - [3.4. Offer](#34-offer)
-    - [3.4.1. OfferContact](#341-offercontact)
-    - [3.4.2. OfferLocation](#342-offerlocation)
-    - [3.4.3. LatLong](#343-latlong)
-    - [3.4.4. AccessWindow](#344-accesswindow)
-- [4.1. Frequently Asked Questions](#41-frequently-asked-questions)
+* [The Open Product Recovery Description Format](#the-open-product-recovery-description-format)
+* [1. Background](#1-background)
+* [2. Concepts](#2-concepts)
+  * [2.1. Offer](#21-offer)
+  * [2.2. Product](#22-product)
+  * [2.3. ProductBundle](#23-productbundle)
+* [3. Datamodels](#3-datamodels)
+  * [3.1. Basic Types](#31-basic-types)
+    * [3.1.1. PlaintextDescription](#311-plaintextdescription)
+    * [3.1.2. TypeIdentifier](#312-typeidentifier)
+      * [3.1.2.1. Vocabulary Aliases](#3121-vocabulary-aliases)
+    * [3.1.3. Measurement](#313-measurement)
+      * [3.1.3.1. Supported Units and Dimensions](#3131-supported-units-and-dimensions)
+    * [3.1.4. PackagingType](#314-packagingtype)
+    * [3.1.5. Transportation Details](#315-transportation-details)
+    * [3.1.6. Price](#316-price)
+  * [3.2. Product](#32-product)
+  * [3.3. ProductBundle](#33-productbundle)
+  * [3.4. Offer](#34-offer)
+    * [3.4.1. OfferContact](#341-offercontact)
+    * [3.4.2. OfferLocation](#342-offerlocation)
+    * [3.4.3. LatLong](#343-latlong)
+    * [3.4.4. AccessWindow](#344-accesswindow)
+* [4.1. Frequently Asked Questions](#41-frequently-asked-questions)
 
 # 1. Background
 

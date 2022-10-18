@@ -1,7 +1,7 @@
 {
   "name": "opr-models",
-  "version": "1.0.0",
-  "description": "Datamodels and schemas for OPR",
+  "version": "0.5.0",
+  "description": "Datamodels and schemas for Open Product Recovery",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "files": [
@@ -10,10 +10,10 @@
   "scripts": {
     "build": "npm run gentypes && tsc -p .",
     "test": "mocha -r ts-node/register -R spec 'test/**/*.spec.ts'",
-    "lint": "gts lint",
-    "clean": "gts clean",
+    "lint": "eslint",
+    "clean": "rm -rf build",
     "compile": "tsc",
-    "fix": "gts fix",
+    "fix": "eslint --fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile && npm run lint",
     "compileschema": "node --nolazy -r ts-node/register build-tools/compileschema.ts",
@@ -22,7 +22,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "sso://foodforgood/opr-unified"
+    "url": "https://github.com/google/open-product-recovery.git",
+    "directory": "opr-models"
+  },
+  "publishConfig": {
+    "registry": "https://wombat-dressing-room.appspot.com/opr-models/_ns"
   },
   "author": "Google Food For Good <foodforgood-support-external@google.com>",
   "license": "Apache-2.0",
@@ -39,7 +43,6 @@
     "commander": "^9.4.0",
     "glob": "^8.0.3",
     "glob-promise": "^5.0.0",
-    "gts": "^3.1.1",
     "json-refs": "^3.0.15",
     "json-schema-to-typescript": "^11.0.2",
     "mocha": "^10.0.0",
