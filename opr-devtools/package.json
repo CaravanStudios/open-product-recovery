@@ -1,6 +1,6 @@
 {
   "name": "opr-devtools",
-  "version": "0.5.1",
+  "version": "0.5.0",
   "description": "Open Product Recovery Development Tools",
   "main": "build/index.js",
   "types": "build/index.d.ts",
