@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
+  "packages" : [
+    ".",
+    "opr-devtools",
+    "opr-models",
+    "opr-core",
+    "opr-sql-database",
+    "opr-google-cloud",
+    "opr-example-server"
+  ],
+  "version": "0.0.0"
+}

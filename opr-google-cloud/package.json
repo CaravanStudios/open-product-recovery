@@ -1,7 +1,7 @@
 {
   "name": "opr-google-cloud",
-  "version": "1.0.0",
-  "description": "Google Cloud OPR Implementations",
+  "version": "0.5.0",
+  "description": "Google Cloud Open Product Recovery Implementations",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "files": [
@@ -12,16 +12,20 @@
     "build": "tsc -p .",
     "watch": "tsc -w -p .",
     "test": "echo No tests yet",
-    "lint": "gts lint",
-    "clean": "gts clean",
+    "lint": "eslint",
+    "clean": "rm -rf build",
     "compile": "tsc",
-    "fix": "gts fix",
+    "fix": "eslint --fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile && npm run lint"
   },
   "repository": {
     "type": "git",
-    "url": "sso://foodforgood/opr-unified"
+    "url": "https://github.com/google/open-product-recovery.git",
+    "directory": "opr-google-cloud"
+  },
+  "publishConfig": {
+    "registry": "https://wombat-dressing-room.appspot.com/opr-google-cloud/_ns"
   },
   "author": "Google Food For Good <foodforgood-support-external@google.com>",
   "license": "Apache-2.0",
@@ -35,7 +39,6 @@
     "chai-as-promised": "^7.1.1",
     "glob": "^8.0.3",
     "glob-promise": "^5.0.0",
-    "gts": "^3.1.1",
     "json-refs": "^3.0.15",
     "mocha": "^10.0.0",
     "nodemon": "^2.0.19",
@@ -49,8 +52,8 @@
     "googleapis": "^108.0.0",
     "loglevel": "^1.8.0",
     "node-fetch": "^2.6.7",
-    "opr-core": "file:../opr-core",
-    "opr-models": "file:../opr-models"
+    "opr-core": "*",
+    "opr-models": "*"
   },
   "engines": {
     "node": ">=12.0.0"

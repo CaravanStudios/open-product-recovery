@@ -2,7 +2,7 @@
 
 An open protocol for exchanging and accepting recovered products.
 
-* **Version**: `.9.0.1`
+* **Version**: `0.5.0`
 * **Last Updated**: October 10, 2022
 * **Drafted by**: John Richter & Mike Ryckman
 * **Initial draft**: May 18, 2022
