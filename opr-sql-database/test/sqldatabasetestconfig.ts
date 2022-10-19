@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
+import {expect, config} from 'chai';
 import {
   diff,
   FakeClock,
@@ -38,6 +38,9 @@ import {
 import {DecodedReshareChain, ListOffersPayload} from 'opr-models';
 import {DataSourceOptions, SqlOprDatabase} from '../src/sqloprdatabase';
 import {examples} from 'opr-models';
+
+// Show the entire mismatched object on error.
+config.truncateThreshold = 0;
 
 interface SqlTestObjects {
   readonly clock: FakeClock;
@@ -170,7 +173,9 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
         if (expectDiff) {
           expect(listResult.diff, 'Expected diff, but no diff in response').to
             .not.be.undefined;
-          expect(listResult.diff).to.deep.equal(expectDiff);
+          expect(listResult.diff, 'Unexpected diff contents').to.deep.equal(
+            expectDiff
+          );
         }
         resultInfo.result = listResult;
         resultInfo.offers = offers;
