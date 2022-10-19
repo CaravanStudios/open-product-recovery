@@ -25,3 +25,4 @@ export * from './offerproducer/googlesheetsofferproducer';
 export * from './googlesheets/googlesheetsclient';
 export * from './googlesheets/googlesheetsformat';
 export * from './googlesheets/simplesheetformat';
+export * from './server/iamcustomendpointwrapper';
