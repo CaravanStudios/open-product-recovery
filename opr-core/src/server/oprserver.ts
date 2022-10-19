@@ -47,6 +47,8 @@ import {OprFeedProducer} from '../offerproducer/oprfeedproducer';
 import {ServerAccessControlList} from '../policy/serveraccesscontrollist';
 import {FeedConfig, FeedConfigProvider} from '../policy/feedconfig';
 import {OfferProducer, OfferSetUpdate} from '../offerproducer/offerproducer';
+import {CustomRequestHandler} from './customrequesthandler';
+import {getBearerToken} from '../auth/getbearertoken';
 
 const DEFAULT_RESERVATION_TIME_SECS = 5 * 60;
 
@@ -66,7 +68,16 @@ export interface OprServerOptions {
   feedConfigProvider?: FeedConfigProvider;
   producers?: Array<OfferProducer>;
   verifier?: Verifier;
+  /** Any custom handlers to install for user-specified behavior. */
+  customHandlers?: Record<string, CustomRequestHandler>;
+  /**
+   * Custom startup routines run after all built-in and custom handlers are
+   * installed, but before the server actually begins listening for connections.
+   */
+  customStartupRoutines?: Array<CustomStartupRoutine>;
 }
+
+export type CustomStartupRoutine = (app: Express) => Promise<void>;
 
 export class OprServer {
   readonly app: Express;
@@ -88,6 +99,8 @@ export class OprServer {
   private offerProducers: Array<OfferProducer>;
   private client?: OprClient;
   private feedConfigProvider?: FeedConfigProvider;
+  private customHandlers: Record<string, CustomRequestHandler>;
+  private customStartupRoutines: Array<CustomStartupRoutine>;
 
   constructor(options: OprServerOptions) {
     this.frontendConfig = options.frontendConfig;
@@ -137,6 +150,8 @@ export class OprServer {
     this.feedConfigProvider = options.feedConfigProvider;
     this.strictCorrectnessChecks = options.strictCorrectnessChecks || false;
     this.offerProducers = options.producers ?? [];
+    this.customHandlers = options.customHandlers || {};
+    this.customStartupRoutines = options.customStartupRoutines || [];
   }
 
   start(port: number): Promise<void> {
@@ -288,11 +303,39 @@ export class OprServer {
     return 10 * 1000 /* 10 seconds */;
   }
 
+  private serveCustomEndpoints() {
+    for (const key in this.customHandlers) {
+      const handler = this.customHandlers[key];
+      const expressHandler = async (req: Request, res: Response) => {
+        console.log('Calling express handler');
+        res.json(await handler.handle(req.body as unknown, req));
+      };
+      const path = key.startsWith('/') ? key : '/' + key;
+      const methods = Array.isArray(handler.method)
+        ? handler.method
+        : handler.method ?? 'POST';
+      if (methods.indexOf('GET') >= 0) {
+        this.app.get(path, expressHandler);
+      }
+      if (methods.indexOf('POST') >= 0) {
+        this.app.post(path, expressHandler);
+      }
+    }
+  }
+
+  private async doCustomStartup(): Promise<void> {
+    for (const customStartupRoutine of this.customStartupRoutines) {
+      await customStartupRoutine(this.app);
+    }
+  }
+
   private async initializeServer() {
     this.app.use(expressJson());
     this.serveOrgFile();
     this.maybeServeJwks();
     this.serveApiEndpoints();
+    this.serveCustomEndpoints();
+    await this.doCustomStartup();
     this.app.use(
       // NOTE: This handler must be registered last, and it MUST have the
       // unused 'next' parameter as its last argument.
@@ -392,30 +435,7 @@ export class OprServer {
     options?: JWTVerifyOptions
   ): Promise<JWTPayload> {
     options = {...options, currentDate: new Date(this.clock.now())};
-    const authHeader = req.header('Authorization');
-    if (!authHeader) {
-      throw new StatusError(
-        'No authorization header specified',
-        'NO_AUTH_HEADER',
-        401
-      );
-    }
-    const authHeaderParts = authHeader.split(' ');
-    if (authHeaderParts.length !== 2) {
-      throw new StatusError(
-        'Badly formed auth header: ' + authHeader,
-        'BAD_AUTH_HEADER',
-        401
-      );
-    }
-    if (authHeaderParts[0] !== 'Bearer') {
-      throw new StatusError(
-        'Auth header requires Bearer <token> format',
-        'AUTH_HEADER_NO_BEARER_PREFIX',
-        401
-      );
-    }
-    const token = authHeaderParts[1];
+    const token = getBearerToken(req.header('Authorization'));
     const payload = (await this.verifier.verify(token, options)).payload;
     return payload;
   }
