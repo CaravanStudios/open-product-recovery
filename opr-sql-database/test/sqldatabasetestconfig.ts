@@ -143,6 +143,7 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
     });
     const op = context.propAsString('op').req();
     const resultInfo = {} as Record<string, unknown>;
+    resultInfo.changes = changes;
     switch (op) {
       case 'UPDATE': {
         const producerId = context.propAsString('producerId').req();

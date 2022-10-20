@@ -160,12 +160,47 @@
           "payload": {
             "requestedResultFormat": "SNAPSHOT"
           },
-          "time" : 6,
+          "time": 6,
           "expect": [
             "expect(offers.length, 'Wrong number of offers').to.equal(1)",
             "expect(offerSet['https://citadelofdanas.org/org.json#abc']).to.be.not.undefined",
             "expect(offerSet['https://citadelofdanas.org/org.json#abc'].description).to.equal('The most fakest offer')"
           ]
+        }
+      ]
+    },
+    {
+      "description": "Should not fire update if snapshot is constant",
+      "calls": [
+        {
+          "op": "UPDATE",
+          "producerId": "https://citadelofdanas.org/org.json",
+          "param": {
+            "sourceOrgUrl": "https://citadelofdanas.org/org.json",
+            "offers": [
+              {
+                "$model": "SimpleOffer"
+              }
+            ],
+            "updateCurrentAsOfTimestampUTC": 0,
+            "earliestNextRequestUTC": 1000
+          },
+          "expect" : "expect(changes.length).to.equal(1)"
+        },
+        {
+          "op": "UPDATE",
+          "producerId": "https://citadelofdanas.org/org.json",
+          "param": {
+            "sourceOrgUrl": "https://citadelofdanas.org/org.json",
+            "offers": [
+              {
+                "$model": "SimpleOffer"
+              }
+            ],
+            "updateCurrentAsOfTimestampUTC": 0,
+            "earliestNextRequestUTC": 1000
+          },
+          "expect" : "expect(changes.length).to.equal(0)"
         }
       ]
     }
