@@ -393,6 +393,42 @@ export class SqlOprDatabase implements OprDatabase {
     }
   }
 
+  getAllOffers(): Promise<Array<Offer>> {
+    return this.runInTransaction(async em => {
+      return (await this.getAllSnapshots(em)).map(s => s.offer);
+    });
+  }
+
+  private async getAllSnapshots(
+    entityManager: EntityManager,
+    now = this.clock.now()
+  ): Promise<Array<OfferSnapshot>> {
+    const liveSnapshotsQuery = entityManager
+      .getRepository(OfferSnapshot)
+      .createQueryBuilder('snapshots')
+      .leftJoinAndSelect('snapshots.corpusOffers', 'corpusOffers')
+      .innerJoin(
+        qb => {
+          return qb
+            .select('offers.snapshot.offerId', 'offerId')
+            .from(FeedCorpusOffer, 'offers')
+            .addSelect('offers.snapshot.postingOrgUrl', 'postingOrgUrl')
+            .addSelect('MAX(offers.snapshot.lastUpdateUTC)', 'maxTimeUTC')
+            .innerJoin('offers.snapshot', 'snapshot')
+            .innerJoin('offers.corpus', 'corpus', 'corpus.isLatest = true')
+            .where('snapshot.expirationUTC > :now', {now: now})
+            .groupBy('offers.snapshot.offerId')
+            .addGroupBy('offers.snapshot.postingOrgUrl');
+        },
+        'currentSnapshots',
+        'snapshots.offerId = "currentSnapshots"."offerId" AND ' +
+          'snapshots.postingOrgUrl = "currentSnapshots"."postingOrgUrl" AND ' +
+          'snapshots.lastUpdateUTC = "currentSnapshots"."maxTimeUTC"'
+      );
+
+    return await liveSnapshotsQuery.getMany();
+  }
+
   /**
    * A helper method for process update that is guaranteed to be called inside
    * a transaction. If this method throws an error, the error will be caught
@@ -480,30 +516,7 @@ export class SqlOprDatabase implements OprDatabase {
     await entityManager.save(snapshots);
     await entityManager.save(corpusEntries);
     // Get all the current snapshots
-    const liveSnapshotsQuery = entityManager
-      .getRepository(OfferSnapshot)
-      .createQueryBuilder('snapshots')
-      .leftJoinAndSelect('snapshots.corpusOffers', 'corpusOffers')
-      .innerJoin(
-        qb => {
-          return qb
-            .select('offers.snapshot.offerId', 'offerId')
-            .from(FeedCorpusOffer, 'offers')
-            .addSelect('offers.snapshot.postingOrgUrl', 'postingOrgUrl')
-            .addSelect('MAX(offers.snapshot.lastUpdateUTC)', 'maxTimeUTC')
-            .innerJoin('offers.snapshot', 'snapshot')
-            .innerJoin('offers.corpus', 'corpus', 'corpus.isLatest = true')
-            .where('snapshot.expirationUTC > :now', {now: now})
-            .groupBy('offers.snapshot.offerId')
-            .addGroupBy('offers.snapshot.postingOrgUrl');
-        },
-        'currentSnapshots',
-        'snapshots.offerId = "currentSnapshots"."offerId" AND ' +
-          'snapshots.postingOrgUrl = "currentSnapshots"."postingOrgUrl" AND ' +
-          'snapshots.lastUpdateUTC = "currentSnapshots"."maxTimeUTC"'
-      );
-
-    const liveSnapshots = await liveSnapshotsQuery.getMany();
+    const liveSnapshots = await this.getAllSnapshots(entityManager, now);
     this.logger.debug('liveSnapshots', liveSnapshots);
     const changes = new Array<OfferChange>();
     for (const snapshot of liveSnapshots) {

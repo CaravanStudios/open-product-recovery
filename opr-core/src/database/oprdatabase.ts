@@ -19,6 +19,7 @@ import {
   DecodedReshareChain,
   ListOffersPayload,
   ListOffersResponse,
+  Offer,
   OfferHistory,
 } from 'opr-models';
 import {OfferSetUpdate} from '../coreapi';
@@ -56,4 +57,5 @@ export interface OprDatabase {
   registerChangeHandler(
     handlerFn: (change: OfferChange) => Promise<void>
   ): HandlerRegistration;
+  getAllOffers(): Promise<Array<Offer>>;
 }

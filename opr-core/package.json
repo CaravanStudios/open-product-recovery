@@ -36,6 +36,7 @@
     "@types/node": "^14.11.2",
     "@types/node-fetch": "^2.6.2",
     "@types/pem-jwk": "^2.0.0",
+    "@types/random-seed": "^0.3.3",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "glob": "^8.0.3",
@@ -59,6 +60,7 @@
     "node-fetch": "^2.6.7",
     "opr-models": "^0.5.2",
     "pem-jwk": "^2.0.0",
+    "random-seed": "^0.3.0",
     "yargs": "^17.5.1"
   },
   "engines": {

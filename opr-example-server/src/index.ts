@@ -28,10 +28,10 @@ import {
   StaticFeedConfigProvider,
   UniversalAcceptListingPolicy,
   StaticServerAccessControlList,
+  FakeOfferProducer,
 } from 'opr-core';
 log.setLevel('WARN');
 import {PostgresTestingLauncher, SqlOprDatabase} from 'opr-sql-database';
-import {FakeOfferProducer} from './fakeoffers';
 
 // We need a main method because we want to use the "await" keyword,
 // and it's not allowed in top-level script code. But we can declare an
@@ -73,10 +73,6 @@ async function main() {
     reserveProductPath: '/api/list',
     historyPath: '/api/list',
   };
-
-  // We create a fake offer producer. Replace this with an offer producer that
-  // reads from your inventory system to publish new offers.
-  const offerProducer = new FakeOfferProducer(frontendConfig.organizationURL);
 
   // Create an access control list that allows us to control which organizations
   // can talk to this server.
@@ -142,8 +138,21 @@ async function main() {
   database.registerChangeHandler(async change => {
     log.warn(
       'New database contents',
-      await database.list('https://opr.otherexamplehost.org/org.json', {})
+      JSON.stringify(
+        await database.list('https://opr.otherexamplehost.org/org.json', {}),
+        null,
+        2
+      )
     );
+  });
+
+  // We create a fake offer producer. Replace this with an offer producer that
+  // reads from your inventory system to publish new offers.
+  const offerProducer = new FakeOfferProducer({
+    sourceOrgUrl: frontendConfig.organizationURL,
+    database: database,
+    updateFrequencyMillis: 3000,
+    newItemFrequencyMillis: 10000
   });
 
   // Now we have all the pieces to start our server.
@@ -163,6 +172,7 @@ async function main() {
   // Make a request to ingest new offers every 3 seconds.
   setInterval(async () => {
     try {
+      console.log('Ingesting');
       await s.ingest();
     } catch (e) {
       console.log('Ingestion failed', e);
