@@ -307,7 +307,7 @@ export class OprServer {
     for (const key in this.customHandlers) {
       const handler = this.customHandlers[key];
       const expressHandler = async (req: Request, res: Response) => {
-        console.log('Calling express handler');
+        this.logger.info('Called custom handler', key);
         res.json(await handler.handle(req.body as unknown, req));
       };
       const path = key.startsWith('/') ? key : '/' + key;

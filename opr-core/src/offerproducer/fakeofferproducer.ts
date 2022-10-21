@@ -135,13 +135,6 @@ export class FakeOfferProducer implements OfferProducer {
     const newestOffer = offers[offers.length - 1];
     const newestOfferTime =
       newestOffer.offerUpdateUTC ?? newestOffer.offerCreationUTC;
-    console.log(
-      now - newestOfferTime,
-      'ms since last update. newItemFreq',
-      this.newItemFrequencyMillis,
-      'updateFreq',
-      this.updateFrequencyMillis
-    );
     // If newItemFrequencyMillis has elapsed since the last time we created or
     // updated an offer, create a new offer.
     if (now - newestOfferTime > this.newItemFrequencyMillis) {
