@@ -45,7 +45,7 @@ import {
   DecodedReshareChain,
   AcceptOfferResponse,
 } from 'opr-models';
-import {DataSource, DataSourceOptions, EntityManager} from 'typeorm';
+import {Brackets, DataSource, DataSourceOptions, EntityManager} from 'typeorm';
 export {DataSourceOptions} from 'typeorm';
 import {OfferSnapshot} from './model/offersnapshot';
 import {TimelineEntry} from './model/timelineentry';
@@ -286,14 +286,24 @@ export class SqlOprDatabase implements OprDatabase {
       .leftJoinAndSelect('timelineentry.offer', 'offer')
       .where('timelineentry.startTimeUTC <= :time')
       .andWhere('timelineentry.endTimeUTC > :time')
-      .andWhere('timelineentry.targetOrganizationUrl = :org')
+      .andWhere(
+        new Brackets(qb => {
+          qb.where('timelineentry.targetOrganizationUrl = :org').orWhere(
+            'timelineentry.targetOrganizationUrl = :wildcard'
+          );
+        })
+      )
       .andWhere('timelineentry.isRejection = :isRejection')
       .orderBy('timelineentry.offer.lastUpdateUTC', 'ASC')
       .addOrderBy('timelineentry.offer.offerId', 'ASC')
+      // A descending sort on org url length ensures that wildcard entries
+      // occur last.
+      .addOrderBy('LENGTH(timelineentry.targetOrganizationUrl)', 'DESC')
       .setParameters({
         time: time,
         org: orgUrl,
         isRejection: false,
+        wildcard: '*',
       });
 
     const timelineEntries = await timelineEntryQuery.getMany();
@@ -305,11 +315,24 @@ export class SqlOprDatabase implements OprDatabase {
       ':',
       timelineEntries
     );
-    return timelineEntries.map(entry => {
-      const offer = entry.offer.offer;
-      offer.reshareChain = entry.reshareChain || undefined;
-      return offer;
-    });
+    const alreadySeenOfferIds = new Set<string>();
+    const offers = [];
+    for (const timelineEntry of timelineEntries) {
+      const offer = timelineEntry.offer.offer;
+      const fullId = getFullOfferId(offer);
+      // The same offer may appear in the list twice if it is explicitly listed
+      // for the current organization and the wildcard organization. If we see
+      // an org id more than once, we only retain the first listing.
+      if (alreadySeenOfferIds.has(fullId)) {
+        continue;
+      }
+      alreadySeenOfferIds.add(fullId);
+      if (timelineEntry.reshareChain) {
+        offer.reshareChain = timelineEntry.reshareChain;
+      }
+      offers.push(offer);
+    }
+    return offers;
   }
 
   /**
@@ -333,16 +356,26 @@ export class SqlOprDatabase implements OprDatabase {
       .andWhere('timelineentry.endTimeUTC > :time')
       .andWhere('timelineentry.offer.offerId = :offerId')
       .andWhere('timelineentry.offer.postingOrgUrl = :postingOrgUrl')
-      .andWhere('timelineentry.targetOrganizationUrl = :org')
+      .andWhere(
+        new Brackets(qb => {
+          qb.where('timelineentry.targetOrganizationUrl = :org').orWhere(
+            'timelineentry.targetOrganizationUrl = :wildcard'
+          );
+        })
+      )
       .andWhere('timelineentry.isRejection = :isRejection')
       .orderBy('timelineentry.offer.lastUpdateUTC', 'ASC')
       .addOrderBy('timelineentry.offer.offerId', 'ASC')
+      // A descending sort on org url length ensures that wildcard entries
+      // occur last.
+      .addOrderBy('LENGTH(timelineentry.targetOrganizationUrl)', 'DESC')
       .setParameters({
         time: time,
         org: requestingOrgUrl,
         offerId: offerId,
         postingOrgUrl: postingOrgUrl,
         isRejection: false,
+        wildcard: '*',
       });
 
     return (await timelineEntryQuery.getOne()) || undefined;

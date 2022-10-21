@@ -1,0 +1,74 @@
+{
+  "description": "Tests for wildcard queries",
+  "currentOrg": "https://citadelofdanas.org/org.json",
+  "listingOrgs": [
+    "https://fakeorgb.org/org.json",
+    "*"
+  ],
+  "tests": [
+    {
+      "description": "Should not have duplicates if an org has both explicit and wildcard listing",
+      "time": 1,
+      "calls": [
+        {
+          "op": "UPDATE",
+          "producerId": "https://citadelofdanas.org/org.json",
+          "param": {
+            "sourceOrgUrl": "https://citadelofdanas.org/org.json",
+            "offers": [
+              {
+                "$model": "SimpleOffer"
+              }
+            ],
+            "updateCurrentAsOfTimestampUTC": 0,
+            "earliestNextRequestUTC": 1000
+          }
+        },
+        {
+          "op": "LIST",
+          "orgUrl": "https://fakeorgb.org/org.json",
+          "payload": {
+            "requestedResultFormat": "SNAPSHOT"
+          },
+          "expect": [
+            "expect(offers.length, 'Wrong number of offers').to.equal(1)",
+            "expect(offerSet['https://citadelofdanas.org/org.json#abc']).to.be.not.undefined",
+            "expect(offerSet['https://citadelofdanas.org/org.json#abc'].description).to.equal('A fake offer')"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Should return results for an unknown org with wildcard listing",
+      "time": 1,
+      "calls": [
+        {
+          "op": "UPDATE",
+          "producerId": "https://citadelofdanas.org/org.json",
+          "param": {
+            "sourceOrgUrl": "https://citadelofdanas.org/org.json",
+            "offers": [
+              {
+                "$model": "SimpleOffer"
+              }
+            ],
+            "updateCurrentAsOfTimestampUTC": 0,
+            "earliestNextRequestUTC": 1000
+          }
+        },
+        {
+          "op": "LIST",
+          "orgUrl": "https://fakeorgzzz.org/org.json",
+          "payload": {
+            "requestedResultFormat": "SNAPSHOT"
+          },
+          "expect": [
+            "expect(offers.length, 'Wrong number of offers').to.equal(1)",
+            "expect(offerSet['https://citadelofdanas.org/org.json#abc']).to.be.not.undefined",
+            "expect(offerSet['https://citadelofdanas.org/org.json#abc'].description).to.equal('A fake offer')"
+          ]
+        }
+      ]
+    }
+  ]
+}
