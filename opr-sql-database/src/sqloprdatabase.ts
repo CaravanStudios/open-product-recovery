@@ -539,11 +539,21 @@ export class SqlOprDatabase implements OprDatabase {
       if (newOfferUpdateTime !== snapshot.lastUpdateUTC) {
         continue;
       }
+      const oldOffer = oldOfferMap[fullOfferId];
+      if (oldOffer) {
+        const oldOfferUpdateTime =
+          oldOffer.offerUpdateUTC || oldOffer.offerCreationUTC;
+        // Check to see if the new offer update time is the same as the old
+        // offer update time. If it is, this offer was mentioned in the latest
+        // corpus update, but nothing has changed. We should skip this offer.
+        if (oldOfferUpdateTime === newOfferUpdateTime) {
+          continue;
+        }
+      }
       // At this point, we're sure this offer has been updated. Update the
       // listings for this offer.
       await this.updateListingsWithTransaction(entityManager, snapshot, now);
       // Record a change notification
-      const oldOffer = oldOfferMap[fullOfferId];
       if (oldOffer) {
         changes.push({
           type: 'UPDATE',
