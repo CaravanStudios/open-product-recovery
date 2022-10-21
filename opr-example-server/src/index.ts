@@ -28,10 +28,12 @@ import {
   StaticFeedConfigProvider,
   UniversalAcceptListingPolicy,
   StaticServerAccessControlList,
+  FakeOfferProducer,
+  OfferChange,
+  CustomRequestHandler,
 } from 'opr-core';
 log.setLevel('WARN');
 import {PostgresTestingLauncher, SqlOprDatabase} from 'opr-sql-database';
-import {FakeOfferProducer} from './fakeoffers';
 
 // We need a main method because we want to use the "await" keyword,
 // and it's not allowed in top-level script code. But we can declare an
@@ -73,10 +75,6 @@ async function main() {
     reserveProductPath: '/api/list',
     historyPath: '/api/list',
   };
-
-  // We create a fake offer producer. Replace this with an offer producer that
-  // reads from your inventory system to publish new offers.
-  const offerProducer = new FakeOfferProducer(frontendConfig.organizationURL);
 
   // Create an access control list that allows us to control which organizations
   // can talk to this server.
@@ -139,12 +137,46 @@ async function main() {
     hostOrgUrl: frontendConfig.organizationURL,
     enableInternalChecks: true,
   });
-  database.registerChangeHandler(async change => {
-    log.warn(
-      'New database contents',
-      await database.list('https://opr.otherexamplehost.org/org.json', {})
-    );
+
+  // We create a fake offer producer. Replace this with an offer producer that
+  // reads from your inventory system to publish new offers.
+  const offerProducer = new FakeOfferProducer({
+    sourceOrgUrl: frontendConfig.organizationURL,
+    database: database,
+    updateFrequencyMillis: 3000,
+    newItemFrequencyMillis: 10000,
   });
+
+  // Create a custom endpoint that will call server.ingest() to pull in any
+  // new offers, and return any changes that occurred.
+  // NOTE: For a real server, you probably want to require some authentication
+  // to call this endpoint. Otherwise bad guys might hammer your server with
+  // ingest() requests.
+  const ingestEndpoint = {
+    method: ['GET', 'POST'],
+    handle: async () => {
+      const changes = [] as Array<OfferChange>;
+      const changeHandler = database.registerChangeHandler(async change => {
+        changes.push(change);
+      });
+      await s.ingest();
+      changeHandler.remove();
+      return changes;
+    },
+  } as CustomRequestHandler;
+
+  // Create a custom debug endpoint that will return the list of ALL offers on
+  // this server.
+  // ADD AUTHENTICATION TO AN ENDPOINT LIKE THIS! This is exposing all offers
+  // on your server to anyone that calls this endpoint. For a real server,
+  // only admins and developers should be able to see this information.
+  // Organizations should only see offers that are listed for them.
+  const allOffersEndpoint = {
+    method: ['GET', 'POST'],
+    handle: async () => {
+      return await database.getAllOffers();
+    },
+  } as CustomRequestHandler;
 
   // Now we have all the pieces to start our server.
   const s = new OprServer({
@@ -157,16 +189,11 @@ async function main() {
     accessControlList: accessControlList,
     feedConfigProvider: feedConfigProvider,
     producers: [offerProducer],
+    customHandlers: {
+      ingest: ingestEndpoint,
+      allOffers: allOffersEndpoint,
+    },
   });
   s.start(5000);
-
-  // Make a request to ingest new offers every 3 seconds.
-  setInterval(async () => {
-    try {
-      await s.ingest();
-    } catch (e) {
-      console.log('Ingestion failed', e);
-    }
-  }, 3 * 1000);
 }
 main();
