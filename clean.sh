@@ -14,7 +14,9 @@
 # limitations under the License.
 
 rm -rf node_modules
-rm -f package-lock.json
 rm -rf opr-*/build
 rm -rf opr-*/node_modules
-rm -f opr-*/package-lock.json
+if [ "--keep-package-lock" != "$1" ]; then
+  rm -f opr-*/package-lock.json
+  rm -f package-lock.json
+fi
