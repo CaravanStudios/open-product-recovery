@@ -55,7 +55,8 @@ const argv = yargs(process.argv.slice(2))
     alias: 's',
   })
   .help('h')
-  .alias('h', 'help').argv;
+  .alias('h', 'help')
+  .parseSync();
 
 async function main() {
   const options = {
