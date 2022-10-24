@@ -1,6 +1,6 @@
 {
   "name": "opr-core",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Open Product Recovery Core Libraries",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -58,7 +58,7 @@
     "jose": "^4.9.2",
     "loglevel": "^1.8.0",
     "node-fetch": "^2.6.7",
-    "opr-models": "^0.5.2",
+    "opr-models": "^0.5.3",
     "pem-jwk": "^2.0.0",
     "random-seed": "^0.3.0",
     "yargs": "^17.6.0"
