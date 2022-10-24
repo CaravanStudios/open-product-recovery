@@ -38,10 +38,8 @@ subdirectories to find out more about the libraries in each component.
 First, run lerna bootstrap to install all package dependencies and compile local libraries in the correct order.
 
 ```console
-npx lerna bootstrap --hoist
+npx lerna bootstrap
 ```
-
-NOTE: You can omit the `--hoist` parameter if you plan to use tools that are incompatible with lerna's built in [hoisting](https://lerna.js.org/docs/concepts/hoisting) approach. All off-the-shelf code in this library is compatible with lerna hoisting, and specifying this parameter can greatly improve the performance and disk usage of your local development environment.
 
 ### Run the unit tests
 
