@@ -9,7 +9,7 @@ a working OPR node.
 To run the example server in Docker, you'll need to build the image and then run
 it locally.
 
-```
+```console
 docker build -f Dockerfile.dev -t example-opr .
 docker run -p 5000:5000 example-opr
 ```
@@ -24,7 +24,7 @@ been built and you can simply run `npm run dev`.
 If you are just wanting to try the example server in isolation, be sure to
 install the packages first. For that case, use this:
 
-```
+```console
 npm install
 npm run dev
 ```
