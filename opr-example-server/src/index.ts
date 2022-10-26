@@ -39,6 +39,12 @@ import {
 log.setLevel('WARN');
 import {SqlOprDatabase} from 'opr-sql-database';
 
+// Let's start by setting up some varaibles for how the server will work. You
+// can change these either here in the code or by setting them as env variables.
+
+const HOST_PORT = process.env.HOST_PORT ?? 5000;
+const HOST_ORG_URL = process.env.HOST_ORG_URL ?? `http://localhost:${HOST_PORT}/org.json`
+
 // We need a main method because we want to use the "await" keyword,
 // and it's not allowed in top-level script code. But we can declare an
 // async main method and immediately call it.
@@ -52,7 +58,7 @@ async function main() {
   const urlMapper = new RegexpUrlMapper([
     {
       input: /https:\/\/opr.examplehost.org\/(.*)/,
-      replacement: 'http://localhost:5000/$1',
+      replacement: 'http://localhost:' + HOST_PORT + '/$1',
     },
   ]);
 
@@ -70,7 +76,7 @@ async function main() {
     // Replace with your organization name
     name: 'ExampleServer',
     // Replace with your organization's public org descriptor URL
-    organizationURL: 'https://opr.examplehost.org/org.json',
+    organizationURL: HOST_ORG_URL,
     orgFilePath: '/org.json',
     jwksURL: '/jwks.json',
     listProductsPath: '/api/list',
