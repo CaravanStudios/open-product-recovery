@@ -25,5 +25,10 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+    # Do a non-hoisted build to ensure that there are no dependency errors.
+    - run: npx lerna bootstrap --no-ci
+    # Clean the build
+    - run: ./clean.sh
+    # Do a hoisted build to ensure that hoisted building works also.
     - run: npx lerna bootstrap --hoist --no-ci
     - run: npx lerna run test
