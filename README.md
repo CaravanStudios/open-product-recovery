@@ -55,7 +55,7 @@ from the root directory to run all the unit tests. If you want to run the Postgr
 
 ### Read the standards
 
-This library is the reference implementation for [the Open Product Recovery standards](opr-standards/README.md). You may want to read the standards docs before you dive into setting up your own server.
+This library is the reference implementation for [the Open Product Recovery standards](standards/README.md). You may want to read the standards docs before you dive into setting up your own server.
 
 ### Start configuring your own OPR server
 
