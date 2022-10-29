@@ -38,8 +38,10 @@ subdirectories to find out more about the libraries in each component.
 First, run lerna bootstrap to install all package dependencies and compile local libraries in the correct order.
 
 ```console
-npx lerna bootstrap
+npx lerna bootstrap --hoist
 ```
+
+The --hoist flag is optional for local builds, but the --hoist flag is _required_ for library development. Hoisting creates a very different package-lock structure from non-hoisted repositories. We standardize on the hoisted versions in the repository to avoid churn.
 
 ### Run the unit tests
 

@@ -40,6 +40,7 @@
     "@types/node-fetch": "^2.6.2",
     "@types/pem-jwk": "^2.0.0",
     "@types/random-seed": "^0.3.3",
+    "@types/yargs": "^17.0.13",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "glob": "^8.0.3",

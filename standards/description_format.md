@@ -277,7 +277,7 @@ However, we strongly encourage the use of FoodEx2 for this kind of classificatio
 | -------------------------------- | ------------------------- |
 | Organic kale                     | A00GL#F21.A07SE           |
 | Organic imitation meat           | A03TE#F21.A07SE           |
-| Pan friend imitation meat        | A03TE#F28.A07GR           |
+| Pan fried imitation meat         | A03TE#F28.A07GR           |
 | Pan fried organic imitation meat | A03TE#F21.A07SE$F28.A07GS |
 
 Notice how the attributes (organic, pan-fried) are encoded in the final id along with a base term. If you'd like to use FoodEx2 in your own systems, you can try their free Smart Food Coding app at https://r4eu.efsa.europa.eu/app/FoodEx2-SCA. Note that you must register for an account with the EFSA in order to use this tool. You can also read the detailed documentation for the classification system at https://efsa.onlinelibrary.wiley.com/doi/pdf/10.2903/sp.efsa.2015.EN-804.
