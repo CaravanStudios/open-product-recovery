@@ -26,7 +26,7 @@
       "outputs": ["{projectRoot}/build"]
     },
     "test": {
-      "inputs": ["test", "^test"],
+      "inputs": ["test", "^test", "{workspaceRoot}/opr-example-server/Dockerfile.dev"],
       "dependsOn": ["build"],
       "outputs": ["{projectRoot}/build"]
     }
