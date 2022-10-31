@@ -192,7 +192,9 @@ async function main() {
     database: database,
     jwksProvider: jwksProvider,
     signer: signer,
-    client: urlMapper,
+    clientConfig: {
+      urlMapper: urlMapper
+    },
     accessControlList: accessControlList,
     feedConfigProvider: feedConfigProvider,
     producers: [fakeOfferProducer],
