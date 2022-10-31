@@ -27,13 +27,17 @@ import {ListOffersPayload, ListOffersResponse} from 'opr-models';
 
 export type Command = 'ACCEPT' | 'LIST' | 'HISTORY' | 'REJECT' | 'RESERVE';
 
-export interface OprClientConfig {
-  signer: Signer;
-  configProvider: OrgConfigProvider;
-  urlMapper?: UrlMapper;
-  jsonFetcher?: JsonFetcher;
-}
-
+/**
+ * The client used to make requests to OPR servers. This class is responsible
+ * for:
+ * 1) Looking up an organization's config file
+ * 2) Routing a request to the right URL, based on the URL mappings in the
+ *    organization's configuration file
+ * 3) Attaching credentials to the request
+ * 4) Issuing the request.
+ * 
+ * All requests between OPR servers should be done via an OprClient class.
+ */
 export class OprClient {
   private signer: Signer;
   private configProvider: OrgConfigProvider;
@@ -109,4 +113,22 @@ export class OprClient {
       userSignerOptions
     )) as ListOffersResponse;
   }
+}
+
+export interface OprClientConfig {
+  /** A signer used to generate auth tokens for requests to other servers. */
+  signer: Signer;
+  /**
+   * An org config provider for doing org configuration lookups. When an
+   * OprClient is constructed by the OprServer, it will use its own
+   * OrgConfigProvider for this value if it is not specified.
+   */
+  configProvider: OrgConfigProvider;
+  /** A url mapper used during debugging and testing. */
+  urlMapper?: UrlMapper;
+  /**
+   * The JsonFetcher to use when making requests. If specified, the url
+   * mapper is ignored.
+   */
+  jsonFetcher?: JsonFetcher;
 }
