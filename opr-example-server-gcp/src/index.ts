@@ -201,9 +201,6 @@ async function main() {
 
   // Create a custom endpoint that will call server.ingest() to pull in any
   // new offers, and return any changes that occurred.
-  // NOTE: For a real server, you probably want to require some authentication
-  // to call this endpoint. Otherwise bad guys might hammer your server with
-  // ingest() requests.
   const ingestEndpoint = {
     method: ['POST'],
     handle: async () => {
@@ -214,6 +211,16 @@ async function main() {
       await s.ingest();
       changeHandler.remove();
       return changes;
+    },
+  } as CustomRequestHandler;
+
+  // Create a custom endpoint that will call db.synchronize() to initialize the
+  // database.
+  const synchronizeEndpoint = {
+    method: ['POST', 'GET'],
+    handle: async () => {
+      await database.synchronize(true);
+      return 'ok - db initialized';
     },
   } as CustomRequestHandler;
 
@@ -233,6 +240,7 @@ async function main() {
   const oprServiceAccount =
     args.serviceaccount ?? process.env.OPR_SERVICE_ACCOUNT;
   // Now we have all the pieces to start our server.
+  console.log('Starting server with frontend config', frontendConfig);
   const s = new OprServer({
     frontendConfig: frontendConfig,
     orgConfigProvider: orgConfigProvider,
@@ -243,6 +251,11 @@ async function main() {
     producers: [offerProducer],
     customHandlers: {
       ingest: IamCustomEndpointWrapper.wrap(ingestEndpoint, {
+        isAllowed: async (email: string) => {
+          return email === oprServiceAccount;
+        },
+      }),
+      synchronize: IamCustomEndpointWrapper.wrap(synchronizeEndpoint, {
         isAllowed: async (email: string) => {
           return email === oprServiceAccount;
         },
@@ -261,8 +274,12 @@ function getDbOptions(): DataSourceOptions {
     database: args.dbname ?? process.env.DB_NAME ?? 'postgres',
     username: args.dbuser ?? process.env.DB_USER ?? 'postgres',
     password: args.dbpassword ?? process.env.DB_PASSWORD,
-    synchronize: args.initdb === 'yes',
-    dropSchema: args.initdb === 'yes',
+    synchronize:
+      args.initdb === 'yes' ||
+      process.env.DB_SYNCHRONIZE_MAY_CAUSE_DATA_LOSS === 'yes',
+    dropSchema:
+      args.initdb === 'yes' ||
+      process.env.DB_DROPSCHEMA_MAY_CAUSE_DATA_LOSS === 'yes',
   } as DataSourceOptions;
   return options;
 }
