@@ -41,6 +41,7 @@
     "opr-google-cloud": "*",
     "opr-models": "*",
     "opr-sql-database": "*",
+    "pg": "^8.8.0",
     "yargs": "^17.6.0"
   },
   "engines": {
