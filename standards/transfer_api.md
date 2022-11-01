@@ -2,8 +2,8 @@
 
 An open protocol for exchanging and accepting recovered products.
 
-* **Version**: `0.5.0`
-* **Last Updated**: October 10, 2022
+* **Version**: `0.5.1`
+* **Last Updated**: October 31, 2022
 * **Drafted by**: John Richter & Mike Ryckman
 * **Initial draft**: May 18, 2022
 
@@ -105,7 +105,7 @@ The more advanced technical solutions, such as API integrations, do not have thi
 3. **Lack of standards and reuse**: Each API is different, so every integration is unique and non-reusable.
 4. **Painful authorization model**: Many existing APIs assume that every API user must have an identity that is registered with the provider of the API, and they often assume that API user ids must originate from an identity system managed by the API provider themselves.
 5. **Restrictive trust model**: Most existing authorization models imply a particular trust model - a donor can only trust recipients that the donor knows, because the API requires prior knowledge of a user to authenticate them. However, this does not capture an important aspect of human-to-human donation networks: the friend of a friend model. In real life, human donors trust information about donations to organizations that re-share that information, and eventually connect a recipient directly to the donor. This cannot be done automatically in most existing APIs, because there is no way of authenticating the unfamiliar recipient against the donor's API without additional human intervention.
-6. **Push model**: Many food donation APIs are built on a donation-push model, wherein available donations must be posted via API to a large recipient organization. In practice, it is often particularly difficult for donor organizations to use this sort of model, because donor systems tend to be built on top of whatever inventory database is used to run the day-to-day operations
+6. **Push model**: Many food donation APIs are built on a donation-push model, wherein available donations must be posted via API to a large recipient organization. In practice, it is often particularly difficult for donor organizations to use this sort of model, because donor systems tend to be built on top of whatever inventory database is used to run the day-to-day operations.
 
 # 2. Design Objectives
 
@@ -128,7 +128,7 @@ Some real-world organizations will *re-share* offers by creating an offer feed t
 
 ## 3.1. Donation Offer
 
-A donation offer is a collection of goods that exists at some physical location. Although these offers are frequently referred to as "donations" in this and other related documents, a payment or other exchange may be necessary for an organization to take possession of an offer, but these transactions are out of scope for this design . The attributes and precise specification for describing a Donation Offer can be found in [The Open Product Recovery Description Format](opr_description_format.md).
+A donation offer is a collection of goods that exists at some physical location. Although these offers are frequently referred to as "donations" in this and other related documents, a payment or other exchange may be necessary for an organization to take possession of an offer, but these transactions are out of scope for this design . The attributes and precise specification for describing a Donation Offer can be found in [The Open Product Recovery Description Format](description_format.md).
 
 ## 3.2. Organizations
 
@@ -327,7 +327,7 @@ The issuing organization must be checked for authorization to succeed. The type 
 
 #### 6.2.2.1. Standard Requests
 
-Each organization must maintain a access control list of organizations that are allowed to make requests to its API endpoints. The recipient organization URL specified in the authorization token must exactly match an entry in the access control list for the request to succeed. If the recipient organization URL is not in the access control list, the request must fail with an HTTP 403 status (forbidden), with an optional human-readable error message explaining how to gain access to the access control list.
+Each organization must maintain an access control list of organizations that are allowed to make requests to its API endpoints. The recipient organization URL specified in the authorization token must exactly match an entry in the access control list for the request to succeed. If the recipient organization URL is not in the access control list, the request must fail with an HTTP 403 status (forbidden), with an optional human-readable error message explaining how to gain access to the access control list.
 
 The organization is entirely responsible for deciding how to implement this access control list, but an access control list of some sort must be maintained. API endpoints must never allow requests from wholly unknown organizations.
 
@@ -511,7 +511,7 @@ The listProducts endpoint returns a JSON object containing the following fields:
 * `responseFormat` (`string`) : Either the value `SNAPSHOT` or `DIFF`, indicating the format of the response. If `DIFF` format was requested, it is important to check this field, because the server may return a `SNAPSHOT` response even if `DIFF` format was requested.
 * `resultsTimestampUTC` (`number`) : The timestamp at which these results are current from the point of view of the server. Servers that are requesting results in `DIFF` format should provide this value as the `diffStartTimestampUTC` parameter of their next request to this server.
 * `nextPageToken` (`string`, optional) : The page token for the next page of results. If this field is missing, it means the current page is the last page of results.
-* `offers` (`Array<Offer>`, (always provided in `SNAPSHOT` format, always omitted in `DIFF` format) : An array of offers in JSON format. Offers are described in detail in [The Open Product Recovery Description Format](./opr_description_format.md).
+* `offers` (`Array<Offer>`, (always provided in `SNAPSHOT` format, always omitted in `DIFF` format) : An array of offers in JSON format. Offers are described in detail in [The Open Product Recovery Description Format](description_format.md).
 * `diff` (`JSONPatch`, always provided in `DIFF` format, always omitted in `SNAPSHOT` format) : A JSON patch object. When applied, this will transform the server's collection of offers at `diffStartTimestampUTC` to the server's current offer collection.
 
 In all `listOffers` responses, regardless of format, there are two fields in the Offer object that have special meaning to this Transfer API:
@@ -521,7 +521,7 @@ In all `listOffers` responses, regardless of format, there are two fields in the
 
 An offering organization should make a best effort to only include offers that can be accepted by the current recipient organization.
 
-An offering organization may choose to show any subset of its offers to any receipient organization.
+An offering organization may choose to show any subset of its offers to any recipient organization.
 
 #### 6.3.2.7. `listProducts` HTTP Response Directives
 
