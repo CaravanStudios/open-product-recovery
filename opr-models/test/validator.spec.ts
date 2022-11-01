@@ -35,7 +35,9 @@ describe('Validator', () => {
       for (const schemaId of Validator.getSchemaIds()) {
         const schema = Validator.getSchemaById(schemaId);
         it(`should have correct examples for ${schemaId}`, async () => {
-          const examples = schema.examples as Array<unknown>;
+          expect(schema, 'Schema ' + schemaId + ' should be defined').to.not.be
+            .undefined;
+          const examples = schema!.examples as Array<unknown>;
           expect(examples, 'No examples field defined').to.be.not.undefined;
           expect(examples.length, 'No examples provided').to.be.greaterThan(0);
           for (let i = 0; i < examples.length; i++) {
@@ -61,6 +63,54 @@ describe('Validator', () => {
           }
         });
       }
+    });
+  });
+  describe('validateAndCast', () => {
+    context('acceptsGoodExamples', () => {
+      it('Should accept LatLong', () => {
+        const latLong = {
+          latitude: 40,
+          longitude: 50
+        };
+        Validator.validateAndCast(latLong, 'LatLong');
+        expect(latLong.longitude).to.equal(50);
+      });
+      it('Should accept Weight', () => {
+        const weight = {
+          value: 50,
+          unit: 'pound'
+        };
+        Validator.validateAndCast(weight, 'Weight');
+        expect(weight.value).to.equal(50);
+        expect(weight.unit).to.equal('pound');
+      });
+      it('Should accept Timestamp', () => {
+        Validator.validateAndCast(3, 'Timestamp');
+      });
+    });
+    context('rejectsBadExamples', () => {
+      it('Should reject bad LatLong', () => {
+        const latLong = {
+          latitude: 40
+        };
+        expect(() => {
+          Validator.validateAndCast(latLong, 'LatLong');
+        }).to.throw;
+      });
+      it('Should reject bad Weight', () => {
+        const weight = {
+          value: 50,
+          unit: 'stone'
+        };
+        expect(() => {
+          Validator.validateAndCast(weight, 'Weight');
+        }).to.throw;
+      });
+      it('Should reject bad Timestamp', () => {
+        expect(() => {
+          Validator.validateAndCast('tomorrow', 'Timestamp');
+        }).to.throw;
+      });
     });
   });
 });
