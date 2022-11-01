@@ -2,8 +2,8 @@
 
 This defines a standard JSON format for describing food (or other consumer products) that is available for transfer between organizations. This design doc does not specify how this standard format should be used, but it was designed as the primary datamodel for the transfer protocol described in Design Doc Proposal - The Open Product Recovery Transfer API.
 
-- **Version:** `0.5.0`
-- **Last Updated:** October 10, 2022
+- **Version:** `0.5.1`
+- **Last Updated:** October 31, 2022
 - **Drafted by:** John Richter & Mike Ryckman
 - **Initial draft:** May 18, 2022
 
@@ -119,7 +119,7 @@ A measurement is a data structure specifying some physical measurement of an ite
 | Unit Type                | Supported Units                                                                                     | Supported Dimensions                          | Sums in collections |
 | ------------------------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------- |
 | Physical extent          | centimeter<br/>foot<br/>inch<br/>meter yard                                                         | length<br/>depth<br/>width                    | no                  |
-| Liquid volume            | fluidonce<br/>gallon<br/>liter                                                                      | volume-liquid                                 | yes                 |
+| Liquid volume            | fluidounce<br/>gallon<br/>liter                                                                      | volume-liquid                                 | yes                 |
 | Spatial volume           | cubiccentimeter<br/>cubicfoot<br/>cubicinch<br/>cubicmeter<br/>pallet[^1]<br/>shippingcontainer[^2] | volume                                        | yes                 |
 | Weight                   | gram<br/>kilogram<br/>ounce pound                                                                   | weight                                        | yes                 |
 | Temperature Requirements | celsius<br/>fahrenheit                                                                              | temperature-max<br/>temperature-min<br/>ideal | no                  |
