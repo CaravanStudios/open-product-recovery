@@ -32,3 +32,4 @@ jobs:
     # Do a hoisted build to ensure that hoisted building works also.
     - run: npx lerna bootstrap --hoist --no-ci
     - run: npx lerna run test
+    - run: npx lerna run test-docker
