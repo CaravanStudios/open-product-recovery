@@ -40,8 +40,7 @@ import {RejectRequestHandler} from './handlers/rejectrequesthandler';
 import {ReserveRequestHandler} from './handlers/reserverequesthandler';
 import {HistoryRequestHandler} from './handlers/historyrequesthandler';
 import {OprDatabase} from '../database/oprdatabase';
-import {OprClient} from '../net/oprclient';
-import {UrlMapper} from '../net/urlmapper';
+import {OprClient, OprClientConfig} from '../net/oprclient';
 import loglevel, {Logger} from '../util/loglevel';
 import {OprFeedProducer} from '../offerproducer/oprfeedproducer';
 import {ServerAccessControlList} from '../policy/serveraccesscontrollist';
@@ -63,7 +62,7 @@ export interface OprServerOptions {
   logger?: Logger;
   strictCorrectnessChecks?: boolean;
   defaultReservationTimeSecs?: number;
-  client?: boolean | OprClient | UrlMapper;
+  clientConfig?: Partial<OprClientConfig>;
   accessControlList: ServerAccessControlList;
   feedConfigProvider?: FeedConfigProvider;
   producers?: Array<OfferProducer>;
@@ -127,25 +126,23 @@ export class OprServer {
       this.verifier
     );
     this.historyRequestHandler = new HistoryRequestHandler(this.database);
-    if (options.client) {
-      this.logger.debug('Starting server with oprclient', options.client);
-      if (options.client instanceof OprClient) {
-        this.client = options.client;
-      } else {
-        if (!options.signer) {
-          throw new StatusError(
-            'Cannot create an opr client without a signer',
-            'SERVER_CONFIG_ERROR',
-            500
-          );
-        }
-        this.client = new OprClient({
-          signer: options.signer,
-          configProvider: options.orgConfigProvider,
-          urlMapper:
-            typeof options.client === 'boolean' ? undefined : options.client,
-        });
+    if (options.clientConfig || options.signer) {
+      this.logger.debug('Starting server with opr client config',
+          options.clientConfig);
+      if (!options.signer) {
+        throw new StatusError(
+          'Cannot create an opr client without a signer',
+          'SERVER_CONFIG_ERROR',
+          500
+        );
       }
+      this.client = new OprClient({
+        signer: options.clientConfig?.signer ?? options.signer,
+        configProvider: options.clientConfig?.configProvider ??
+            options.orgConfigProvider,
+        urlMapper: options.clientConfig?.urlMapper,
+        jsonFetcher: options.clientConfig?.jsonFetcher
+      });
     }
     this.feedConfigProvider = options.feedConfigProvider;
     this.strictCorrectnessChecks = options.strictCorrectnessChecks || false;
