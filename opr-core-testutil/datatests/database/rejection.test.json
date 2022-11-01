@@ -1,0 +1,41 @@
+{
+  "description": "Rejections",
+  "hostOrgUrl": [
+    "https://citadelofdanas.org/org.json",
+    "https://fano.org/org.json"
+  ],
+  "tests": [
+    {
+      "description": "Write/retrieve rejections",
+      "calls": [
+        {
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "offerUpdateUTC": 0
+          }
+        },
+        {
+          "op": "writeReject",
+          "rejectingOrgUrl": "https://a.org/org.json",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "atTimeUTC": 0
+        },
+        {
+          "op": "writeReject",
+          "rejectingOrgUrl": "https://b.org/org.json",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "atTimeUTC": 0
+        },
+        {
+          "op": "getAllRejections",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json"
+        }
+      ]
+    }
+  ]
+}

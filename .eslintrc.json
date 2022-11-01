@@ -15,7 +15,8 @@
       "error",
       {
         "code": 80,
-        "tabWidth": 2
+        "tabWidth": 2,
+        "ignorePattern": "^import .*"
       }
     ],
     "no-restricted-properties": [
@@ -41,6 +42,11 @@
           "glob-promise"
         ]
       }
+    ],
+    "lines-between-class-members": [
+      "error",
+      "always",
+      {"exceptAfterSingleLine": true}
     ]
   },
   "overrides": [

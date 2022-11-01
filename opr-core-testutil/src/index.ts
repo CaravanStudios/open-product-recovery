@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import 'reflect-metadata';
-
-export * from './sqloprdatabase';
-export * from './postgrestestinglauncher';
-export * from './sqloprpersistentstorage';
+export * from './database/persistenttestconfig';
+export * from './json/modeldirective';
+export * from './json/encodechaindirective';
+export * from './json/encodetokendirective';

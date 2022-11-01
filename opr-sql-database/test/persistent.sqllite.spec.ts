@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 
-import 'reflect-metadata';
+import 'mocha';
+import {DataDrivenTest} from 'opr-devtools';
+import {SqlOprPersistentStorage} from '../src/sqloprpersistentstorage';
+import {PersistentTestConfig} from 'opr-core-testutil';
 
-export * from './sqloprdatabase';
-export * from './postgrestestinglauncher';
-export * from './sqloprpersistentstorage';
+const driver = new DataDrivenTest(
+  new PersistentTestConfig(async () => {
+    return new SqlOprPersistentStorage({
+      dsOptions: {
+        type: 'sqlite',
+        database: ':memory:',
+        synchronize: true,
+        dropSchema: true,
+      },
+    });
+  }, 'SQLite SQL Persistent Tests')
+);
+driver.initialize();

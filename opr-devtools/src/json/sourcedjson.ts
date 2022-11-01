@@ -133,7 +133,11 @@ export class SourcedJsonValueError extends Error {
     }
     const causeIsError = options?.cause instanceof Error;
     if (options?.cause) {
-      message += `\n    caused by error: ${options?.cause}`;
+      if (causeIsError) {
+        message += `\n    caused by error: ${(options.cause as Error).stack}`;
+      } else {
+        message += `\n    caused by error: ${options?.cause}`;
+      }
     }
     const errorParams = {
       cause: causeIsError ? (options.cause as Error) : undefined,

@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-import {ChainScope} from '../auth/chainscope';
-import {Interval} from './interval';
-
-export const WILDCARD_ORG_ID = '*';
-
-export interface ListingTarget {
-  orgUrl: string;
-  scopes?: Array<ChainScope>;
+/**
+ * A time interval. The interval includes the instant at startTimeUTC, but does
+ * NOT include the instant at endTimeUTC.
+ */
+export interface Interval {
+  startTimeUTC: number;
+  endTimeUTC: number;
 }
-
-export interface Listing extends Interval, ListingTarget {}
 
 export interface TrimIntervalOptions {
   startAt?: number;

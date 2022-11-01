@@ -14,8 +14,30 @@
  * limitations under the License.
  */
 
-import 'reflect-metadata';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {DecodedReshareChain, ReshareChain} from 'opr-models';
+import {Entity, Column, PrimaryColumn} from 'typeorm';
 
-export * from './sqloprdatabase';
-export * from './postgrestestinglauncher';
-export * from './sqloprpersistentstorage';
+@Entity()
+export class StoredReshareChain {
+  @PrimaryColumn()
+  hostOrgUrl: string;
+
+  @PrimaryColumn()
+  offerId: string;
+
+  @PrimaryColumn()
+  postingOrgUrl: string;
+
+  @PrimaryColumn()
+  forUse: string;
+
+  @Column({type: 'simple-json'})
+  reshareChain: ReshareChain;
+
+  @Column({type: 'simple-json'})
+  decodedReshareChain: DecodedReshareChain;
+
+  @Column({type: 'int'})
+  length: number;
+}

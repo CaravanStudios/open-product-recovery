@@ -71,6 +71,7 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
   readonly cwd: string;
   private dsOptions: DataSourceOptions;
   readonly resolverOptions?: ResolverOptions | undefined;
+  readonly pathGlob = 'datatests/**.test.json';
 
   constructor(cwd: string, dsOptions: DataSourceOptions, name = 'SQL Tests') {
     this.cwd = cwd;

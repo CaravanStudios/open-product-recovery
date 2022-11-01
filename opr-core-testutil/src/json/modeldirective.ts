@@ -14,8 +14,26 @@
  * limitations under the License.
  */
 
-import 'reflect-metadata';
+import {$, Directive, Resolver, SourcedJsonValue} from 'opr-devtools';
+import {examples} from 'opr-models';
 
-export * from './sqloprdatabase';
-export * from './postgrestestinglauncher';
-export * from './sqloprpersistentstorage';
+/**
+ * A Sourced JSON template directive that can load an example offer from
+ * opr-models.
+ */
+export class ModelDirective implements Directive {
+  accept(key: string): boolean {
+    return key === '$model';
+  }
+
+  async transform(
+    resolver: Resolver,
+    obj: SourcedJsonValue,
+    key: string,
+    value: SourcedJsonValue
+  ): Promise<SourcedJsonValue> {
+    value.assertIsString();
+    const name = value.value;
+    return $((examples as Record<string, unknown>)[name]);
+  }
+}

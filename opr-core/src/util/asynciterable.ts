@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 
-import 'reflect-metadata';
+export async function asyncIterableToArray<T>(
+  it: AsyncIterable<T>
+): Promise<Array<T>> {
+  const result = [];
+  for await (const x of it) {
+    result.push(x);
+  }
+  return result;
+}
 
-export * from './sqloprdatabase';
-export * from './postgrestestinglauncher';
-export * from './sqloprpersistentstorage';
+export async function* iterableToAsync<T>(it: Iterable<T>): AsyncIterable<T> {
+  for (const x of it) {
+    yield x;
+  }
+}

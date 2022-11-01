@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import 'reflect-metadata';
+import {JWK} from 'jose';
+import {JsonObject} from 'opr-devtools';
 
-export * from './sqloprdatabase';
-export * from './postgrestestinglauncher';
-export * from './sqloprpersistentstorage';
+export type TokenKeyGetter = (payload: JsonObject) => Promise<JWK>;
