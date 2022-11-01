@@ -106,23 +106,25 @@ async function main() {
   }
   const compiledTypes = [] as Array<string>;
   const schemaImports = [] as Array<string>;
+  const typeMappingDeclarations = [] as Array<string>;
   for (const typeName in typeNameToSchema) {
     const schemaFile = typeNameToSchema[typeName];
     const schemaDir = path.dirname(schemaFile.path);
-    let compiled = await compile(
-      schemaFile.schemaJson as JSONSchema,
-      typeName,
-      {
-        cwd: schemaDir,
-        bannerComment: '',
-        style: {
-          printWidth: 80,
-          singleQuote: true,
-        },
-        ignoreMinAndMaxItems: true,
-        declareExternallyReferenced: false,
-      }
+    const schemaJson = schemaFile.schemaJson as JSONSchema;
+    typeMappingDeclarations.push(`  ${schemaJson.title}: ${schemaJson.title};`);
+    typeMappingDeclarations.push(
+      `  ['${schemaJson.$id}']: ${schemaJson.title};`
     );
+    let compiled = await compile(schemaJson, typeName, {
+      cwd: schemaDir,
+      bannerComment: '',
+      style: {
+        printWidth: 80,
+        singleQuote: true,
+      },
+      ignoreMinAndMaxItems: true,
+      declareExternallyReferenced: false,
+    });
     // The schema compiler contains a bug where if the same schema is referenced
     // twice in an ancestor schema under different parents, each instance of
     // that type will be assigned a new name by appending a number after it.
@@ -158,6 +160,10 @@ async function main() {
       `export {default as ${typeName}} from '${relativeImport}';`
     );
   }
+  compiledTypes.push('export interface SchemaNameToType {');
+  compiledTypes.push(...typeMappingDeclarations);
+  compiledTypes.push('}\n');
+
   compiledTypes.unshift('/* eslint-disable */');
   compiledTypes.unshift(
     '/* DO NOT EDIT - Automatically generated from json schema files */\n'
