@@ -13,6 +13,7 @@
     "build": "tsc -p .",
     "dev": "nodemon src/index.ts",
     "test": "echo 'No tests yet'",
+    "test-docker": "docker build -f Dockerfile.dev -t example-opr .",
     "lint": "eslint",
     "clean": "rm -rf build",
     "compile": "tsc",
