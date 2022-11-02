@@ -327,12 +327,17 @@ export class OprServer {
   }
 
   private async initializeServer() {
+    // core server components
     this.app.use(expressJson());
     this.serveOrgFile();
     this.maybeServeJwks();
     this.serveApiEndpoints();
-    this.serveCustomEndpoints();
+
+    // user customizations
     await this.doCustomStartup();
+    this.serveCustomEndpoints();
+
+    // catch unhandled errors
     this.app.use(
       // NOTE: This handler must be registered last, and it MUST have the
       // unused 'next' parameter as its last argument.
