@@ -1,6 +1,6 @@
 {
   "name": "opr-sql-database",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "SQL Database Implementation for Open Product Recovery",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -47,8 +47,8 @@
   },
   "dependencies": {
     "loglevel": "^1.8.0",
-    "opr-core": "^0.5.4",
-    "opr-models": "^0.5.4",
+    "opr-core": "^0.5.5",
+    "opr-models": "^0.5.5",
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^5.0.11",
     "typeorm": "^0.3.9"
