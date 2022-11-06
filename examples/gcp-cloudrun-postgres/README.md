@@ -100,7 +100,7 @@ A bucket configuration page will appear. On that page, fill in the form as follo
 
 ### 7. Generate and upload encryption keys
 
-In a terminal, `cd` to the opr-example-server-gcp directory. Then run:
+In a terminal, `cd` to the gcp-cloudrun-postgres directory. Then run:
 
 ```console
 ./generate_keys.sh YOUR_PROJECT_ID
