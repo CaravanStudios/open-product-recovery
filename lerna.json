@@ -7,8 +7,7 @@
     "opr-core",
     "opr-sql-database",
     "opr-google-cloud",
-    "opr-example-server",
-    "opr-example-server-gcp"
+    "examples/*"
   ],
   "version": "0.5.5"
 }
