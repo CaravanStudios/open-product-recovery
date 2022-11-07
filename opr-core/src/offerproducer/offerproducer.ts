@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import {JSONPatch, ListOffersPayload, Offer} from 'opr-models';
+import {JSONPatchOp, ListOffersPayload, Offer} from 'opr-models';
 
 export interface OfferSetUpdate {
   earliestNextRequestUTC: number;
   updateCurrentAsOfTimestampUTC: number;
   diffStartTimeUTC?: number;
   sourceOrgUrl: string;
-  offers?: Array<Offer>;
-  delta?: JSONPatch;
+  offers?: AsyncIterable<Offer>;
+  delta?: AsyncIterable<JSONPatchOp>;
 }
 
 export interface OfferProducer {

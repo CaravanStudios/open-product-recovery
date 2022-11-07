@@ -35,6 +35,7 @@ import {
   trim,
   updateInterval,
   OfferProducerMetadata,
+  asyncIterableToArray,
 } from 'opr-core';
 import {
   ListOffersPayload,
@@ -469,9 +470,12 @@ export class SqlOprDatabase implements OprDatabase {
     this.logger.debug('oldOfferMap', oldOfferMap);
     let newOfferMap;
     if (update.delta) {
-      newOfferMap = diff.patchAsMap(oldOfferList, update.delta!);
+      newOfferMap = diff.patchAsMap(
+        oldOfferList,
+        await asyncIterableToArray(update.delta!)
+      );
     } else if (update.offers) {
-      newOfferMap = diff.toOfferSet(update.offers);
+      newOfferMap = diff.toOfferSet(await asyncIterableToArray(update.offers));
     } else {
       throw new StatusError(
         'Bad update set, neither delta nor offers specified',

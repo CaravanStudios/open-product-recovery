@@ -17,6 +17,7 @@
 import {Offer} from 'opr-models';
 import {RandomSeed, create} from 'random-seed';
 import {OprDatabase} from '../database/oprdatabase';
+import {iterableToAsync} from '../util/asynciterable';
 import {Clock} from '../util/clock';
 import {DefaultClock} from '../util/defaultclock';
 import getUuid from '../util/randomuuid';
@@ -155,7 +156,7 @@ export class FakeOfferProducer implements OfferProducer {
       offers.splice(0, offers.length - this.maxOfferCount);
     }
     return {
-      offers: offers,
+      offers: iterableToAsync(offers),
       updateCurrentAsOfTimestampUTC: now,
       earliestNextRequestUTC:
         now + Math.min(this.newItemFrequencyMillis, this.updateFrequencyMillis),
