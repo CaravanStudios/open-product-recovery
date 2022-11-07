@@ -73,7 +73,15 @@ export interface HistoryResponse {
   offerHistories: OfferHistory[];
 }
 
-export type JSONPatch = (
+/**
+ * A JSON Patch array
+ */
+export type JSONPatch = JSONPatchOp[];
+
+/**
+ * A JSON Patch operation
+ */
+export type JSONPatchOp =
   | {
       path: JSONPath;
       /**
@@ -101,8 +109,7 @@ export type JSONPatch = (
        */
       op: 'move' | 'copy';
       from: JSONPath;
-    }
-)[];
+    };
 
 /**
  * A JSON Pointer path.
@@ -401,6 +408,8 @@ export interface SchemaNameToType {
   ['history.response.schema.json']: HistoryResponse;
   JSONPatch: JSONPatch;
   ['jsonpatch.schema.json']: JSONPatch;
+  JSONPatchOp: JSONPatchOp;
+  ['jsonpatchop.schema.json']: JSONPatchOp;
   JSONPath: JSONPath;
   ['jsonpath.schema.json']: JSONPath;
   LatLong: LatLong;
