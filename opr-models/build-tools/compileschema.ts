@@ -75,6 +75,11 @@ interface SchemaFile {
   path: string;
 }
 
+interface TypeSection {
+  typeName: string;
+  startIndex: number;
+}
+
 async function main() {
   if (options.prefix) {
     process.chdir(options.prefix);
@@ -144,15 +149,45 @@ async function main() {
       compiled = fixedCompiled;
     }
     // The schema compiler seems to contain a bug where it sometimes re-defines
-    // dependent schemas even though we've told it not to. So, we look for an
-    // 'export' definition after the first one and delete it and anything that
-    // follows it.
-    const extraExports = /(?!^)\/\*(\*(?!\/)|[^*])*\*\/\s*export/gs.exec(
-      compiled
-    );
-    if (extraExports) {
-      console.log('!!! Deleted extra imports from', typeName);
-      compiled = compiled.substring(0, extraExports.index);
+    // dependent schemas even though we've told it not to. So we find all type
+    // definitions in the file and discard any that do not have the same name
+    // as the JSON schema title.
+    const lineDef = /^\s*export\s+(type|interface)\s+(.*)\s+[={].*$/gm;
+    const typeSections: Array<TypeSection> = [];
+    let lineDefMatch;
+    while ((lineDefMatch = lineDef.exec(compiled)) !== null) {
+      let startIndex = 0;
+      for (let pos = lineDefMatch.index - 1; pos >= 0; pos--) {
+        if (compiled.charAt(pos) === '}' || compiled.charAt(pos) === ';') {
+          startIndex = pos + 2;
+          break;
+        }
+      }
+      const currentTypeSection = {
+        typeName: lineDefMatch[2],
+        startIndex: startIndex,
+      } as TypeSection;
+      typeSections.push(currentTypeSection);
+    }
+    if (typeSections.length > 1) {
+      for (let i = 0; i < typeSections.length; i++) {
+        const typeSection = typeSections[i];
+        if (typeSection.typeName === typeName) {
+          compiled = compiled.substring(
+            typeSection.startIndex,
+            i < typeSections.length - 1
+              ? typeSections[i + 1].startIndex - 1
+              : compiled.length
+          );
+        } else {
+          console.log(
+            'Discarded re-definition of',
+            typeSection.typeName,
+            'in compiled output for',
+            schemaFile.path
+          );
+        }
+      }
     }
     compiledTypes.push(compiled);
     const relativeImport = path.relative(targetDir, schemaFile.path);

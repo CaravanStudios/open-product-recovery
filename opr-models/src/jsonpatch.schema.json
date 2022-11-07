@@ -2,6 +2,7 @@
   "$id": "jsonpatch.schema.json",
   "$schema": "http://json-schema.org/draft-04/schema#",
   "comment": "Copied and reformatted from source at https://json.schemastore.org/json-patch.json",
+  "description": "A JSON Patch array",
   "examples": [
     [
       {
@@ -12,57 +13,7 @@
     ]
   ],
   "items": {
-    "oneOf": [
-      {
-        "additionalProperties": false,
-        "required": ["value", "op", "path"],
-        "properties": {
-          "path": {
-            "$ref": "jsonpath.schema.json"
-          },
-          "op": {
-            "description": "The operation to perform.",
-            "type": "string",
-            "enum": ["add", "replace", "test"]
-          },
-          "value": {
-            "description": "The value to add, replace or test."
-          }
-        }
-      },
-      {
-        "additionalProperties": false,
-        "required": ["op", "path"],
-        "properties": {
-          "path": {
-            "$ref": "jsonpath.schema.json"
-          },
-          "op": {
-            "description": "The operation to perform.",
-            "type": "string",
-            "enum": ["remove"]
-          }
-        }
-      },
-      {
-        "additionalProperties": false,
-        "required": ["from", "op", "path"],
-        "properties": {
-          "path": {
-            "$ref": "jsonpath.schema.json"
-          },
-          "op": {
-            "description": "The operation to perform.",
-            "type": "string",
-            "enum": ["move", "copy"]
-          },
-          "from": {
-            "$ref": "jsonpath.schema.json",
-            "description": "A JSON Pointer path pointing to the location to move/copy from."
-          }
-        }
-      }
-    ]
+    "$ref" : "jsonpatchop.schema.json"
   },
   "title": "JSONPatch",
   "type": "array"
