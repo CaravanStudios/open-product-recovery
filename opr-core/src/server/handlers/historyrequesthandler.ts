@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {OprDatabase} from '../../database/oprdatabase';
+import {OfferModel} from '../../database/offermodel';
 import {JWTPayload} from 'jose';
 import {HistoryPayload, HistoryResponse} from 'opr-models';
 import {AuthenticatedRequestHandler} from './authenticatedrequesthandler';
@@ -23,7 +23,7 @@ export class HistoryRequestHandler extends AuthenticatedRequestHandler<
   HistoryPayload,
   HistoryResponse
 > {
-  constructor(database: OprDatabase) {
+  constructor(database: OfferModel) {
     super(
       database,
       ['PRODUCTHISTORY'],

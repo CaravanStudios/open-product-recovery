@@ -37,7 +37,7 @@ import {
   CustomRequestHandler,
 } from 'opr-core';
 log.setLevel('WARN');
-import {SqlOprDatabase} from 'opr-sql-database';
+import {SqlOfferModel} from 'opr-sql-database';
 
 // We need a main method because we want to use the "await" keyword,
 // and it's not allowed in top-level script code. But we can declare an
@@ -88,7 +88,7 @@ async function main() {
     // Replace this with a list of servers that can actually talk to your
     // OPR server
     // 'https://opr.otherexamplehost.org/org.json',
-    '*' // This is the 'wildcard' option - it makes offers public to everyone!
+    '*', // This is the 'wildcard' option - it makes offers public to everyone!
   ]);
   // Deal with encryption keys. For this toy server, we're generating new keys
   // every time the server starts. In production, they should be loaded from
@@ -120,11 +120,11 @@ async function main() {
   // tells the server that it should show offers to everyone.
   const listingPolicy = new UniversalAcceptListingPolicy([
     // 'https://opr.otherexamplehost.org/org.json', // Example "real" entry
-    '*' // This is the 'wildcard' option - it makes offers public to everyone!
+    '*', // This is the 'wildcard' option - it makes offers public to everyone!
   ]);
   // Start a local in memory server to track offers.
   // Build a database. Note you can use many different database types here.
-  const database = new SqlOprDatabase({
+  const database = new SqlOfferModel({
     dsOptions: {
       type: 'sqlite',
       database: ':memory:',
@@ -193,7 +193,7 @@ async function main() {
     jwksProvider: jwksProvider,
     signer: signer,
     clientConfig: {
-      urlMapper: urlMapper
+      urlMapper: urlMapper,
     },
     accessControlList: accessControlList,
     feedConfigProvider: feedConfigProvider,

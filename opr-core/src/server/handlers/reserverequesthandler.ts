@@ -18,7 +18,7 @@ import {Verifier} from '../../auth/verifier';
 import {ReserveOfferPayload, ReserveOfferResponse} from 'opr-models';
 import {JWTPayload} from 'jose';
 import {BaseAcceptHandler} from './baseaccepthandler';
-import {OprDatabase} from '../../database/oprdatabase';
+import {OfferModel} from '../../database/offermodel';
 
 export class ReserveRequestHandler extends BaseAcceptHandler<
   ReserveOfferPayload,
@@ -27,7 +27,7 @@ export class ReserveRequestHandler extends BaseAcceptHandler<
   private defaultReservationTimeSecs: number;
 
   constructor(
-    database: OprDatabase,
+    database: OfferModel,
     defaultReservationTime: number,
     myOrgUrl?: string,
     verifier?: Verifier

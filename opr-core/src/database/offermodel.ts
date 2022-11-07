@@ -27,7 +27,11 @@ import {OfferProducerMetadata} from '../offerproducer/offerproducermetadata';
 import {HandlerRegistration} from './handlerregistration';
 import {OfferChange} from './offerchange';
 
-export interface OprDatabase {
+/**
+ * An OPR server's mutable datamodel, containing all the methods needed to
+ * maintain a collection of offers from multiple offer producers.
+ */
+export interface OfferModel {
   initialize(): Promise<void>;
   shutdown(): Promise<void>;
   unlockProducer(metadata: OfferProducerMetadata): Promise<void>;

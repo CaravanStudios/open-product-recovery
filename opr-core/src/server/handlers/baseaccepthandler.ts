@@ -16,7 +16,7 @@
 
 import {Verifier} from '../../auth/verifier';
 import {StatusError} from '../../util/statuserror';
-import {OprDatabase} from '../../database/oprdatabase';
+import {OfferModel} from '../../database/offermodel';
 import {JWTPayload} from 'jose';
 import {
   AcceptOfferPayload,
@@ -33,7 +33,7 @@ export abstract class BaseAcceptHandler<
   private myOrgUrl?: string;
 
   constructor(
-    database: OprDatabase,
+    database: OfferModel,
     requestSchemaId: string,
     responseSchemaId: string,
     myOrgUrl?: string,

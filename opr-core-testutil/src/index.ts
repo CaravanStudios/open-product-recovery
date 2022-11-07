@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+export * from './database/offermodeltestconfig';
 export * from './database/persistenttestconfig';
 export * from './json/modeldirective';
 export * from './json/encodechaindirective';

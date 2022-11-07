@@ -25,7 +25,7 @@ import {ResolverOptions, SourcedJsonObject, TestConfig} from 'opr-devtools';
 import {Offer} from 'opr-models';
 import {ModelDirective} from '../json/modeldirective';
 import {EncodeChainDirective} from '../json/encodechaindirective';
-import path = require('path');
+import path from 'path';
 
 // Show the entire mismatched object on error.
 config.truncateThreshold = 0;
@@ -49,7 +49,7 @@ export class PersistentTestConfig implements TestConfig<SqlTestObjects> {
     this.cwd = path.resolve(__dirname, '../../datatests');
     this.name = name;
     this.dbBuilderFn = dbBuilderFn;
-    this.pathGlob = 'database/**.test.json';
+    this.pathGlob = 'persistentstorage/**.test.json';
     this.resolverOptions = {
       installDirectives: [new ModelDirective(), new EncodeChainDirective()],
     };

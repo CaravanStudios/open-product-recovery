@@ -27,8 +27,8 @@ import {
   Logger,
   OfferChange,
   OfferListingPolicy,
+  OfferModel,
   OfferSetUpdate,
-  OprDatabase,
   Signer,
   StatusError,
   subtract,
@@ -66,7 +66,7 @@ type IsolationLevel =
   | 'REPEATABLE READ'
   | 'SERIALIZABLE';
 
-export interface SqlOprDatabaseOptions {
+export interface SqlOfferModelOptions {
   clock?: Clock;
   dsOptions: DataSourceOptions;
   listingPolicy: OfferListingPolicy;
@@ -76,7 +76,7 @@ export interface SqlOprDatabaseOptions {
   logger?: Logger;
 }
 
-export class SqlOprDatabase implements OprDatabase {
+export class SqlOfferModel implements OfferModel {
   private readonly db: DataSource;
   private initialized = false;
   private readonly clock: Clock;
@@ -87,7 +87,7 @@ export class SqlOprDatabase implements OprDatabase {
   private enableInternalChecks: boolean;
   private logger: Logger;
 
-  constructor(options: SqlOprDatabaseOptions) {
+  constructor(options: SqlOfferModelOptions) {
     const dsOptions = {
       ...options.dsOptions,
       entities: [

@@ -43,7 +43,7 @@ export * from './database/interval';
 export * from './database/listing';
 export * from './database/offerchange';
 export * from './database/offerchangetype';
-export * from './database/oprdatabase';
+export * from './database/offermodel';
 export * from './database/persistentstorage';
 export * from './database/timelineentry';
 export * from './database/transaction';

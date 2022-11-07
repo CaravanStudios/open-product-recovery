@@ -16,7 +16,7 @@
 
 import {Offer} from 'opr-models';
 import {RandomSeed, create} from 'random-seed';
-import {OprDatabase} from '../database/oprdatabase';
+import {OfferModel} from '../database/offermodel';
 import {iterableToAsync} from '../util/asynciterable';
 import {Clock} from '../util/clock';
 import {DefaultClock} from '../util/defaultclock';
@@ -39,7 +39,7 @@ export class FakeOfferProducer implements OfferProducer {
   private expirationAgeMillis: number;
   private minOfferCount: number;
   private maxOfferCount: number;
-  private database: OprDatabase;
+  private database: OfferModel;
   private random: RandomSeed;
   private descTemplates: Array<string>;
 
@@ -248,7 +248,7 @@ export interface FakeOfferProducerOptions {
    * to a database, but this fake offer producer needs to look up existing
    * offers to decide when to create/update new offers.
    */
-  database: OprDatabase;
+  database: OfferModel;
 
   /**
    * A random number generator. The caller may provide a random number generator

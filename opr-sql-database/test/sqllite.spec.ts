@@ -15,18 +15,28 @@
  */
 
 import 'mocha';
-import {expect} from 'chai';
 import {DataDrivenTest} from 'opr-devtools';
-import {SqlDatabaseTestConfig} from './sqldatabasetestconfig';
+import {OfferModelTestConfig} from 'opr-core-testutil';
+import {SqlOfferModel} from '../src/sqloffermodel';
+
+// Uncomment to enable detailed logging during tests
+//log.setLevel('TRACE');
 
 const driver = new DataDrivenTest(
-  new SqlDatabaseTestConfig(
-    __dirname,
-    {
-      type: 'sqlite',
-      database: ':memory:',
-      synchronize: true,
-      dropSchema: true,
+  new OfferModelTestConfig(
+    async (context, listingPolicy, clock, signer, hostOrgUrl) => {
+      return new SqlOfferModel({
+        listingPolicy: listingPolicy,
+        clock: clock,
+        signer: signer,
+        hostOrgUrl: hostOrgUrl,
+        dsOptions: {
+          type: 'sqlite',
+          database: ':memory:',
+          synchronize: true,
+          dropSchema: true,
+        },
+      });
     },
     'SQLite SQL Tests'
   )

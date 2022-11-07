@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {OprDatabase} from '../../database/oprdatabase';
+import {OfferModel} from '../../database/offermodel';
 import {JWTPayload} from 'jose';
 import {RejectOfferPayload, RejectOfferResponse} from 'opr-models';
 import {AuthenticatedRequestHandler} from './authenticatedrequesthandler';
@@ -23,7 +23,7 @@ export class RejectRequestHandler extends AuthenticatedRequestHandler<
   RejectOfferPayload,
   RejectOfferResponse
 > {
-  constructor(database: OprDatabase) {
+  constructor(database: OfferModel) {
     super(
       database,
       ['ACCEPTPRODUCT'],

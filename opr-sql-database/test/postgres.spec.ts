@@ -15,30 +15,53 @@
  */
 
 import 'mocha';
-import {DataDrivenTest} from 'opr-devtools';
-import {log} from 'opr-core';
-import {SqlDatabaseTestConfig} from './sqldatabasetestconfig';
+import {DataDrivenTest, SourcedJsonObject} from 'opr-devtools';
+import {Clock, log, OfferListingPolicy, OfferModel, Signer} from 'opr-core';
+import {OfferModelTestConfig} from 'opr-core-testutil';
 import {PostgresTestingLauncher} from '../src/postgrestestinglauncher';
+import {SqlOfferModel} from '../src/sqloffermodel';
 import {DataSourceOptions} from 'typeorm';
 import {PostgresConnectionOptions} from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 // Uncomment to enable detailed logging during tests
 //log.setLevel('TRACE');
 
-class PostgresTestConfig extends SqlDatabaseTestConfig {
+class PostgresTestConfig extends OfferModelTestConfig {
   private psLauncher: PostgresTestingLauncher;
+  private dsOptions: DataSourceOptions;
+
   constructor(
-    cwd: string,
     dsOptions: DataSourceOptions,
     psLauncher: PostgresTestingLauncher
   ) {
-    super(cwd, dsOptions, 'Postgres SQL Tests');
+    super(
+      (context, listingPolicy, clock, signer, hostOrgUrl) =>
+        this.createModel(context, listingPolicy, clock, signer, hostOrgUrl),
+      'Postgres SQL Tests'
+    );
     this.psLauncher = psLauncher;
+    this.dsOptions = dsOptions;
+  }
+
+  private async createModel(
+    context: SourcedJsonObject,
+    listingPolicy: OfferListingPolicy,
+    clock: Clock,
+    signer: Signer,
+    hostOrgUrl: string
+  ): Promise<OfferModel> {
+    return new SqlOfferModel({
+      listingPolicy: listingPolicy,
+      clock: clock,
+      signer: signer,
+      hostOrgUrl: hostOrgUrl,
+      dsOptions: this.getDsOptions(),
+    });
   }
 
   protected getDsOptions(): PostgresConnectionOptions {
     return {
-      ...super.getDsOptions(),
+      ...this.dsOptions,
       port: this.psLauncher.getPort(),
     } as PostgresConnectionOptions;
   }
@@ -59,7 +82,6 @@ if (!pg.isPostgresAvailable()) {
 } else {
   const driver = new DataDrivenTest(
     new PostgresTestConfig(
-      __dirname,
       {
         type: 'postgres',
         host: 'localhost',

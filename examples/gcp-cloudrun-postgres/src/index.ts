@@ -38,7 +38,7 @@ log.setLevel('WARN');
 import {
   DataSourceOptions,
   PostgresTestingLauncher,
-  SqlOprDatabase,
+  SqlOfferModel,
 } from 'opr-sql-database';
 import {
   CloudStorageJwksProvider,
@@ -182,7 +182,7 @@ async function main() {
   // Create a listing policy so that we know how to list ingested offers to
   // other servers.
   const listingPolicy = new UniversalAcceptListingPolicy(['*']);
-  const database = new SqlOprDatabase({
+  const database = new SqlOfferModel({
     dsOptions: getDbOptions(),
     listingPolicy: listingPolicy,
     signer: signer,

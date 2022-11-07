@@ -39,7 +39,7 @@ import {AcceptRequestHandler} from './handlers/acceptrequesthandler';
 import {RejectRequestHandler} from './handlers/rejectrequesthandler';
 import {ReserveRequestHandler} from './handlers/reserverequesthandler';
 import {HistoryRequestHandler} from './handlers/historyrequesthandler';
-import {OprDatabase} from '../database/oprdatabase';
+import {OfferModel} from '../database/offermodel';
 import {OprClient, OprClientConfig} from '../net/oprclient';
 import loglevel, {Logger} from '../util/loglevel';
 import {OprFeedProducer} from '../offerproducer/oprfeedproducer';
@@ -54,7 +54,7 @@ const DEFAULT_RESERVATION_TIME_SECS = 5 * 60;
 export interface OprServerOptions {
   frontendConfig: FrontendConfig;
   orgConfigProvider: OrgConfigProvider;
-  database: OprDatabase;
+  database: OfferModel;
   signer?: Signer;
   jwksProvider?: JwksProvider;
   app?: Express;
@@ -86,7 +86,7 @@ export class OprServer {
   private verifier: Verifier;
   private accessControlList: ServerAccessControlList;
   private clock: Clock;
-  private database: OprDatabase;
+  private database: OfferModel;
   private server?: Server;
   private logger: Logger;
   private strictCorrectnessChecks: boolean;
