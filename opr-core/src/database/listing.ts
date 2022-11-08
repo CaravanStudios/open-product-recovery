@@ -23,10 +23,12 @@ export interface Interval {
   endTimeUTC: number;
 }
 
-export interface Listing extends Interval {
-  readonly orgUrl: string;
-  readonly scopes?: Array<ChainScope>;
+export interface ListingTarget {
+  orgUrl: string;
+  scopes?: Array<ChainScope>;
 }
+
+export interface Listing extends Interval, ListingTarget {}
 
 export interface TrimIntervalOptions {
   startAt?: number;
