@@ -78,3 +78,4 @@ export * from './util/randomuuid';
 export * from './util/statuserror';
 export * from './util/notimplementederror';
 export * from './util/unknownoffererror';
+export * from './util/userexpr';
