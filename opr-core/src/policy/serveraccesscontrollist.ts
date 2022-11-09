@@ -29,6 +29,9 @@ export class StaticServerAccessControlList implements ServerAccessControlList {
   }
 
   async isAllowed(organizationURL: string): Promise<boolean> {
-    return this.accessControlList[organizationURL] === true;
+    return (
+      this.accessControlList[organizationURL] === true ||
+      this.accessControlList['*'] === true
+    );
   }
 }
