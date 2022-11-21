@@ -59,7 +59,7 @@
     "express-async-errors": "^3.1.1",
     "fast-json-patch": "^3.1.1",
     "google-auth-library": "^8.1.1",
-    "jose": "^4.9.2",
+    "jose": "^4.10.4",
     "loglevel": "^1.8.0",
     "node-fetch": "^2.6.7",
     "opr-models": "^0.5.6",

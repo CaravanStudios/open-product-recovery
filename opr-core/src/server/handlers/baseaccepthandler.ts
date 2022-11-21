@@ -76,7 +76,7 @@ export abstract class BaseAcceptHandler<
   }
 
   shouldIgnoreAccessControlList(requestBody: RequestType): boolean {
-    return 'reshareChain' in requestBody;
+    return 'reshareChain' in (requestBody as Record<string, unknown>);
   }
 
   async handle(
