@@ -20,12 +20,20 @@ import {
   OfferHistory,
   ReshareChain,
 } from 'opr-models';
-import {Interval} from './interval';
-import {TimelineEntry} from './timelineentry';
+import {Interval} from '../model/interval';
+import {TimelineEntry} from '../model/timelineentry';
+import {OfferProducerMetadata} from '../offerproducer/offerproducermetadata';
 import {Transaction} from './transaction';
 export type PersistentStorageUpdateType = 'NONE' | 'ADD' | 'UPDATE' | 'DELETE';
 export type TransactionType = 'READONLY' | 'READWRITE';
 
+/**
+ * A persistent storage API, used as a storage driver for a
+ * PersistentOfferModel. Each operation in this API is meant to be entirely
+ * self-contained and orchestrated from the outside. In most cases,
+ * implementations of methods in this class should not call other methods in
+ * this class.
+ */
 export interface PersistentStorage {
   createTransaction(type?: TransactionType): Promise<Transaction>;
 
@@ -56,6 +64,18 @@ export interface PersistentStorage {
     offerId: string,
     offeringOrgUrl: string
   ): Promise<PersistentStorageUpdateType>;
+
+  /**
+   * Returns the version of the given offer id in the given corpus, or undefined
+   * if that offer cannot be found in that corpus.
+   */
+  getOfferFromCorpus(
+    t: Transaction,
+    hostOrgUrl: string,
+    corpusOrgUrl: string,
+    postingOrgUrl: string,
+    offerId: string
+  ): Promise<Offer | undefined>;
 
   /**
    * Returns the best reshare chain to use as a root for resharing the given
@@ -145,7 +165,8 @@ export interface PersistentStorage {
     hostOrgUrl: string,
     viewingOrgUrl: string,
     timestampUTC: number,
-    skipCount?: number
+    skipCount?: number,
+    pageSize?: number
   ): AsyncIterable<Offer>;
 
   /**
@@ -162,19 +183,44 @@ export interface PersistentStorage {
   ): Promise<Offer | undefined>;
 
   /**
-   * Records that an offer has been accepted.
+   * Returns all offers that have changed between oldTimestampUTC and
+   * newTimestampUTC as OfferVersionPairs. And OfferVersionPair contains the
+   * (possibly undefined) old version of the offer and the (possibly undefined)
+   * new version of the offer.
+   * Implementors are encouraged to implement this as a bulk operation in the
+   * underlying storage system. However, if this is not possible, this method
+   * can be implemented by calling getOffersAtTime() twice and comparing the
+   * results from the two calls.
+   */
+  getChangedOffers(
+    t: Transaction,
+    hostOrgUrl: string,
+    viewingOrgUrl: string,
+    oldTimestampUTC: number,
+    newTimestampUTC: number,
+    skipCount?: number
+  ): AsyncIterable<OfferVersionPair>;
+
+  /**
+   * Records that an offer has been accepted. Note that this can be implemented
+   * as a blind write, with no checking that the offer actually exists. Because
+   * this is a blind write, the particular version of the offer being accepted
+   * must be specified through a combination of the hostOrgUrl, offerId and
+   * offerUpdateTimestampUTC parameters.
    */
   writeAccept(
     t: Transaction,
     hostOrgUrl: string,
     acceptingOrgUrl: string,
     offerId: string,
+    offerUpdateTimestampUTC: number,
     atTimeUTC: number,
     decodedReshareChain?: DecodedReshareChain
   ): Promise<void>;
 
   /**
-   * Records that an offer has been rejected.
+   * Records that an offer has been rejected. Note that this can be implemented
+   * as a blind write, with no checking that the offer actually exists.
    */
   writeReject(
     t: Transaction,
@@ -202,7 +248,8 @@ export interface PersistentStorage {
     t: Transaction,
     hostOrgUrl: string,
     viewingOrgUrl: string,
-    sinceTimestampUTC?: number
+    sinceTimestampUTC?: number,
+    skipCount?: number
   ): AsyncIterable<OfferHistory>;
 
   /**
@@ -216,6 +263,16 @@ export interface PersistentStorage {
     sinceTimestampUTC?: number
   ): AsyncIterable<string>;
 
+  writeOfferProducerMetadata(
+    t: Transaction,
+    metadata: OfferProducerMetadata
+  ): Promise<void>;
+
+  getOfferProducerMetadata(
+    t: Transaction,
+    orgUrl: string
+  ): Promise<OfferProducerMetadata | undefined>;
+
   /**
    * Performs any necessary initialization before the storage system is used.
    */
@@ -227,4 +284,9 @@ export interface PersistentStorage {
    * to be called if the server terminates unexpectedly.
    */
   shutdown(): Promise<void>;
+}
+
+export interface OfferVersionPair {
+  oldVersion?: Offer;
+  newVersion?: Offer;
 }

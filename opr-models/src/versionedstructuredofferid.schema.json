@@ -1,0 +1,28 @@
+{
+  "$id": "versionedstructuredofferid.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VersionedStructuredOfferId",
+  "description": "A structured representation of a unique offer id",
+  "examples": [
+    {
+      "id": "id",
+      "postingOrgUrl": "https://citadelofdanas.org/org.json",
+      "lastUpdateTimeUTC": 1
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "postingOrgUrl": {
+      "type": "string",
+      "format": "uri"
+    },
+    "lastUpdateTimeUTC": {
+      "$ref": "timestamp.schema.json"
+    }
+  },
+  "required": ["id", "postingOrgUrl", "lastUpdateTimeUTC"],
+  "type": "object"
+}

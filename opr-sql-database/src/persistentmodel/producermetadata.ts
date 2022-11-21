@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import {DecodedReshareChain} from 'opr-models';
-import {
-  Entity,
-  Column,
-  OneToOne,
-  Index,
-  JoinColumn,
-  PrimaryColumn,
-  AfterLoad,
-} from 'typeorm';
-import {OfferSnapshot} from './offersnapshot';
+import {Entity, Column, PrimaryColumn, AfterLoad} from 'typeorm';
 
 @Entity()
 export class ProducerMetadata {

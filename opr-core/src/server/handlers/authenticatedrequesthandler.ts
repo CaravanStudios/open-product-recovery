@@ -17,7 +17,7 @@
 import {Validator} from 'opr-models';
 import {StatusError} from '../../util/statuserror';
 import {JWTPayload} from 'jose';
-import {OfferModel} from '../../database/offermodel';
+import {OfferModel} from '../../model/offermodel';
 
 export abstract class AuthenticatedRequestHandler<RequestType, ResponseType> {
   public readonly scopes: Readonly<Array<string>>;

@@ -5,17 +5,21 @@
   "description": "Response to a request to reserve an offer.",
   "examples": [
     {
-      "reservationExpirationUTC" : 1660152248000
+      "reservationExpirationUTC": 1660152248000,
+      "offer": {
+        "$ref": "exampleoffers/simpleoffer.json"
+      }
     }
   ],
   "additionalProperties": false,
   "properties": {
-    "reservationExpirationUTC" : {
-      "$ref" : "timestamp.schema.json"
+    "reservationExpirationUTC": {
+      "$ref": "timestamp.schema.json"
+    },
+    "offer": {
+      "$ref": "offer.schema.json"
     }
   },
-  "required": [
-    "reservationExpirationUTC"
-  ],
+  "required": ["reservationExpirationUTC", "offer"],
   "type": "object"
 }

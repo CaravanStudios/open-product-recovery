@@ -19,7 +19,6 @@ import {
   decodeChain,
   DefaultClock,
   diff,
-  getFullOfferId,
   HandlerRegistration,
   intersect,
   loglevel,
@@ -36,6 +35,7 @@ import {
   updateInterval,
   OfferProducerMetadata,
   asyncIterableToArray,
+  idToUrl,
 } from 'opr-core';
 import {
   ListOffersPayload,
@@ -45,6 +45,10 @@ import {
   Offer,
   DecodedReshareChain,
   AcceptOfferResponse,
+  RejectOfferResponse,
+  ReserveOfferResponse,
+  HistoryPayload,
+  HistoryResponse,
 } from 'opr-models';
 import {Brackets, DataSource, DataSourceOptions, EntityManager} from 'typeorm';
 export {DataSourceOptions} from 'typeorm';
@@ -76,6 +80,13 @@ export interface SqlOfferModelOptions {
   logger?: Logger;
 }
 
+/**
+ * Original OfferModel implementation that provides all storage and business
+ * logic in one place. This approach is deprecated. New code should use
+ * PersistentOfferModel, which separates business logic from storage
+ * capabilities. This class will be deleted in a future release.
+ * @deprecated
+ */
 export class SqlOfferModel implements OfferModel {
   private readonly db: DataSource;
   private initialized = false;
@@ -123,67 +134,45 @@ export class SqlOfferModel implements OfferModel {
   }
 
   async synchronize(dropBeforeSync: boolean): Promise<void> {
-    this.db.synchronize(dropBeforeSync);
+    await this.db.synchronize(dropBeforeSync);
   }
 
-  async unlockProducer(metadata: OfferProducerMetadata): Promise<void> {
+  async writeOfferProducerMetadata(
+    metadata: OfferProducerMetadata
+  ): Promise<void> {
     await this.runInTransaction(async em => {
-      const storedMetadata = await em
-        .getRepository(ProducerMetadata)
-        .createQueryBuilder('producermetadata')
-        .where('producermetadata.producerId = :producerId')
-        .setParameters({
-          producerId: metadata.producerId,
-        })
-        .getOne();
-      if (!storedMetadata || !storedMetadata.locked) {
-        throw new StatusError(
-          `${metadata.producerId} is not locked`,
-          'PRODUCER_ERROR_NOT_LOCKED',
-          500
-        );
-      }
       const newMetadata = new ProducerMetadata();
-      newMetadata.producerId = metadata.producerId;
+      newMetadata.organizationUrl = metadata.organizationUrl;
       newMetadata.nextRunTimestampUTC = metadata.nextRunTimestampUTC;
       newMetadata.lastUpdateTimeUTC = metadata.lastUpdateTimeUTC;
-      newMetadata.locked = false;
       await em.getRepository(ProducerMetadata).save(newMetadata);
     });
   }
 
-  async lockProducer(
-    producerId: string
+  async getOfferProducerMetadata(
+    organizationUrl: string
   ): Promise<OfferProducerMetadata | undefined> {
     return await this.runInTransaction(async em => {
       const storedMetadata = await em
         .getRepository(ProducerMetadata)
         .createQueryBuilder('producermetadata')
-        .where('producermetadata.producerId = :producerId')
+        .where('producermetadata.organizationUrl = :organizationUrl')
         .setParameters({
-          producerId: producerId,
+          organizationUrl: organizationUrl,
         })
         .getOne();
-      if (storedMetadata && storedMetadata.locked) {
-        throw new StatusError(
-          `${producerId} is already locked`,
-          'PRODUCER_ERROR_LOCKED',
-          500
-        );
-      }
       const now = this.clock.now();
       let metadata = storedMetadata;
       if (!metadata) {
         metadata = new ProducerMetadata();
-        metadata.producerId = producerId;
+        metadata.organizationUrl = organizationUrl;
         metadata.nextRunTimestampUTC = now;
         metadata.lastUpdateTimeUTC = now;
       }
-      metadata.locked = true;
       await em.getRepository(ProducerMetadata).save(metadata);
       return storedMetadata
         ? {
-            producerId: storedMetadata.producerId,
+            organizationUrl: storedMetadata.organizationUrl,
             nextRunTimestampUTC: storedMetadata.nextRunTimestampUTC,
             lastUpdateTimeUTC: storedMetadata.lastUpdateTimeUTC,
           }
@@ -246,7 +235,7 @@ export class SqlOfferModel implements OfferModel {
         orgUrl,
         now
       );
-      const delta = diff.diff(firstSnapshot, currentSnapshot);
+      const delta = diff.diffAsOfferPatches(firstSnapshot, currentSnapshot);
       // If the first snapshot is empty, it might mean that the first snapshot
       // request is so far back in time that we don't remember what the initial
       // state was. In that case, we want to send the caller an operation that
@@ -255,11 +244,7 @@ export class SqlOfferModel implements OfferModel {
       // entire root collection at the beginning of the diff. It's safe to do
       // this whenever the initial snapshot is empty.
       if (firstSnapshot.length === 0) {
-        delta.unshift({
-          op: 'replace',
-          path: '',
-          value: {},
-        });
+        delta.unshift('clear');
       }
       return {
         responseFormat: 'DIFF',
@@ -320,7 +305,7 @@ export class SqlOfferModel implements OfferModel {
     const offers = [];
     for (const timelineEntry of timelineEntries) {
       const offer = timelineEntry.offer.offer;
-      const fullId = getFullOfferId(offer);
+      const fullId = idToUrl(offer, true);
       // The same offer may appear in the list twice if it is explicitly listed
       // for the current organization and the wildcard organization. If we see
       // an org id more than once, we only retain the first listing.
@@ -390,7 +375,7 @@ export class SqlOfferModel implements OfferModel {
       this.processUpdateInTransaction(em, producerId, update)
     );
     for (const change of changes) {
-      this.fireChange(change);
+      await this.fireChange(change);
     }
   }
 
@@ -470,10 +455,9 @@ export class SqlOfferModel implements OfferModel {
     this.logger.debug('oldOfferMap', oldOfferMap);
     let newOfferMap;
     if (update.delta) {
-      newOfferMap = diff.patchAsMap(
-        oldOfferList,
-        await asyncIterableToArray(update.delta!)
-      );
+      const patches = await asyncIterableToArray(update.delta!);
+      this.logger.debug('patches', patches);
+      newOfferMap = await diff.applyOfferPatchesAsMap(oldOfferList, patches);
     } else if (update.offers) {
       newOfferMap = diff.toOfferSet(await asyncIterableToArray(update.offers));
     } else {
@@ -529,7 +513,7 @@ export class SqlOfferModel implements OfferModel {
       // for offers that have been updated.
       // First, check to see if the current snapshot was in the new offer map
       // at all. If it's not, it hasn't changed with this update.
-      const fullOfferId = getFullOfferId(snapshot.offer);
+      const fullOfferId = idToUrl(snapshot.offer, true);
       const newOffer = newOfferMap[fullOfferId];
       if (!newOffer) {
         continue;
@@ -575,7 +559,7 @@ export class SqlOfferModel implements OfferModel {
     }
     // Detect deletions
     for (const oldOffer of oldOfferList) {
-      const fullOfferId = getFullOfferId(oldOffer);
+      const fullOfferId = idToUrl(oldOffer, true);
       if (!newOfferMap[fullOfferId]) {
         this.logger.debug('Detected deletion of', fullOfferId);
         await this.deleteFutureTimelineEntriesWithTransaction(
@@ -1287,20 +1271,22 @@ export class SqlOfferModel implements OfferModel {
       now
     );
     // TODO: Delete the timeline entries for this offer.
-    this.fireChange({
+    await this.fireChange({
       type: 'ACCEPT',
       oldValue: offer,
       newValue: offer,
       timestampUTC: now,
     });
-    return {};
+    return {
+      offer: offer,
+    };
   }
 
   async reject(
     rejectingOrgUrl: string,
     offerId: string,
     offeringOrgUrl?: string
-  ): Promise<void> {
+  ): Promise<RejectOfferResponse> {
     return this.runInTransaction(em =>
       this.rejectInTransaction(em, rejectingOrgUrl, offerId, offeringOrgUrl)
     );
@@ -1311,7 +1297,7 @@ export class SqlOfferModel implements OfferModel {
     rejectingOrgUrl: string,
     offerId: string,
     offeringOrgUrl?: string
-  ): Promise<void> {
+  ): Promise<RejectOfferResponse> {
     const now = this.clock.now();
     const timelineEntry = await this.getOfferTimelineEntryForOrg(
       entityManager,
@@ -1343,13 +1329,16 @@ export class SqlOfferModel implements OfferModel {
       timelineEntry.offer,
       now
     );
+    return {
+      offer: offer,
+    };
   }
 
   async reserve(
     offerId: string,
     requestedReservationSecs: number,
     orgUrl: string
-  ): Promise<number> {
+  ): Promise<ReserveOfferResponse> {
     return this.runInTransaction(em =>
       this.reserveInTransaction(em, offerId, requestedReservationSecs, orgUrl)
     );
@@ -1360,7 +1349,7 @@ export class SqlOfferModel implements OfferModel {
     offerId: string,
     requestedReservationSecs: number,
     orgUrl: string
-  ): Promise<number> {
+  ): Promise<ReserveOfferResponse> {
     const now = this.clock.now();
     const timelineEntry = await this.getOfferTimelineEntryForOrg(
       entityManager,
@@ -1373,7 +1362,7 @@ export class SqlOfferModel implements OfferModel {
     );
     if (!timelineEntry) {
       throw new StatusError(
-        `No offer with id ${offerId} is available to accept`,
+        `No offer with id ${offerId} is available to reserve`,
         'RESERVE_ERROR_NO_AVAILABLE_OFFER',
         400
       );
@@ -1401,15 +1390,19 @@ export class SqlOfferModel implements OfferModel {
       timelineEntry.offer,
       now
     );
-    return newReservation.endTimeUTC;
+    return {
+      reservationExpirationUTC: newReservation.endTimeUTC,
+      offer: offer,
+    };
   }
 
   async getHistory(
     orgUrl: string,
-    sinceTimestampUTC?: number | undefined
-  ): Promise<OfferHistory[]> {
+    payload: HistoryPayload
+  ): Promise<HistoryResponse> {
     // NOTE: A transaction isn't necessary here - this is a single,
     // low-consequence read.
+    const sinceTimestampUTC = payload.historySinceUTC ?? 0;
     const historyEntries = await this.db.manager
       .getRepository(AcceptanceHistoryViewer)
       .createQueryBuilder('historyviewer')
@@ -1419,17 +1412,19 @@ export class SqlOfferModel implements OfferModel {
       .andWhere('acceptance.acceptedAtUTC >= :sinceTimestampUTC')
       .setParameters({
         orgUrl: orgUrl,
-        sinceTimestampUTC: sinceTimestampUTC ?? 0,
+        sinceTimestampUTC: sinceTimestampUTC,
       })
       .getMany();
-    return historyEntries.map(entry => {
-      return {
-        offer: entry.acceptance.snapshot.offer,
-        acceptingOrganization: entry.acceptance.acceptedBy,
-        acceptedAtUTC: entry.acceptance.acceptedAtUTC,
-        decodedReshareChain: entry.acceptance.decodedReshareChain,
-      } as OfferHistory;
-    });
+    return {
+      offerHistories: historyEntries.map(entry => {
+        return {
+          offer: entry.acceptance.snapshot.offer,
+          acceptingOrganization: entry.acceptance.acceptedBy,
+          acceptedAtUTC: entry.acceptance.acceptedAtUTC,
+          decodedReshareChain: entry.acceptance.decodedReshareChain,
+        } as OfferHistory;
+      }),
+    };
   }
 
   private async fireChange(change: OfferChange): Promise<void> {

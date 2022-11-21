@@ -17,7 +17,7 @@
 import {ListOffersPayload, ListOffersResponse} from 'opr-models';
 import {JWTPayload} from 'jose';
 import {AuthenticatedRequestHandler} from './authenticatedrequesthandler';
-import {OfferModel} from '../../database/offermodel';
+import {OfferModel} from '../../model/offermodel';
 
 export class ListRequestHandler extends AuthenticatedRequestHandler<
   ListOffersPayload,

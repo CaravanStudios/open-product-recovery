@@ -31,7 +31,11 @@ import {
   UniversalAcceptListingPolicy,
 } from 'opr-core';
 import {ResolverOptions, SourcedJsonObject, TestConfig} from 'opr-devtools';
-import {DecodedReshareChain, ListOffersPayload} from 'opr-models';
+import {
+  DecodedReshareChain,
+  HistoryPayload,
+  ListOffersPayload,
+} from 'opr-models';
 import path from 'path';
 import {EncodeChainDirective} from '../json/encodechaindirective';
 import {ModelDirective} from '../json/modeldirective';
@@ -188,13 +192,8 @@ export class OfferModelTestConfig implements TestConfig<SqlTestObjects> {
       }
       case 'HISTORY': {
         const orgUrl = context.propAsString('orgUrl').req();
-        const sinceTimestampUTC = context
-          .propAsNumber('sinceTimestampUTC')
-          .get();
-        const result = await testObject.model.getHistory(
-          orgUrl,
-          sinceTimestampUTC
-        );
+        const payload = context.propAsObject('payload').req() as HistoryPayload;
+        const result = await testObject.model.getHistory(orgUrl, payload);
         resultInfo.result = result;
         break;
       }
@@ -224,17 +223,19 @@ export class OfferModelTestConfig implements TestConfig<SqlTestObjects> {
         resultInfo.result = result;
         break;
       }
-      case 'LOCK': {
-        const producerId = context.propAsString('producerId').req();
-        const result = await testObject.model.lockProducer(producerId);
+      case 'READPRODUCERMETADATA': {
+        const organizationUrl = context.propAsString('organizationUrl').req();
+        const result = await testObject.model.getOfferProducerMetadata(
+          organizationUrl
+        );
         resultInfo.result = result;
         break;
       }
-      case 'UNLOCK': {
+      case 'WRITEPRODUCERMETADATA': {
         const metadata: OfferProducerMetadata = context
           .propAsObject('metadata')
           .req();
-        await testObject.model.unlockProducer(metadata);
+        await testObject.model.writeOfferProducerMetadata(metadata);
         break;
       }
       default: {

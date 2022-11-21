@@ -17,11 +17,19 @@
             "sourceOrgUrl": "https://citadelofdanas.org/org.json",
             "delta": [
               {
-                "op": "add",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc",
-                "value": {
-                  "$model": "SimpleOffer"
-                }
+                "target": {
+                  "id": "abc",
+                  "postingOrgUrl": "https://citadelofdanas.org/org.json"
+                },
+                "patch": [
+                  {
+                    "op": "add",
+                    "path": "",
+                    "value": {
+                      "$model": "SimpleOffer"
+                    }
+                  }
+                ]
               }
             ],
             "diffStartTimeUTC": 0,
@@ -111,17 +119,21 @@
             "diffStartTimestampUTC": 0
           },
           "expectDiff": [
+            "clear",
             {
-              "op": "replace",
-              "path": "",
-              "value": {}
-            },
-            {
-              "op": "add",
-              "path": "/https:~1~1citadelofdanas.org~1org.json#abc",
-              "value": {
-                "$model": "SimpleOffer"
-              }
+              "target": {
+                "id": "abc",
+                "postingOrgUrl": "https://citadelofdanas.org/org.json"
+              },
+              "patch": [
+                {
+                  "op": "add",
+                  "path": "",
+                  "value": {
+                    "$model": "SimpleOffer"
+                  }
+                }
+              ]
             }
           ]
         }

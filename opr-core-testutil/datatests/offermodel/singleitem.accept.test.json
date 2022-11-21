@@ -26,44 +26,47 @@
         },
         {
           "op": "ACCEPT",
-          "time" : 2,
-          "orgUrl" : "https://fakeorga.org/org.json",
-          "offerId" : "abc"
+          "time": 2,
+          "orgUrl": "https://fakeorga.org/org.json",
+          "offerId": "abc"
         },
         {
           "op": "HISTORY",
           "orgUrl": "https://citadelofdanas.org/org.json",
-          "time" : 2,
+          "time": 2,
+          "payload" : {},
           "expect": [
             "expect(result, 'History result should be defined').to.be.not.undefined",
-            "expect(result.length, 'Wrong history length').to.equal(1)",
-            "expect(result[0].acceptedAtUTC).to.equal(2)"
+            "expect(result.offerHistories.length, 'Wrong history length').to.equal(1)",
+            "expect(result.offerHistories[0].acceptedAtUTC).to.equal(2)"
           ]
         },
         {
           "op": "HISTORY",
           "orgUrl": "https://fakeorga.org/org.json",
-          "time" : 2,
+          "time": 2,
+          "payload" : {},
           "expect": [
             "expect(result, 'History result should be defined').to.be.not.undefined",
-            "expect(result.length, 'Wrong history length').to.equal(1)",
-            "expect(result[0].acceptedAtUTC).to.equal(2)"
+            "expect(result.offerHistories.length, 'Wrong history length').to.equal(1)",
+            "expect(result.offerHistories[0].acceptedAtUTC).to.equal(2)"
           ]
         },
         {
-          "comment" : "Fakeorgb shouldn't be able to see the history of this acceptance",
+          "comment": "Fakeorgb shouldn't be able to see the history of this acceptance",
           "op": "HISTORY",
           "orgUrl": "https://fakeorgb.org/org.json",
-          "time" : 2,
+          "time": 2,
+          "payload" : {},
           "expect": [
             "expect(result, 'History result should be defined').to.be.not.undefined",
-            "expect(result.length, 'Wrong history length').to.equal(0)"
+            "expect(result.offerHistories.length, 'Wrong history length').to.equal(0)"
           ]
         },
         {
           "op": "LIST",
           "orgUrl": "https://fakeorgb.org/org.json",
-          "time" : 2,
+          "time": 2,
           "payload": {
             "requestedResultFormat": "SNAPSHOT"
           },

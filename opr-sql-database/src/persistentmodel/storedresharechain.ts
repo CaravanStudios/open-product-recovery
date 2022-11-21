@@ -32,11 +32,11 @@ export class StoredReshareChain {
   @PrimaryColumn()
   forUse: string;
 
-  @Column({type: 'simple-json'})
-  reshareChain: ReshareChain;
+  @Column({type: 'simple-json', nullable: true})
+  reshareChain?: ReshareChain;
 
-  @Column({type: 'simple-json'})
-  decodedReshareChain: DecodedReshareChain;
+  @Column({type: 'simple-json', nullable: true})
+  decodedReshareChain?: DecodedReshareChain;
 
   @Column({type: 'int'})
   length: number;

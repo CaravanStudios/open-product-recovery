@@ -15,40 +15,57 @@
  */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {DecodedReshareChain} from 'opr-models';
+import {DecodedReshareChain, ReshareChain} from 'opr-models';
 import {
   Entity,
   Column,
+  PrimaryGeneratedColumn,
   OneToOne,
   Index,
   JoinColumn,
-  PrimaryColumn,
   AfterLoad,
 } from 'typeorm';
 import {OfferSnapshot} from './offersnapshot';
 
 @Entity()
-export class ProducerMetadata {
-  @PrimaryColumn()
-  organizationUrl: string;
+export class StoredAcceptance {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  acceptedBy: string;
 
   @Column({type: 'bigint'})
-  nextRunTimestampUTC: number;
+  @Index()
+  acceptedAtUTC: number;
 
-  @Column({type: 'bigint', nullable: true})
-  lastUpdateTimeUTC?: number;
+  @Column({type: 'simple-json', nullable: true})
+  decodedReshareChain?: DecodedReshareChain;
+
+  // The snapshot column is a synthetic column used to represent the
+  // join to the snapshot table. Sometimes we want to fetch the snapshot
+  // ids without loading the whole snapshot, so we define the three implied
+  // id columns explicitly so they're available from the entity manager.
+  @OneToOne(() => OfferSnapshot)
+  @JoinColumn()
+  snapshot: OfferSnapshot;
+
+  @Column()
+  snapshotOfferId: string;
+
+  @Column()
+  snapshotPostingOrgUrl: string;
+
+  @Column({type: 'bigint'})
+  snapshotLastUpdateUTC: number;
 
   @AfterLoad()
   restoreBigInt() {
     // Bigints are marshalled to strings in some drivers, and are not
     // unmarshalled for fear of precision loss. We can safely unmarshal them,
     // because we know these are timestamps.
-    if (typeof this.nextRunTimestampUTC === 'string') {
-      this.nextRunTimestampUTC = parseInt(this.nextRunTimestampUTC);
-    }
-
-    if (typeof this.lastUpdateTimeUTC === 'string') {
-      this.lastUpdateTimeUTC = parseInt(this.lastUpdateTimeUTC);
+    if (typeof this.acceptedAtUTC === 'string') {
+      this.acceptedAtUTC = parseInt(this.acceptedAtUTC);
     }
   }
 }

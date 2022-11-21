@@ -17,10 +17,13 @@
 import {
   AcceptOfferResponse,
   DecodedReshareChain,
+  HistoryPayload,
+  HistoryResponse,
   ListOffersPayload,
   ListOffersResponse,
   Offer,
-  OfferHistory,
+  RejectOfferResponse,
+  ReserveOfferResponse,
 } from 'opr-models';
 import {OfferSetUpdate} from '../coreapi';
 import {OfferProducerMetadata} from '../offerproducer/offerproducermetadata';
@@ -33,33 +36,43 @@ import {OfferChange} from './offerchange';
  */
 export interface OfferModel {
   initialize(): Promise<void>;
+
   shutdown(): Promise<void>;
-  unlockProducer(metadata: OfferProducerMetadata): Promise<void>;
-  lockProducer(producerId: string): Promise<OfferProducerMetadata | undefined>;
+
+  writeOfferProducerMetadata(metadata: OfferProducerMetadata): Promise<void>;
+
+  getOfferProducerMetadata(
+    producerId: string
+  ): Promise<OfferProducerMetadata | undefined>;
+
   list(orgUrl: string, payload: ListOffersPayload): Promise<ListOffersResponse>;
-  processUpdate(producerId: string, update: OfferSetUpdate): Promise<void>;
+
+  processUpdate(fromOrgUrl: string, update: OfferSetUpdate): Promise<void>;
+
   accept(
     offerId: string,
     orgUrl: string,
     ifNotNewerThanTimestampUTC?: number,
     decodedReshareChain?: DecodedReshareChain
   ): Promise<AcceptOfferResponse>;
+
   reject(
     rejectingOrgUrl: string,
     offerId: string,
-    offeringOrgUrl?: string
-  ): Promise<void>;
+    postingOrgUrl?: string
+  ): Promise<RejectOfferResponse>;
+
   reserve(
     offerId: string,
     requestedReservationSecs: number,
     orgUrl: string
-  ): Promise<number>;
-  getHistory(
-    orgUrl: string,
-    sinceTimestampUTC?: number
-  ): Promise<Array<OfferHistory>>;
+  ): Promise<ReserveOfferResponse>;
+
+  getHistory(orgUrl: string, payload: HistoryPayload): Promise<HistoryResponse>;
+
   registerChangeHandler(
     handlerFn: (change: OfferChange) => Promise<void>
   ): HandlerRegistration;
+
   getAllOffers(): Promise<Array<Offer>>;
 }

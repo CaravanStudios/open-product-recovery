@@ -2,8 +2,8 @@
 
 An open protocol for exchanging and accepting recovered products.
 
-* **Version**: `0.5.1`
-* **Last Updated**: October 31, 2022
+* **Version**: `0.5.2`
+* **Last Updated**: November 18, 2022
 * **Drafted by**: John Richter & Mike Ryckman
 * **Initial draft**: May 18, 2022
 
@@ -48,7 +48,9 @@ An open protocol for exchanging and accepting recovered products.
     * [6.3.2. `listProducts`](#632-listproducts)
       * [6.3.2.1. `SNAPSHOT` Format](#6321-snapshot-format)
       * [6.3.2.2. `DIFF` Format](#6322-diff-format)
-        * [6.3.2.2.1. Using `DIFF` Format Responses](#63221-using-diff-format-responses)
+        * [6.3.2.2.1. The `clear` Patch](#63221-the-clear-patch)
+        * [6.3.2.2.2. Targeting Offers with `StructuredOfferId`](#63222-targeting-offers-with-structuredofferid)
+        * [6.3.2.2.3. Using `DIFF` Format Responses](#63223-using-diff-format-responses)
       * [6.3.2.3. Reservation Considerations](#6323-reservation-considerations)
       * [6.3.2.4. Friend of a Friend `listProducts` Requests](#6324-friend-of-a-friend-listproducts-requests)
       * [6.3.2.5. `listProducts` Request Body](#6325-listproducts-request-body)
@@ -466,26 +468,54 @@ If `SNAPSHOT` format is requested, the server response must be in `SNAPSHOT` for
 
 #### 6.3.2.2. `DIFF` Format
 
-In `DIFF` format, the server returns a [JSON Patch array](https://jsonpatch.com/) that, when applied, updates a collection of offers from some earlier time to match the collection of offers on the server at the current moment.
+In `DIFF` format, the server returns a list of OfferPatch objects. An OfferPatch
+is either the string [`clear`](#the-clear-patch) or a JSON object containing two parameters:
+* `target` (`StructuredOfferId`) : A [StructuredOfferId](#targeting-offers-with-structuredofferid) that specifies an offer (or a particular version of an offer).
+* `patch` (`JSONPatch`) : A [JSON Patch array](https://jsonpatch.com/) that, when applied to the targeted offer, updates the offer from some earlier time to the current state.
 
 If `DIFF` format is requested, the server may respond with `DIFF` format. However, a server may be unable to respond to some `DIFF` format requests (particularly ones where the requested `diffStartTimestampUTC` parameter specifies a time in the distant past). In those cases, the server may respond in `SNAPSHOT` format.
 
 `DIFF` format requests require the `diffStartTimestampUTC` property to be specified in the request.
 
-##### 6.3.2.2.1. Using `DIFF` Format Responses
+##### 6.3.2.2.1. The `clear` Patch
 
-A [JSON patch](https://jsonpatch.com/) ([RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902/)) is an array of operation descriptions for modifying a JSON value. DIFF format is useful for organizations that store the offers read from another server, because DIFF format transfers the minimal information necessary to update a stored collection of offers to match the most recent state on a remote server.
+The first item in an `OfferPatch` list may be the string `clear`. This string indicates that the following `OfferPatch`es completely describe the entire offer collection. The `clear` patch means "delete all offers not explicitly created by the following patches".
 
-The JSON patches used in OPR apply to an entire collection of offers on a server, not individual offers. To apply JSON patch to an offer collection, first the collection must be transformed to a map of full offer ids to offers. To do this:
+##### 6.3.2.2.2. Targeting Offers with `StructuredOfferId`
 
-1. Let offerMap = `{}` (an empty JSON object)
-2. For each offer on the server:
-   1. Generate a full offer id by concatenating the offer's `offeredBy` field, a '#' symbol, and the offer `id`
-   2. let `offerMap[fullOfferId] = offer`
+A standard OfferPatch includes a `target` attribute that specifies which offer to modify. The `target` attribute contains a `StructuredOfferId` object, with the following fields:
 
-The JSON patch can then be applied to the resulting offer map using a [standard JSON patch library](https://jsonpatch.com/#libraries).
+* `id` (string) : The offer id.
+* `postingOrgUrl` (string) : The organization url of the org that made the offer. This field matches the `offeredBy` field of the offer.
+* `lastUpdateTimeUTC` (number) : The last update time of the targeted offer. This property allows a structured offer id to be applied *only* to a particular version of an offer.
 
-A malformed or buggy JSON patch may leave one or more offers in an invalid and unusable state. Therefore, servers must check every offer in the offer map after applying a JSON patch. If an offer is invalid after the patch is applied, the server should handle the malformed offer as if it had been deleted by the patch.
+If the `lastUpdateTimeUTC` field is specified, the `OfferPatch` will be applied *only* to an offer whose last update time (specified by the `offerUpdateUTC` field, or the `offerCreationUTC` field if the offer has never been updatde) matches the given timestamp. See [Using DIFF Format Responses](#63221-using-diff-format-responses) below for details on how to apply OfferPatches that are targed to a particular version of an offer.
+
+Implementations that create OfferPatches must decide whether to specify the `lastUpdateTimeUTC` field. In general, `lastUpdateTimeUTC` should only be specified when the OfferPatch *must* be applied to a particular version of an Offer to ensure that the Offer remains in a valid state.
+
+`lastUpdateTimeUTC` should *not* be specified when:
+
+* The patch updates the entire contents of the offer (i.e. the JSON Patch contains a single 'update' operation where the path is "").
+
+`lastUpdateTime` should *always* be specified when:
+
+* The patch includes `add` or `remove` operations on an array, because those operations may have highly unexpected results if applied to a different object than intended.
+* The offer may be modified multiple times, and those modifications may target different collections of fields.
+
+Implementations that generate patches must be very careful not to issue patches that could leave an Offer in a state that was never published by the original offering organization.
+
+##### 6.3.2.2.3. Using `DIFF` Format Responses
+
+To apply an `OfferPatch`:
+
+1) Check whether the `OfferPatch` is the value `clear`. If it is, delete the entire relevant collection of offers (for example, the cached list of offers from the OPR server that produced this patch)
+2) Look up the offer specified by the StructuredOfferId in the `target` field. If the offer cannot be found, the patch must be ignored.
+3) If the StructuredOfferId specifies the lastUpdateTimestampUTC field, ensure that the offer's last update timestamp (or creation timestamp, if the offer has never been updated) matches the lastUpdateTimestampUTC field. If it does not, the patch must be ignored.
+4) Apply the JSON Patch in the `patch` field to the Offer.
+
+A [JSON patch](https://jsonpatch.com/) ([RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902/)) is an array of operation descriptions for modifying a JSON value. A JSON patch can be applied to an offer using a [standard JSON patch library](https://jsonpatch.com/#libraries).
+
+A malformed or buggy JSON patch may leave an offer in an invalid and unusable state. If an offer is invalid after a patch is applied, that patch should be ignored. Note that every valid update to an offer should advance that offer's `offerUpdateTimestampUTC`. If a patch is applied and the Offer's offerUpdateTimestampUTC field does not change, the patch should be considered invalid and ignored.
 
 #### 6.3.2.3. Reservation Considerations
 
@@ -499,7 +529,7 @@ Friend-of-a-friend requests are not valid on the `listProducts` endpoint.
 
 The request body to the listProducts endpoint should be a JSON map with the following properties:
 
-* `pageToken` (`string`, optional) : A token indicating which page of the results to return. This must be a page token returned by a prior request to the `listProducts` endpoint.
+* `pageToken` (`string`, optional) : A token indicating which page of the results to return. This must be a page token returned by a prior request to the `listProducts` endpoint. Note that if a `pageToken` is specified, all other parameters are ignored, because the pageToken encodes all other information about the request. The page token format is unspecified and may change at any time.
 * `requestedResultFormat` (`string`, optional) : Requests that results are returned in `SNAPSHOT` or `DIFF` format (see [Response Body](#6326-listproducts-response-body) below for descriptions of these formats). The server is not required to honor a request for `DIFF` format; it may return results in `SNAPSHOT` format instead. The server must always honor a request for `SNAPSHOT` format. `DIFF` and `SNAPSHOT` are the only values permitted for this property.
 * `diffStartTimestampUTC` (`number`, required for `DIFF` format, ignored for `SNAPSHOT`) : The baseline time for a response in `DIFF` format. The `diff` field of the response will include a JSON patch to modify the offer set as of the requested time to the current offer set. If possible, callers should base this value on a timestamp received from the server they are calling, rather than a timestamp from their own clock, to avoid clock skew problems.
 * `maxResultsPerPage` (`number`, optional) - A requested maximum number of results per page. The server may ignore this parameter. If honored, this parameter applies to both the contents of `SNAPSHOT` and `DIFF` replies.
@@ -692,12 +722,15 @@ Friend-of-a-friend requests are not valid on the `acceptHistory` endpoint. Reque
 The request body to the acceptHistory endpoint must be a JSON map with the following properties:
 
 * `historySinceUTC` (`number`, optional) : An optional unix timestamp (milliseconds since the epoch UTC) indicating that the caller prefers to see the history of offers accepted after the requested time.
+* `pageToken` (`string`, optional) : A token indicating which page of the results to return. This must be a page token returned by a prior request to the `acceptHistory` endpoint. Note that if a `pageToken` is specified, all other parameters are ignored, because the pageToken encodes all other information about the request. The page token format is unspecified and may change at any time.
+* `maxResultsPerPage` (`number`, optional) - A requested maximum number of results per page. The server may ignore this parameter. If honored, this parameter applies to both the contents of `SNAPSHOT` and `DIFF` replies.
 
 #### 6.3.7.4. `acceptHistory` Response Body
 
 The response body must be a JSON object with the following properties:
 
 * `offerHistories` (`Array<`[`OfferHistory`](#63741-offerhistory-object)`>`) : An array of OfferHistory objects representing the history of accepted offers for the requesting organization.
+* `nextPageToken` (`string`, optional) : The page token for the next page of results. If this field is missing, it means the current page is the last page of results.
 
 ##### 6.3.7.4.1. OfferHistory Object
 

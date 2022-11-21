@@ -24,7 +24,7 @@ import {DataSourceOptions} from 'typeorm';
 import {PostgresConnectionOptions} from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 // Uncomment to enable detailed logging during tests
-//log.setLevel('TRACE');
+// log.setLevel('TRACE');
 
 class PostgresTestConfig extends OfferModelTestConfig {
   private psLauncher: PostgresTestingLauncher;

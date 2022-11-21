@@ -30,7 +30,7 @@ export interface AcceptOfferPayload {
  * Response to a request to accept an offer.
  */
 export interface AcceptOfferResponse {
-  [k: string]: 'false';
+  offer: Offer;
 }
 
 /**
@@ -64,6 +64,8 @@ export interface DecodedReshareChainLink {
  */
 export interface HistoryPayload {
   historySinceUTC?: Timestamp;
+  pageToken?: string;
+  maxResultsPerPage?: number;
 }
 
 /**
@@ -71,6 +73,7 @@ export interface HistoryPayload {
  */
 export interface HistoryResponse {
   offerHistories: OfferHistory[];
+  nextPageToken?: string;
 }
 
 /**
@@ -91,9 +94,15 @@ export type JSONPatchOp =
       /**
        * The value to add, replace or test.
        */
-      value: {
-        [k: string]: unknown;
-      };
+      value:
+        | number
+        | string
+        | boolean
+        | {
+            [k: string]: unknown;
+          }
+        | unknown[]
+        | null;
     }
   | {
       path: JSONPath;
@@ -142,7 +151,7 @@ export interface ListOffersResponse {
   resultsTimestampUTC: Timestamp;
   nextPageToken?: string;
   offers?: Offer[];
-  diff?: JSONPatch;
+  diff?: OfferPatch[];
 }
 
 /**
@@ -202,6 +211,16 @@ export interface OfferLocation {
   accessWindows?: TimeRange[] | null;
   pickupNotes?: string;
 }
+
+/**
+ * A JSON patch targeted at an offer
+ */
+export type OfferPatch =
+  | {
+      target: StructuredOfferId | VersionedStructuredOfferId;
+      patch: JSONPatch;
+    }
+  | 'clear';
 
 /**
  * An absolute measurement of some physical quantity. A measurement is always a combination of a unit, a dimension, and a value. For some measurements, the dimension must be specified explicitly (i.e. a measurement in 'inches' must specify a physical dimension being measured, like 'height'). However, for some measurements the dimension is implied by the unit (i.e. 'count' is always a measure of quantity), so the dimension does not need to be specified explicitly, although it is legal to do so.
@@ -332,7 +351,9 @@ export interface RejectOfferPayload {
 /**
  * Response to a request to reject an offer.
  */
-export interface RejectOfferResponse {}
+export interface RejectOfferResponse {
+  offer: Offer;
+}
 
 /**
  * Payload for a request to reserve an offer.
@@ -348,12 +369,21 @@ export interface ReserveOfferPayload {
  */
 export interface ReserveOfferResponse {
   reservationExpirationUTC: Timestamp;
+  offer: Offer;
 }
 
 /**
  * An offer
  */
 export type ReshareChain = string[];
+
+/**
+ * A structured representation of a unique offer id
+ */
+export interface StructuredOfferId {
+  id: string;
+  postingOrgUrl: string;
+}
 
 /**
  * A range of time with an absolute start and endpoint.
@@ -379,6 +409,15 @@ export interface TransportationDetails {}
 export interface TypeIdentifier {
   vocabularyId: 'gtin' | 'foodex2' | 'plu';
   itemId: string;
+}
+
+/**
+ * A structured representation of a unique offer id
+ */
+export interface VersionedStructuredOfferId {
+  id: string;
+  postingOrgUrl: string;
+  lastUpdateTimeUTC: Timestamp;
 }
 
 /**
@@ -428,6 +467,8 @@ export interface SchemaNameToType {
   ['offerhistory.schema.json']: OfferHistory;
   OfferLocation: OfferLocation;
   ['offerlocation.schema.json']: OfferLocation;
+  OfferPatch: OfferPatch;
+  ['offerpatch.schema.json']: OfferPatch;
   OtherMeasurement: OtherMeasurement;
   ['othermeasurement.schema.json']: OtherMeasurement;
   PackagingType: PackagingType;
@@ -448,6 +489,8 @@ export interface SchemaNameToType {
   ['reserve.response.schema.json']: ReserveOfferResponse;
   ReshareChain: ReshareChain;
   ['resharechain.schema.json']: ReshareChain;
+  StructuredOfferId: StructuredOfferId;
+  ['structuredofferid.schema.json']: StructuredOfferId;
   TimeRange: TimeRange;
   ['timerange.schema.json']: TimeRange;
   Timestamp: Timestamp;
@@ -456,6 +499,8 @@ export interface SchemaNameToType {
   ['transportationdetails.schema.json']: TransportationDetails;
   TypeIdentifier: TypeIdentifier;
   ['typeidentifier.schema.json']: TypeIdentifier;
+  VersionedStructuredOfferId: VersionedStructuredOfferId;
+  ['versionedstructuredofferid.schema.json']: VersionedStructuredOfferId;
   Weight: Weight;
   ['weight.schema.json']: Weight;
 }

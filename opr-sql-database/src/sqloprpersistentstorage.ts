@@ -13,6 +13,10 @@ import {
   compareReshareChainsForReshare,
   TimelineEntry,
   Interval,
+  StatusError,
+  OfferId,
+  OfferVersionPair,
+  OfferProducerMetadata,
 } from 'opr-core';
 import {
   DecodedReshareChain,
@@ -20,13 +24,22 @@ import {
   OfferHistory,
   ReshareChain,
 } from 'opr-models';
-import {Brackets, DataSource, DataSourceOptions, EntityManager} from 'typeorm';
+import {
+  Brackets,
+  DataSource,
+  DataSourceOptions,
+  EntityManager,
+  QueryResult,
+} from 'typeorm';
 import {KnownOfferingOrg} from './persistentmodel/knownofferingorg';
 import {CorpusOffer} from './persistentmodel/corpusoffer';
 import {OfferSnapshot} from './persistentmodel/offersnapshot';
 import {StoredReshareChain} from './persistentmodel/storedresharechain';
 import {StoredTimelineEntry} from './persistentmodel/storedtimelineentry';
 import {StoredRejection} from './persistentmodel/storedrejection';
+import {StoredAcceptance} from './persistentmodel/storedacceptance';
+import {AcceptanceHistoryViewer} from './persistentmodel/acceptancehistoryviewer';
+import {ProducerMetadata} from './persistentmodel/producermetadata';
 
 export {DataSourceOptions} from 'typeorm';
 
@@ -54,7 +67,11 @@ export class SqlTransaction implements Transaction {
 
   constructor(db: DataSource, type: TransactionType) {
     const isolationLevel =
-      type === 'READONLY' ? 'READ COMMITTED' : 'SERIALIZABLE';
+      type === 'READONLY'
+        ? db.driver.options.type === 'sqlite'
+          ? 'READ UNCOMMITTED'
+          : 'READ COMMITTED'
+        : 'SERIALIZABLE';
     this.isolationLevel = isolationLevel;
     this.db = db;
   }
@@ -116,9 +133,12 @@ export class SqlOprPersistentStorage implements PersistentStorage {
     const dsOptions = {
       ...options.dsOptions,
       entities: [
+        AcceptanceHistoryViewer,
         CorpusOffer,
         KnownOfferingOrg,
         OfferSnapshot,
+        ProducerMetadata,
+        StoredAcceptance,
         StoredRejection,
         StoredReshareChain,
         StoredTimelineEntry,
@@ -143,6 +163,15 @@ export class SqlOprPersistentStorage implements PersistentStorage {
     }
   }
 
+  /**
+   * Synchronizes database tables to match current datamodels. This method can
+   * be called to set up new databases. It should NOT be exposed in production.
+   */
+  async synchronize(dropBeforeSync = false): Promise<void> {
+    await this.initialize();
+    await this.db.synchronize(dropBeforeSync);
+  }
+
   async shutdown(): Promise<void> {
     await this.db.destroy();
   }
@@ -154,6 +183,31 @@ export class SqlOprPersistentStorage implements PersistentStorage {
     const t = new SqlTransaction(this.db, type);
     await t.startInternal();
     return t;
+  }
+
+  async getOfferFromCorpus(
+    t: SqlTransaction,
+    hostOrgUrl: string,
+    corpusOrgUrl: string,
+    postingOrgUrl: string,
+    offerId: string
+  ): Promise<Offer | undefined> {
+    const result = await t.em
+      .getRepository(CorpusOffer)
+      .createQueryBuilder('corpusoffers')
+      .leftJoinAndSelect('corpusoffers.snapshot', 'snapshot')
+      .where('corpusoffers.offerId = :offerId')
+      .andWhere('corpusoffers.postingOrgUrl = :postingOrgUrl')
+      .andWhere('corpusoffers.corpusOrgUrl = :corpusOrgUrl')
+      .andWhere('corpusoffers.hostOrgUrl = :hostOrgUrl')
+      .setParameters({
+        offerId: offerId,
+        hostOrgUrl: hostOrgUrl,
+        corpusOrgUrl: corpusOrgUrl,
+        postingOrgUrl: postingOrgUrl,
+      })
+      .getOne();
+    return result ? result.snapshot.offer : undefined;
   }
 
   async insertOrUpdateOfferInCorpus(
@@ -254,7 +308,7 @@ export class SqlOprPersistentStorage implements PersistentStorage {
         knownOfferingOrg.hostOrgUrl = hostOrgUrl;
         knownOfferingOrg.orgUrl = offer.offeredBy!;
         knownOfferingOrg.lastSeenAtUTC = offerTimestamp;
-        t.em.save(knownOfferingOrg);
+        await t.em.save(knownOfferingOrg);
       }
     }
 
@@ -368,13 +422,14 @@ export class SqlOprPersistentStorage implements PersistentStorage {
     offerId: string,
     postingOrgUrl: string
   ): Promise<ReshareChain | undefined> {
-    return (
+    const reshareChain = (
       await t.em.findOneBy(StoredReshareChain, {
         offerId: offerId,
         postingOrgUrl: postingOrgUrl,
-        forUse: 'RESHARE',
+        forUse: 'ACCEPT',
       })
     )?.reshareChain;
+    return reshareChain;
   }
 
   async deleteOfferInCorpus(
@@ -571,12 +626,151 @@ export class SqlOprPersistentStorage implements PersistentStorage {
       .execute();
   }
 
+  async *getChangedOffers(
+    t: SqlTransaction,
+    hostOrgUrl: string,
+    viewingOrgUrl: string,
+    oldTimestampUTC: number,
+    newTimestampUTC: number,
+    skipCount?: number
+  ): AsyncGenerator<OfferVersionPair> {
+    let selectPage;
+    let cursorPos = skipCount ?? 0;
+    const diffQueryBase = t.em
+      .createQueryBuilder()
+      .select('oldtimelineentries.offer', 'oldoffer')
+      .addSelect('newtimelineentries.offer', 'newoffer')
+      .from(qb => {
+        return qb
+          .select('snapshot.offer', 'offer')
+          .addSelect('timelineentry.snapshot.offerId')
+          .addSelect('timelineentry.snapshot.postingOrgUrl')
+          .addSelect('timelineentry.snapshot.lastUpdateUTC')
+          .distinctOn([
+            'timelineentry.snapshot.offerId',
+            'timelineentry.snapshot.postingOrgUrl',
+            'timelineentry.snapshot.lastUpdateUTC',
+          ])
+          .from(StoredTimelineEntry, 'timelineentry')
+          .leftJoin('timelineentry.snapshot', 'snapshot')
+          .where(
+            new Brackets(qb => {
+              qb.where(
+                'timelineentry.targetOrganizationUrl = :viewingOrgUrl'
+              ).orWhere('timelineentry.targetOrganizationUrl = :wildcard');
+            })
+          )
+          .andWhere('timelineentry.hostOrgUrl = :hostOrgUrl')
+          .andWhere('timelineentry.startTimeUTC <= :oldTimestampUTC')
+          .andWhere('timelineentry.endTimeUTC > :oldTimestampUTC');
+      }, 'oldtimelineentries')
+      // TODO(johndayrichter): The "innerJoin" below is really an outer join.
+      // Remove this when TypeORM supports outer joins.
+      .innerJoin(
+        qb => {
+          return qb
+            .select('snapshot.offer', 'offer')
+            .addSelect('timelineentry.snapshot.offerId')
+            .addSelect('timelineentry.snapshot.postingOrgUrl')
+            .addSelect('timelineentry.snapshot.lastUpdateUTC')
+            .distinctOn([
+              'timelineentry.snapshot.offerId',
+              'timelineentry.snapshot.postingOrgUrl',
+              'timelineentry.snapshot.lastUpdateUTC',
+            ])
+            .from(StoredTimelineEntry, 'timelineentry')
+            .leftJoin('timelineentry.snapshot', 'snapshot')
+            .where(
+              new Brackets(qb => {
+                qb.where(
+                  'timelineentry.targetOrganizationUrl = :viewingOrgUrl'
+                ).orWhere('timelineentry.targetOrganizationUrl = :wildcard');
+              })
+            )
+            .andWhere('timelineentry.hostOrgUrl = :hostOrgUrl')
+            .andWhere('timelineentry.startTimeUTC <= :newTimestampUTC')
+            .andWhere('timelineentry.endTimeUTC > :newTimestampUTC');
+        },
+        'newtimelineentries',
+        '"newtimelineentries"."snapshotOfferId" = ' +
+          '"oldtimelineentries"."snapshotOfferId" AND ' +
+          '"newtimelineentries"."snapshotPostingOrgUrl" = ' +
+          '"oldtimelineentries"."snapshotPostingOrgUrl"'
+      )
+      .where(
+        new Brackets(qb => {
+          return qb
+            .where(
+              '"oldtimelineentries"."snapshotLastUpdateUTC" != ' +
+                '"newtimelineentries"."snapshotLastUpdateUTC"'
+            )
+            .orWhere(
+              '("oldtimelineentries"."snapshotLastUpdateUTC" IS NULL) ' +
+                '!= ("newtimelineentries"."snapshotLastUpdateUTC" IS NULL)'
+            );
+        })
+      )
+      .orderBy(
+        'COALESCE("oldtimelineentries"."snapshotPostingOrgUrl",' +
+          '"newtimelineentries"."snapshotPostingOrgUrl")',
+        'ASC'
+      )
+      .addOrderBy(
+        'COALESCE("oldtimelineentries"."snapshotOfferId",' +
+          '"newtimelineentries"."snapshotOfferId")',
+        'ASC'
+      )
+      .addOrderBy(
+        'COALESCE("oldtimelineentries"."snapshotLastUpdateUTC", ' +
+          '"newtimelineentries"."snapshotLastUpdateUTC")',
+        'DESC'
+      )
+      .setParameters({
+        hostOrgUrl: hostOrgUrl,
+        viewingOrgUrl: viewingOrgUrl,
+        oldTimestampUTC: oldTimestampUTC,
+        newTimestampUTC: newTimestampUTC,
+        wildcard: '*',
+      });
+    do {
+      const query = diffQueryBase.skip(cursorPos).take(this.selectPageSize);
+      const queryAndParams = query.getQueryAndParameters();
+      // TODO(johndayrichter): The following is perhaps the ugliest hack I've
+      // written in 25 years of professional coding. Remove this abomination the
+      // moment TypeORM supports outer joins. :(
+      const querySql = queryAndParams[0].replace('INNER', 'FULL');
+      selectPage = (await t.em.query(querySql, queryAndParams[1])) as Record<
+        string,
+        string
+      >[];
+      for (const entry of selectPage) {
+        const oldOffer = entry.oldoffer
+          ? JSON.parse(entry.oldoffer)
+          : undefined;
+        const newOffer = entry.newoffer
+          ? JSON.parse(entry.newoffer)
+          : undefined;
+        const result = {
+          oldVersion: oldOffer,
+          newVersion: newOffer,
+        };
+        yield result;
+      }
+      cursorPos += this.selectPageSize;
+    } while (
+      selectPage &&
+      selectPage.length &&
+      selectPage.length >= this.selectPageSize
+    );
+  }
+
   async *getOffersAtTime(
     t: SqlTransaction,
     hostOrgUrl: string,
     viewingOrgUrl: string,
     timestampUTC: number,
-    skipCount = 0
+    skipCount = 0,
+    pageSize = this.selectPageSize
   ): AsyncGenerator<Offer> {
     let selectPage;
     let cursorPos = skipCount;
@@ -606,7 +800,7 @@ export class SqlOprPersistentStorage implements PersistentStorage {
           wildcard: '*',
         })
         .skip(cursorPos)
-        .take(this.selectPageSize)
+        .take(pageSize)
         .getMany();
       for (const entry of selectPage) {
         const offer = entry.snapshot.offer;
@@ -628,12 +822,8 @@ export class SqlOprPersistentStorage implements PersistentStorage {
         yield offer;
         lastOffer = offer;
       }
-      cursorPos += this.selectPageSize;
-    } while (
-      selectPage &&
-      selectPage.length &&
-      selectPage.length >= this.selectPageSize
-    );
+      cursorPos += pageSize;
+    } while (selectPage && selectPage.length && selectPage.length >= pageSize);
   }
 
   async getOfferAtTime(
@@ -675,24 +865,99 @@ export class SqlOprPersistentStorage implements PersistentStorage {
     return timelineEntry ? timelineEntry.snapshot.offer : undefined;
   }
 
-  writeAccept(
+  async writeAccept(
     t: SqlTransaction,
     hostOrgUrl: string,
     acceptingOrgUrl: string,
     offerId: string,
+    offerUpdateTimestampUTC: number,
     atTimeUTC: number,
     decodedReshareChain?: DecodedReshareChain | undefined
   ): Promise<void> {
-    throw new Error('Method not implemented.');
+    const offer = await this.getOfferAtTime(
+      t,
+      hostOrgUrl,
+      acceptingOrgUrl,
+      offerId,
+      hostOrgUrl,
+      atTimeUTC
+    );
+    if (!offer) {
+      throw new StatusError(
+        'Unknown offer ' + offerId,
+        'ERROR_ACCEPT_UNKNOWN_OFFER',
+        404
+      );
+    }
+    const acceptance = new StoredAcceptance();
+    acceptance.acceptedBy = acceptingOrgUrl;
+    acceptance.acceptedAtUTC = atTimeUTC;
+    acceptance.snapshotOfferId = offerId;
+    acceptance.snapshotPostingOrgUrl = hostOrgUrl;
+    acceptance.snapshotLastUpdateUTC = getUpdateTimestamp(offer);
+    acceptance.decodedReshareChain = decodedReshareChain;
+    await t.em.save(acceptance);
+    const viewerSet = new Set<string>();
+    viewerSet.add(hostOrgUrl);
+    viewerSet.add(acceptingOrgUrl);
+    for (const x of decodedReshareChain || []) {
+      viewerSet.add(x.sharingOrgUrl);
+    }
+    for (const viewingOrgUrl of viewerSet) {
+      const historyViewer = new AcceptanceHistoryViewer();
+      historyViewer.acceptance = acceptance;
+      historyViewer.hostOrgUrl = hostOrgUrl;
+      historyViewer.visibleToOrgUrl = viewingOrgUrl;
+      await t.em.save(historyViewer);
+    }
   }
 
-  getHistory(
+  async *getHistory(
     t: SqlTransaction,
     hostOrgUrl: string,
     viewingOrgUrl: string,
-    sinceTimestampUTC?: number | undefined
+    sinceTimestampUTC?: number | undefined,
+    skipCount = 0
   ): AsyncIterable<OfferHistory> {
-    throw new Error('Method not implemented.');
+    let selectPage;
+    let cursorPos = skipCount;
+    let baseQuery = t.em
+      .getRepository(AcceptanceHistoryViewer)
+      .createQueryBuilder('historyviewer')
+      .innerJoinAndSelect('historyviewer.acceptance', 'acceptance')
+      .innerJoinAndSelect('acceptance.snapshot', 'snapshot')
+      .where('historyviewer.visibleToOrgUrl = :viewingOrgUrl')
+      .andWhere('historyviewer.hostOrgUrl = :hostOrgUrl');
+    if (sinceTimestampUTC !== undefined) {
+      baseQuery = baseQuery.andWhere(
+        'acceptance.acceptedAtUTC >= :sinceTimestampUTC'
+      );
+    }
+    do {
+      selectPage = await baseQuery
+        .setParameters({
+          hostOrgUrl: hostOrgUrl,
+          viewingOrgUrl: viewingOrgUrl,
+          sinceTimestampUTC: sinceTimestampUTC,
+        })
+        .skip(cursorPos)
+        .take(this.selectPageSize)
+        .getMany();
+      for (const historyviewer of selectPage) {
+        const offerHistory = {
+          acceptedAtUTC: historyviewer.acceptance.acceptedAtUTC,
+          acceptingOrganization: historyviewer.acceptance.acceptedBy,
+          offer: historyviewer.acceptance.snapshot.offer,
+          decodedReshareChain: historyviewer.acceptance.decodedReshareChain,
+        } as OfferHistory;
+        yield offerHistory;
+      }
+      cursorPos += this.selectPageSize;
+    } while (
+      selectPage &&
+      selectPage.length &&
+      selectPage.length >= this.selectPageSize
+    );
   }
 
   async writeReject(
@@ -770,5 +1035,41 @@ export class SqlOprPersistentStorage implements PersistentStorage {
       selectPage.length &&
       selectPage.length >= this.selectPageSize
     );
+  }
+
+  async writeOfferProducerMetadata(
+    t: SqlTransaction,
+    metadata: OfferProducerMetadata
+  ): Promise<void> {
+    const newMetadata = new ProducerMetadata();
+    newMetadata.organizationUrl = metadata.organizationUrl;
+    newMetadata.nextRunTimestampUTC = metadata.nextRunTimestampUTC;
+    newMetadata.lastUpdateTimeUTC = metadata.lastUpdateTimeUTC;
+    await t.em.getRepository(ProducerMetadata).save(newMetadata);
+  }
+
+  async getOfferProducerMetadata(
+    t: SqlTransaction,
+    orgUrl: string
+  ): Promise<OfferProducerMetadata | undefined> {
+    const storedMetadata = await t.em
+      .getRepository(ProducerMetadata)
+      .createQueryBuilder('producermetadata')
+      .where('producermetadata.organizationUrl = :organizationUrl')
+      .setParameters({
+        organizationUrl: orgUrl,
+      })
+      .getOne();
+    return storedMetadata
+      ? {
+          organizationUrl: storedMetadata.organizationUrl,
+          nextRunTimestampUTC: storedMetadata.nextRunTimestampUTC,
+          lastUpdateTimeUTC: storedMetadata.lastUpdateTimeUTC,
+        }
+      : undefined;
+  }
+
+  async debugQuery(t: SqlTransaction, sql: string): Promise<unknown> {
+    return await t.em.query(sql);
   }
 }

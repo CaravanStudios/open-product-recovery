@@ -16,7 +16,7 @@
 
 import {Verifier} from '../../auth/verifier';
 import {StatusError} from '../../util/statuserror';
-import {OfferModel} from '../../database/offermodel';
+import {OfferModel} from '../../model/offermodel';
 import {JWTPayload} from 'jose';
 import {
   AcceptOfferPayload,

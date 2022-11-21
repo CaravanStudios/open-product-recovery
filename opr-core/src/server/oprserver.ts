@@ -39,7 +39,7 @@ import {AcceptRequestHandler} from './handlers/acceptrequesthandler';
 import {RejectRequestHandler} from './handlers/rejectrequesthandler';
 import {ReserveRequestHandler} from './handlers/reserverequesthandler';
 import {HistoryRequestHandler} from './handlers/historyrequesthandler';
-import {OfferModel} from '../database/offermodel';
+import {OfferModel} from '../model/offermodel';
 import {OprClient, OprClientConfig} from '../net/oprclient';
 import loglevel, {Logger} from '../util/loglevel';
 import {OprFeedProducer} from '../offerproducer/oprfeedproducer';
@@ -54,7 +54,7 @@ const DEFAULT_RESERVATION_TIME_SECS = 5 * 60;
 export interface OprServerOptions {
   frontendConfig: FrontendConfig;
   orgConfigProvider: OrgConfigProvider;
-  database: OfferModel;
+  offerModel: OfferModel;
   signer?: Signer;
   jwksProvider?: JwksProvider;
   app?: Express;
@@ -86,7 +86,7 @@ export class OprServer {
   private verifier: Verifier;
   private accessControlList: ServerAccessControlList;
   private clock: Clock;
-  private database: OfferModel;
+  private offerModel: OfferModel;
   private server?: Server;
   private logger: Logger;
   private strictCorrectnessChecks: boolean;
@@ -108,27 +108,29 @@ export class OprServer {
     this.app = options.app || express();
     this.orgConfigProvider = options.orgConfigProvider;
     this.jwksProvider = options.jwksProvider;
-    this.database = options.database;
+    this.offerModel = options.offerModel;
     this.clock = options.clock || new DefaultClock();
     this.verifier =
       options.verifier || new StandardVerifier(this.orgConfigProvider);
-    this.listRequestHandler = new ListRequestHandler(this.database);
+    this.listRequestHandler = new ListRequestHandler(this.offerModel);
     this.acceptRequestHandler = new AcceptRequestHandler(
-      this.database,
+      this.offerModel,
       options.frontendConfig.organizationURL,
       this.verifier
     );
-    this.rejectRequestHandler = new RejectRequestHandler(this.database);
+    this.rejectRequestHandler = new RejectRequestHandler(this.offerModel);
     this.reserveRequestHandler = new ReserveRequestHandler(
-      this.database,
+      this.offerModel,
       options.defaultReservationTimeSecs || DEFAULT_RESERVATION_TIME_SECS,
       options.frontendConfig.organizationURL,
       this.verifier
     );
-    this.historyRequestHandler = new HistoryRequestHandler(this.database);
+    this.historyRequestHandler = new HistoryRequestHandler(this.offerModel);
     if (options.clientConfig || options.signer) {
-      this.logger.debug('Starting server with opr client config',
-          options.clientConfig);
+      this.logger.debug(
+        'Starting server with opr client config',
+        options.clientConfig
+      );
       if (!options.signer) {
         throw new StatusError(
           'Cannot create an opr client without a signer',
@@ -138,10 +140,10 @@ export class OprServer {
       }
       this.client = new OprClient({
         signer: options.clientConfig?.signer ?? options.signer,
-        configProvider: options.clientConfig?.configProvider ??
-            options.orgConfigProvider,
+        configProvider:
+          options.clientConfig?.configProvider ?? options.orgConfigProvider,
         urlMapper: options.clientConfig?.urlMapper,
-        jsonFetcher: options.clientConfig?.jsonFetcher
+        jsonFetcher: options.clientConfig?.jsonFetcher,
       });
     }
     this.feedConfigProvider = options.feedConfigProvider;
@@ -177,7 +179,7 @@ export class OprServer {
           }
         });
       }),
-      this.database.shutdown(),
+      this.offerModel.shutdown(),
     ];
     await Promise.all(promises);
   }
@@ -234,7 +236,7 @@ export class OprServer {
     this.logger.debug('Obtaining lock on', producer.id);
     let metadata;
     try {
-      metadata = await this.database.lockProducer(producer.id);
+      metadata = await this.offerModel.getOfferProducerMetadata(producer.id);
     } catch (e) {
       this.logger.warn(
         'Failed to obtain lock on',
@@ -257,10 +259,10 @@ export class OprServer {
           nextRunTimestampUTC - now,
           'ms'
         );
-        await this.database.unlockProducer({
+        await this.offerModel.writeOfferProducerMetadata({
           lastUpdateTimeUTC: now,
           nextRunTimestampUTC: nextRunTimestampUTC ?? now,
-          producerId: producer.id,
+          organizationUrl: producer.id,
         });
         return;
       }
@@ -269,11 +271,11 @@ export class OprServer {
         diffStartTimestampUTC: metadata?.lastUpdateTimeUTC,
       });
       nextRunTimestampUTC = result.earliestNextRequestUTC;
-      await this.database.processUpdate(producer.id, result);
-      await this.database.unlockProducer({
+      await this.offerModel.processUpdate(producer.id, result);
+      await this.offerModel.writeOfferProducerMetadata({
         lastUpdateTimeUTC: now,
         nextRunTimestampUTC: nextRunTimestampUTC ?? now,
-        producerId: producer.id,
+        organizationUrl: producer.id,
       });
       this.logger.info('Ingestion of', producer.id, 'succeeded');
       this.logger.debug('dbg Lock released on', producer.id);
@@ -281,10 +283,10 @@ export class OprServer {
       this.logger.warn('Failed to fetch', producer.id, 'error:', e);
       nextRunTimestampUTC =
         now + this.getFailedRetryIntervalMillis(producer.id);
-      await this.database.unlockProducer({
+      await this.offerModel.writeOfferProducerMetadata({
         lastUpdateTimeUTC: metadata?.lastUpdateTimeUTC,
         nextRunTimestampUTC: nextRunTimestampUTC ?? now,
-        producerId: producer.id,
+        organizationUrl: producer.id,
       });
       this.logger.debug('Lock released on', producer.id);
     }
@@ -346,7 +348,7 @@ export class OprServer {
         this.handleError(error, req, res);
       }
     );
-    await this.database.initialize();
+    await this.offerModel.initialize();
   }
 
   handleError(error: any, req: Request, res: Response) {

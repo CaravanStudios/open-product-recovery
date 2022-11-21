@@ -16,7 +16,8 @@
           "acceptingOrganization": "https://b.example.org/org.desc",
           "acceptedAtUTC": 1660152248000
         }
-      ]
+      ],
+      "nextPageToken": "fakeToken"
     }
   ],
   "additionalProperties": false,
@@ -27,6 +28,9 @@
       "items": {
         "$ref": "offerhistory.schema.json"
       }
+    },
+    "nextPageToken": {
+      "type": "string"
     }
   },
   "required": [

@@ -15,7 +15,8 @@
  */
 
 import {compare} from 'fast-json-patch';
-import {JSONPatch, Offer} from 'opr-models';
+import {JSONPatch, Offer, OfferPatch} from 'opr-models';
+import {asStructuredId, stripIdVersion} from '../model/offerid';
 import {toOfferSet} from './toofferset';
 
 /**
@@ -31,4 +32,71 @@ export function diff(
   const seta = toOfferSet(to);
   const setb = toOfferSet(from);
   return compare(seta, setb) as JSONPatch;
+}
+
+/** @deprecated */
+export function diffAsOfferPatches(
+  to: Array<Offer> | Record<string, Offer>,
+  from: Array<Offer> | Record<string, Offer>
+): OfferPatch[] {
+  const seta = toOfferSet(to);
+  const setb = toOfferSet(from);
+  const patches: OfferPatch[] = [];
+  for (const idUrl in seta) {
+    const oldOffer = seta[idUrl];
+    const newOffer = setb[idUrl];
+    patches.push(diffAsOfferPatch(newOffer, oldOffer));
+  }
+  for (const idUrl in setb) {
+    const oldOffer = seta[idUrl];
+    // Skip anything where there's a matching offer in set a, we've
+    // already dealt with those.
+    if (oldOffer) {
+      continue;
+    }
+    patches.push(diffAsOfferPatch(setb[idUrl], undefined));
+  }
+  return patches;
+}
+
+export function diffAsOfferPatch(
+  toOffer?: Offer,
+  fromOffer?: Offer
+): OfferPatch {
+  let jsonPatch: JSONPatch;
+  let requiresVersion = false;
+  if (!toOffer && !fromOffer) {
+    throw new Error(
+      'Illegal arguments: toOffer and fromOffer cannot both be undefined'
+    );
+  }
+  if (!toOffer) {
+    jsonPatch = [
+      {
+        op: 'remove',
+        path: '',
+      },
+    ];
+  } else if (!fromOffer) {
+    jsonPatch = [
+      {
+        op: 'add',
+        path: '',
+        value: toOffer as unknown as Record<string, unknown>,
+      },
+    ];
+  } else {
+    jsonPatch = compare(toOffer, fromOffer) as JSONPatch;
+    for (const op of jsonPatch) {
+      if (op.path !== '') {
+        requiresVersion = true;
+        break;
+      }
+    }
+  }
+  const target = asStructuredId((fromOffer ?? toOffer)!);
+  return {
+    target: requiresVersion ? target : stripIdVersion(target),
+    patch: jsonPatch,
+  };
 }

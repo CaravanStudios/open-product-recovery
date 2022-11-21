@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {OfferModel} from '../../database/offermodel';
+import {OfferModel} from '../../model/offermodel';
 import {JWTPayload} from 'jose';
 import {RejectOfferPayload, RejectOfferResponse} from 'opr-models';
 import {AuthenticatedRequestHandler} from './authenticatedrequesthandler';
@@ -36,11 +36,10 @@ export class RejectRequestHandler extends AuthenticatedRequestHandler<
     request: RejectOfferPayload,
     decodedAuthToken: JWTPayload
   ): Promise<RejectOfferResponse> {
-    await this.database.reject(
+    return await this.database.reject(
       decodedAuthToken.iss!,
       request.offerId,
       request.offeredByUrl
     );
-    return {};
   }
 }

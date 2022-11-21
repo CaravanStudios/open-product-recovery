@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {JSONPatchOp, ListOffersPayload, Offer} from 'opr-models';
+import {ListOffersPayload, Offer, OfferPatch} from 'opr-models';
 
 export interface OfferSetUpdate {
   earliestNextRequestUTC: number;
@@ -22,7 +22,7 @@ export interface OfferSetUpdate {
   diffStartTimeUTC?: number;
   sourceOrgUrl: string;
   offers?: AsyncIterable<Offer>;
-  delta?: AsyncIterable<JSONPatchOp>;
+  delta?: AsyncIterable<OfferPatch>;
 }
 
 export interface OfferProducer {

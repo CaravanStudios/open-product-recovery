@@ -15,7 +15,7 @@
  */
 
 import {Verifier} from '../../auth/verifier';
-import {OfferModel} from '../../database/offermodel';
+import {OfferModel} from '../../model/offermodel';
 import {JWTPayload} from 'jose';
 import {
   AcceptOfferPayload,

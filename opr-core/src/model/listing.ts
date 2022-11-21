@@ -25,3 +25,13 @@ export interface ListingTarget {
 }
 
 export interface Listing extends Interval, ListingTarget {}
+
+/** Returns whether the given listing implies the ACCEPT scope. */
+export function isAcceptListing(listing: Listing): boolean {
+  return !listing.scopes || listing.scopes.indexOf('ACCEPT') >= 0;
+}
+
+/** Returns whether the given listing implies the RESHARE scope. */
+export function isReshareListing(listing: Listing): boolean {
+  return listing.scopes ? listing.scopes.indexOf('RESHARE') >= 0 : false;
+}

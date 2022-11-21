@@ -52,7 +52,10 @@ export function intersect(
 }
 
 /** Sub */
-export function subtract(basis: Interval, other: Interval): Array<Interval> {
+export function subtract(basis: Interval, other?: Interval): Array<Interval> {
+  if (!other) {
+    return [basis];
+  }
   const result = [];
   const left = trim(basis, {
     startAt: Math.min(basis.startTimeUTC, other.startTimeUTC),

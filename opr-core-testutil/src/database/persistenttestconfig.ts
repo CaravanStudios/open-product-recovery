@@ -20,9 +20,10 @@ import {
   Interval,
   PersistentStorage,
   TimelineEntry,
+  OfferVersionPair,
 } from 'opr-core';
 import {ResolverOptions, SourcedJsonObject, TestConfig} from 'opr-devtools';
-import {Offer} from 'opr-models';
+import {DecodedReshareChain, Offer, OfferHistory} from 'opr-models';
 import {ModelDirective} from '../json/modeldirective';
 import {EncodeChainDirective} from '../json/encodechaindirective';
 import path from 'path';
@@ -162,6 +163,26 @@ export class PersistentTestConfig implements TestConfig<SqlTestObjects> {
           resultInfo.result = timelineEntries;
           break;
         }
+        case 'getChangedOffers': {
+          const oldTimestampUTC = context.propAsNumber('oldTimestampUTC').req();
+          const newTimestampUTC = context.propAsNumber('newTimestampUTC').req();
+          const viewingOrgUrl = context.propAsString('viewingOrgUrl').req();
+          const skipCount = context.propAsNumber('skipCount').get();
+          const versionPairs: OfferVersionPair[] = [];
+          const versionPairsIterator = testObject.db.getChangedOffers(
+            transaction,
+            hostOrgUrl,
+            viewingOrgUrl,
+            oldTimestampUTC,
+            newTimestampUTC,
+            skipCount
+          );
+          for await (const versionPair of versionPairsIterator) {
+            versionPairs.push(versionPair);
+          }
+          resultInfo.result = versionPairs;
+          break;
+        }
         case 'truncateFutureTimelineForOffer': {
           const offerId = context.propAsString('offerId').req();
           const postingOrgUrl = context.propAsString('postingOrgUrl').req();
@@ -231,6 +252,47 @@ export class PersistentTestConfig implements TestConfig<SqlTestObjects> {
             offerId,
             postingOrgUrl
           );
+          break;
+        }
+        case 'writeAccept': {
+          const offerId = context.propAsString('offerId').req();
+          const acceptingOrgUrl = context.propAsString('acceptingOrgUrl').req();
+          const offerUpdateTimestampUTC = context
+            .propAsNumber('offerUpdateTimestampUTC')
+            .req();
+          const atTimeUTC = context.propAsNumber('atTimeUTC').req();
+          const decodedReshareChain = context
+            .propAsArray('decodedReshareChain')
+            .get() as DecodedReshareChain | undefined;
+          await testObject.db.writeAccept(
+            transaction,
+            hostOrgUrl,
+            acceptingOrgUrl,
+            offerId,
+            offerUpdateTimestampUTC,
+            atTimeUTC,
+            decodedReshareChain
+          );
+          break;
+        }
+        case 'getHistory': {
+          const viewingOrgUrl = context.propAsString('viewingOrgUrl').req();
+          const sinceTimestampUTC = context
+            .propAsNumber('sinceTimestampUTC')
+            .get();
+          const skipCount = context.propAsNumber('skipCount').get();
+          const historyIterator = testObject.db.getHistory(
+            transaction,
+            hostOrgUrl,
+            viewingOrgUrl,
+            sinceTimestampUTC,
+            skipCount
+          );
+          const history: OfferHistory[] = [];
+          for await (const historyItem of historyIterator) {
+            history.push(historyItem);
+          }
+          resultInfo.result = history;
           break;
         }
         default: {

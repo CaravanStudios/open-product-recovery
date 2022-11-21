@@ -19,6 +19,7 @@ import {
   ListOffersPayload,
   ListOffersResponse,
   Offer,
+  OfferPatch,
 } from 'opr-models';
 import {Clock, DefaultClock, OprClient, StatusError} from '../coreapi';
 import {OfferProducer, OfferSetUpdate} from './offerproducer';
@@ -50,7 +51,7 @@ export class OprFeedProducer implements OfferProducer {
   async produceOffers(request: ListOffersPayload): Promise<OfferSetUpdate> {
     const result = await this.client.list(this.organizationUrl, request);
     let offers: AsyncIterable<Offer> | undefined;
-    let patchOps: AsyncIterable<JSONPatchOp> | undefined;
+    let patchOps: AsyncIterable<OfferPatch> | undefined;
     if (result.offers) {
       offers = this.toOfferIterable(request, result);
     } else {
@@ -100,7 +101,7 @@ export class OprFeedProducer implements OfferProducer {
   private async *toPatchOpsIterable(
     request: ListOffersPayload,
     listOffersResponse: ListOffersResponse
-  ): AsyncIterable<JSONPatchOp> {
+  ): AsyncIterable<OfferPatch> {
     let hasNextPage;
     do {
       if (!listOffersResponse.diff) {

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/** Collects the contents of an async iterable into an array. */
 export async function asyncIterableToArray<T>(
   it: AsyncIterable<T>
 ): Promise<Array<T>> {
@@ -24,6 +25,39 @@ export async function asyncIterableToArray<T>(
   return result;
 }
 
+/** Returns whether there are any items in the given iterable. */
+export async function hasContents(
+  it: AsyncIterable<unknown>
+): Promise<boolean> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  for await (const x of it) {
+    return true;
+  }
+  return false;
+}
+
+/** Returns the first item in the given iterable. */
+export async function asyncIterableFirst<T>(
+  it: AsyncIterable<T>
+): Promise<T | undefined> {
+  for await (const x of it) {
+    return x;
+  }
+  return undefined;
+}
+
+/** Transforms two async iterables into a single async iterable. */
+export async function* appendAsyncIterables<T>(
+  ...its: AsyncIterable<T>[]
+): AsyncIterable<T> {
+  for (const it of its) {
+    for await (const x of it) {
+      yield x;
+    }
+  }
+}
+
+/** Transforms a normal iterable into an async iterable. */
 export async function* iterableToAsync<T>(it: Iterable<T>): AsyncIterable<T> {
   for (const x of it) {
     yield x;
