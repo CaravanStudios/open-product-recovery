@@ -127,7 +127,7 @@ Note: Depending on how you have docker set up, you may need to run docker as roo
 From a terminal, build the server by running the command:
 
 ```console
-docker build --no-cache -t gcr.io/YOUR_PROJECT_ID/example-server .
+docker build --no-cache --platform linux/amd64 -t gcr.io/YOUR_PROJECT_ID/example-server .
 ```
 
 Replace `YOUR_PROJECT_ID` above with the id of your Google Cloud project.
