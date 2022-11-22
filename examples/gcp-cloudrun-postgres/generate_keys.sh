@@ -14,8 +14,7 @@
 # limitations under the License.
 
 cd ../../opr-core
-npm i
-npm run generatekeypair -- --publicfile opr-public-key.json --privatefile opr-private-key.json
+npx run generatekeypair -- --publicfile opr-public-key.json --privatefile opr-private-key.json
 gsutil cp opr-public-key.json gs://$1-config/publickeys/opr-public-key.json
 gsutil cp opr-private-key.json gs://$1-config/opr-private-key.json
 rm opr-public-key.json
