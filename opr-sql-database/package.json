@@ -1,6 +1,6 @@
 {
   "name": "opr-sql-database",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "SQL Database Implementation for Open Product Recovery",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -41,21 +41,22 @@
     "glob-promise": "^5.0.0",
     "jose": "^4.10.4",
     "mocha": "^10.0.0",
-    "opr-core-testutil": "^0.6.1",
-    "opr-devtools": "^0.6.1",
+    "opr-core-testutil": "^0.6.2",
+    "opr-devtools": "^0.6.2",
     "pg": "^8.8.0",
     "ts-node": "^10.9.1",
     "typescript": "^4.7.4"
   },
   "dependencies": {
     "loglevel": "^1.8.0",
-    "opr-core": "^0.6.1",
-    "opr-models": "^0.6.1",
+    "opr-core": "^0.6.2",
+    "opr-models": "^0.6.2",
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^5.0.11",
     "typeorm": "^0.3.9"
   },
   "engines": {
     "node": ">=12.0.0"
-  }
+  },
+  "gitHead": "d9a5cd4e90c917cbcfa9b803a6b0469aba31c62a"
 }
