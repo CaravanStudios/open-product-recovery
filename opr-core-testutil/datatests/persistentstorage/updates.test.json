@@ -1,0 +1,130 @@
+{
+  "description": "Update single persistent offer",
+  "hostOrgUrl": "https://citadelofdanas.org/org.json",
+  "tests": [
+    {
+      "description": "Create, update, delete",
+      "calls": [
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model" : "SimpleOffer",
+            "offerUpdateUTC" : 0
+          },
+          "expect" : [
+            "expect(result).to.equal('ADD')"
+          ]
+        },
+        {
+          "time": 1,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model" : "SimpleOffer",
+            "offerUpdateUTC" : 0
+          },
+          "expect" : [
+            "expect(result).to.equal('NONE')"
+          ]
+        },
+        {
+          "time": 1,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model" : "SimpleOffer",
+            "description" : "modified offer",
+            "offerUpdateUTC" : 2
+          },
+          "expect" : [
+            "expect(result).to.equal('UPDATE')"
+          ]
+        },
+        {
+          "time": 1,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model" : "SimpleOffer",
+            "description" : "modified offer",
+            "offerUpdateUTC" : 2,
+            "reshareChain" : {
+              "$encodeChain" : [
+                {
+                  "iss" : "https://citadelofdanas.org/org.json",
+                  "sub" : "https://example.openproductrecovery.org/org.json",
+                  "scope" : "RESHARE",
+                  "entitlements" : "abc"
+                }
+              ]
+            }
+          },
+          "expect" : [
+            "expect(result).to.equal('UPDATE')"
+          ]
+        },
+        {
+          "time": 2,
+          "op": "deleteOfferInCorpus",
+          "corpusOrgUrl" : "https://remoteorg.org/org.json",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "expect": [
+            "expect(result).to.equal('DELETE')"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Multiple sources",
+      "calls": [
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model" : "SimpleOffer",
+            "offerUpdateUTC" : 0
+          },
+          "expect" : [
+            "expect(result).to.equal('ADD')"
+          ]
+        },
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://anotherremoteorg.org/org.json",
+          "offer": {
+            "$model" : "SimpleOffer",
+            "offerUpdateUTC" : 0
+          },
+          "expect" : [
+            "expect(result).to.equal('NONE')"
+          ]
+        },
+        {
+          "time": 2,
+          "op": "deleteOfferInCorpus",
+          "corpusOrgUrl" : "https://remoteorg.org/org.json",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "expect": [
+            "expect(result).to.equal('NONE')"
+          ]
+        },
+        {
+          "time": 2,
+          "op": "deleteOfferInCorpus",
+          "corpusOrgUrl" : "https://anotherremoteorg.org/org.json",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "expect": [
+            "expect(result).to.equal('DELETE')"
+          ]
+        }
+      ]
+    }
+  ]
+}

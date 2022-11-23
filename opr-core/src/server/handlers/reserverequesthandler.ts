@@ -18,7 +18,7 @@ import {Verifier} from '../../auth/verifier';
 import {ReserveOfferPayload, ReserveOfferResponse} from 'opr-models';
 import {JWTPayload} from 'jose';
 import {BaseAcceptHandler} from './baseaccepthandler';
-import {OprDatabase} from '../../database/oprdatabase';
+import {OfferModel} from '../../model/offermodel';
 
 export class ReserveRequestHandler extends BaseAcceptHandler<
   ReserveOfferPayload,
@@ -27,7 +27,7 @@ export class ReserveRequestHandler extends BaseAcceptHandler<
   private defaultReservationTimeSecs: number;
 
   constructor(
-    database: OprDatabase,
+    database: OfferModel,
     defaultReservationTime: number,
     myOrgUrl?: string,
     verifier?: Verifier
@@ -46,13 +46,10 @@ export class ReserveRequestHandler extends BaseAcceptHandler<
     request: ReserveOfferPayload,
     decodedAuthToken: JWTPayload
   ): Promise<ReserveOfferResponse> {
-    const reservationExpUTC = await this.database.reserve(
+    return await this.database.reserve(
       request.offerId,
       request.requestedReservationSecs || this.defaultReservationTimeSecs,
       decodedAuthToken.iss!
     );
-    return {
-      reservationExpirationUTC: reservationExpUTC,
-    };
   }
 }

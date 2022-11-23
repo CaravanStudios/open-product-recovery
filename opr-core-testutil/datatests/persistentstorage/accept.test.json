@@ -1,0 +1,117 @@
+{
+  "description": "Acceptances",
+  "hostOrgUrl": [
+    "https://citadelofdanas.org/org.json"
+  ],
+  "tests": [
+    {
+      "description": "Write/retrieve acceptance",
+      "calls": [
+        {
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://citadelofdanas.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "offerUpdateUTC": 4
+          }
+        },
+        {
+          "op": "addTimelineEntries",
+          "timelineEntries": [
+            {
+              "targetOrganizationUrl": "https://a.org/org.json",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 4,
+              "startTimeUTC": 4,
+              "endTimeUTC": 100
+            }
+          ]
+        },
+        {
+          "op": "writeAccept",
+          "acceptingOrgUrl": "https://a.org/org.json",
+          "offerId": "abc",
+          "offerUpdateTimestampUTC": 4,
+          "atTimeUTC": 10,
+          "decodedReshareChain": [
+            {
+              "sharingOrgUrl": "https://citadelofdanas.org/org.json",
+              "recipientOrgUrl": "https://resharekings.org/org.json",
+              "scopes": ["RESHARE", "ACCEPT"],
+              "entitlements": "abc",
+              "signature": "fakesig"
+            },
+            {
+              "sharingOrgUrl": "https://resharekings.org/org.json",
+              "recipientOrgUrl": "https://a.org/org.json",
+              "scopes": ["RESHARE", "ACCEPT"],
+              "entitlements": "fakesig",
+              "signature": "anotherfakesig"
+            }
+          ]
+        },
+        {
+          "op": "getHistory",
+          "viewingOrgUrl": "https://a.org/org.json",
+          "expect": [
+            "expect(result.length).to.equal(1)",
+            "expect(result[0].acceptingOrganization).to.equal('https://a.org/org.json')"
+          ]
+        },
+        {
+          "op": "getHistory",
+          "viewingOrgUrl": "https://a.org/org.json",
+          "sinceTimestampUTC": 4,
+          "expect": [
+            "expect(result.length).to.equal(1)",
+            "expect(result[0].acceptingOrganization).to.equal('https://a.org/org.json')"
+          ]
+        },
+        {
+          "op": "getHistory",
+          "viewingOrgUrl": "https://a.org/org.json",
+          "sinceTimestampUTC": 10,
+          "expect": [
+            "expect(result.length).to.equal(1)",
+            "expect(result[0].acceptingOrganization).to.equal('https://a.org/org.json')"
+          ]
+        },
+        {
+          "op": "getHistory",
+          "viewingOrgUrl": "https://a.org/org.json",
+          "sinceTimestampUTC": 11,
+          "expect": [
+            "expect(result.length).to.equal(0)"
+          ]
+        },
+        {
+          "op": "getHistory",
+          "viewingOrgUrl": "https://citadelofdanas.org/org.json",
+          "sinceTimestampUTC": 4,
+          "expect": [
+            "expect(result.length).to.equal(1)",
+            "expect(result[0].acceptingOrganization).to.equal('https://a.org/org.json')"
+          ]
+        },
+        {
+          "op": "getHistory",
+          "viewingOrgUrl": "https://resharekings.org/org.json",
+          "sinceTimestampUTC": 4,
+          "expect": [
+            "expect(result.length).to.equal(1)",
+            "expect(result[0].acceptingOrganization).to.equal('https://a.org/org.json')"
+          ]
+        },
+        {
+          "op": "getHistory",
+          "viewingOrgUrl": "https://b.org/org.json",
+          "sinceTimestampUTC": 4,
+          "expect": [
+            "expect(result.length).to.equal(0)"
+          ]
+        }
+      ]
+    }
+  ]
+}

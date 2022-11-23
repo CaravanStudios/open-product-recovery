@@ -15,7 +15,7 @@
  */
 
 import {Offer} from 'opr-models';
-import {Listing} from '../database/listing';
+import {Listing} from '../model/listing';
 import {asAsyncGetter, AsyncGetter} from '../util/asyncgetter';
 
 export interface OfferListingPolicy {

@@ -1,0 +1,24 @@
+{
+  "$id": "structuredofferid.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StructuredOfferId",
+  "description": "A structured representation of a unique offer id",
+  "examples": [
+    {
+      "id": "abc",
+      "postingOrgUrl": "https://citadelofdanas.org/org.json"
+    }
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "postingOrgUrl": {
+      "type": "string",
+      "format": "uri"
+    }
+  },
+  "required": ["id", "postingOrgUrl"],
+  "type": "object"
+}

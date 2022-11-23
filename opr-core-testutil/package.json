@@ -1,0 +1,50 @@
+{
+  "name": "opr-core-testutil",
+  "version": "0.5.4",
+  "description": "Open Product Recovery Core Testing libraries",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "start": "NODE_PATH=./build node build/index.js",
+    "build": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "test": "echo 'No tests in opr-core-testutil'",
+    "lint": "eslint .",
+    "clean": "rm -rf build",
+    "compile": "tsc",
+    "fix": "eslint --fix",
+    "prepare": "npm run compile",
+    "pretest": "npm run compile && npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/google/open-product-recovery.git",
+    "directory": "opr-devtools"
+  },
+  "publishConfig": {
+    "registry": "https://wombat-dressing-room.appspot.com/opr-core-testutil/_ns"
+  },
+  "author": "Google Food For Good <foodforgood-support-external@google.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^14.18.32",
+    "@types/chai": "^4.3.1",
+    "@types/mocha": "^9.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "chai": "^4.3.6",
+    "jose": "^4.10.4",
+    "mocha": "^10.0.0",
+    "opr-core": "*",
+    "opr-devtools": "*",
+    "opr-models": "*"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}

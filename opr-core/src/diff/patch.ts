@@ -15,7 +15,9 @@
  */
 
 import {applyPatch, Operation} from 'fast-json-patch';
-import {JSONPatch, Offer} from 'opr-models';
+import {JSONPatch, Offer, OfferPatch} from 'opr-models';
+import {idToUrl} from '../model/offerid';
+import {OfferLookup, OfferMapLookup} from '../model/offerlookup';
 import {toOfferList, toOfferSet} from './toofferset';
 
 /**
@@ -29,6 +31,73 @@ export function patchAsMap(
 ): Record<string, Offer> {
   const set = toOfferSet(offers);
   return applyPatch(set, patch as Array<Operation>).newDocument;
+}
+
+export async function applyOfferPatchesAsMap(
+  offers: Array<Offer> | Record<string, Offer>,
+  patches: OfferPatch[]
+): Promise<Record<string, Offer>> {
+  if (!Array.isArray(offers)) {
+    offers = toOfferList(offers);
+  }
+  const lookup = new OfferMapLookup(...offers);
+  let result: Record<string, Offer> = {};
+  for (const op of patches) {
+    const patchResult = await applyOfferPatch(lookup, op);
+    if (patchResult.type === 'INSERT' || patchResult.type === 'UPDATE') {
+      result[idToUrl(patchResult.newOffer!, true)] = patchResult.newOffer!;
+    } else if (patchResult.type === 'CLEAR') {
+      result = {};
+    }
+  }
+  return result;
+}
+
+export interface OfferPatchResult {
+  type: 'INSERT' | 'UPDATE' | 'DELETE' | 'CLEAR' | 'NOOP' | 'ERROR';
+  oldOffer?: Offer;
+  newOffer?: Offer;
+  error?: Error;
+}
+
+export async function applyOfferPatch(
+  lookup: OfferLookup,
+  patch: OfferPatch
+): Promise<OfferPatchResult> {
+  if (patch === 'clear') {
+    return {type: 'CLEAR'};
+  }
+  const oldOffer = await lookup.get(patch.target);
+  let newOffer = undefined;
+  try {
+    const result = applyPatch(oldOffer, patch.patch, undefined, false);
+    newOffer = result.newDocument || undefined;
+  } catch (e) {
+    return {
+      type: 'ERROR',
+      oldOffer: oldOffer,
+      newOffer: oldOffer,
+      error: e as Error,
+    };
+  }
+  if (oldOffer === newOffer) {
+    return {
+      type: 'NOOP',
+      oldOffer: oldOffer,
+      newOffer: oldOffer,
+    };
+  }
+  const type =
+    oldOffer === undefined
+      ? 'INSERT'
+      : newOffer === undefined
+      ? 'DELETE'
+      : 'UPDATE';
+  return {
+    type: type,
+    oldOffer: oldOffer,
+    newOffer: newOffer,
+  };
 }
 
 /**

@@ -1,0 +1,184 @@
+{
+  "description": "Get offers",
+  "hostOrgUrl": [
+    "https://citadelofdanas.org/org.json",
+    "https://fano.org/org.json"
+  ],
+  "tests": [
+    {
+      "description": "Simple getChangedOffers",
+      "calls": [
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "description": "Offer abc",
+            "offerCreationUTC": 0
+          },
+          "expect": ["expect(result).to.equal('ADD')"]
+        },
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "id": "xyz",
+            "description": "Offer xyz",
+            "offerCreationUTC": 0
+          },
+          "expect": ["expect(result).to.equal('ADD')"]
+        },
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "id": "after10",
+            "description": "Offer after10, now available after 10",
+            "offerCreationUTC": 0
+          },
+          "expect": ["expect(result).to.equal('ADD')"]
+        },
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "id": "always",
+            "description": "Offer always, from 0 to 24",
+            "offerCreationUTC": 0
+          },
+          "expect": ["expect(result).to.equal('ADD')"]
+        },
+        {
+          "time": 5,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "description": "Offer abc (v2)",
+            "offerUpdateUTC": 5,
+            "offerCreationUTC": 0
+          },
+          "expect": ["expect(result).to.equal('UPDATE')"]
+        },
+        {
+          "time": 5,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "id": "xyz",
+            "description": "Offer xyz (v2)",
+            "offerUpdateUTC": 6,
+            "offerCreationUTC": 0
+          },
+          "expect": ["expect(result).to.equal('UPDATE')"]
+        },
+        {
+          "op": "addTimelineEntries",
+          "timelineEntries": [
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 0,
+              "endTimeUTC": 10,
+              "isReservation": true
+            },
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 5,
+              "startTimeUTC": 10,
+              "endTimeUTC": 20,
+              "isReservation": false
+            },
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "xyz",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 0,
+              "endTimeUTC": 10,
+              "isReservation": false
+            },
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "xyz",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 6,
+              "startTimeUTC": 10,
+              "endTimeUTC": 20,
+              "isReservation": false
+            },
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "after10",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 10,
+              "endTimeUTC": 20,
+              "isReservation": false
+            },
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "always",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 0,
+              "endTimeUTC": 24,
+              "isReservation": false
+            }
+          ]
+        },
+        {
+          "op": "getChangedOffers",
+          "viewingOrgUrl": "https://alice.org",
+          "oldTimestampUTC": 8,
+          "newTimestampUTC": 12,
+          "expect": [
+            "expect(result.length).to.equal(3)",
+            "expect(result[0].oldVersion.id).to.equal('abc')",
+            "expect(result[0].oldVersion.offeredBy).to.equal('https://citadelofdanas.org/org.json')",
+            "expect(result[0].oldVersion.offerCreationUTC).to.equal(0)",
+            "expect(result[0].oldVersion.offerUpdateUTC).to.be.undefined",
+            "expect(result[0].newVersion.id).to.equal('abc')",
+            "expect(result[0].newVersion.offeredBy).to.equal('https://citadelofdanas.org/org.json')",
+            "expect(result[0].newVersion.offerCreationUTC).to.equal(0)",
+            "expect(result[0].newVersion.offerUpdateUTC).to.equal(5)",
+            "expect(result[1].oldVersion).to.be.undefined",
+            "expect(result[1].newVersion.id).to.equal('after10')",
+            "expect(result[1].newVersion.offeredBy).to.equal('https://citadelofdanas.org/org.json')",
+            "expect(result[1].newVersion.offerCreationUTC).to.equal(0)",
+            "expect(result[1].newVersion.offerUpdateUTC).to.be.undefined",
+            "expect(result[2].oldVersion.id).to.equal('xyz')",
+            "expect(result[2].oldVersion.offeredBy).to.equal('https://citadelofdanas.org/org.json')",
+            "expect(result[2].oldVersion.offerCreationUTC).to.equal(0)",
+            "expect(result[2].oldVersion.offerUpdateUTC).to.be.undefined",
+            "expect(result[2].newVersion.id).to.equal('xyz')",
+            "expect(result[2].newVersion.offeredBy).to.equal('https://citadelofdanas.org/org.json')",
+            "expect(result[2].newVersion.offerCreationUTC).to.equal(0)",
+            "expect(result[2].newVersion.offerUpdateUTC).to.equal(6)"
+          ]
+        },
+        {
+          "op": "getChangedOffers",
+          "viewingOrgUrl": "https://alice.org",
+          "oldTimestampUTC": 2,
+          "newTimestampUTC": 4,
+          "expect": [
+            "expect(result.length).to.equal(0)"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-import {ListOffersPayload} from 'opr-models';
+import {
+  JSONPatchOp,
+  ListOffersPayload,
+  ListOffersResponse,
+  Offer,
+  OfferPatch,
+} from 'opr-models';
 import {Clock, DefaultClock, OprClient, StatusError} from '../coreapi';
 import {OfferProducer, OfferSetUpdate} from './offerproducer';
 import {log, Logger} from '../util/loglevel';
@@ -43,16 +49,35 @@ export class OprFeedProducer implements OfferProducer {
   }
 
   async produceOffers(request: ListOffersPayload): Promise<OfferSetUpdate> {
-    // TODO: Implement paging on the response.
-    let offers, diff, result;
-    let pageToken;
+    const result = await this.client.list(this.organizationUrl, request);
+    let offers: AsyncIterable<Offer> | undefined;
+    let patchOps: AsyncIterable<OfferPatch> | undefined;
+    if (result.offers) {
+      offers = this.toOfferIterable(request, result);
+    } else {
+      patchOps = this.toPatchOpsIterable(request, result);
+    }
+
+    const now = this.clock.now();
+    const updateResult = {
+      offers: offers,
+      sourceOrgUrl: this.organizationUrl,
+      delta: patchOps,
+      diffStartTimeUTC: request.diffStartTimestampUTC,
+      updateCurrentAsOfTimestampUTC: result.resultsTimestampUTC,
+      earliestNextRequestUTC: now + this.pollFrequencyMillis,
+    };
+    this.logger.info('Returning update result', updateResult);
+    return updateResult;
+  }
+
+  private async *toOfferIterable(
+    request: ListOffersPayload,
+    listOffersResponse: ListOffersResponse
+  ): AsyncIterable<Offer> {
+    let hasNextPage;
     do {
-      this.logger.info('Calling list/ of', this.organizationUrl);
-      result = await this.client.list(this.organizationUrl, {
-        ...request,
-        pageToken: pageToken,
-      });
-      if ((result.offers && diff) || (result.diff && offers)) {
+      if (!listOffersResponse.offers) {
         throw new StatusError(
           'Illegal producer response, ' +
             'paged response was answered in multiple formats',
@@ -60,30 +85,43 @@ export class OprFeedProducer implements OfferProducer {
           500
         );
       }
-      if (result.offers) {
-        if (!offers) {
-          offers = [];
-        }
-        offers.push(...result.offers);
+      for (const offer of listOffersResponse.offers) {
+        yield offer;
       }
-      if (result.diff) {
-        if (!diff) {
-          diff = [];
-        }
-        diff.push(...result.diff);
+      hasNextPage = listOffersResponse.nextPageToken !== undefined;
+      if (hasNextPage) {
+        listOffersResponse = await this.client.list(this.organizationUrl, {
+          ...request,
+          pageToken: listOffersResponse.nextPageToken,
+        });
       }
-      pageToken = result.nextPageToken;
-    } while (pageToken);
-    const now = this.clock.now();
-    const updateResult = {
-      offers: result.offers,
-      sourceOrgUrl: this.organizationUrl,
-      delta: result.diff,
-      diffStartTimeUTC: request.diffStartTimestampUTC,
-      updateCurrentAsOfTimestampUTC: result.resultsTimestampUTC,
-      earliestNextRequestUTC: now + this.pollFrequencyMillis,
-    };
-    this.logger.info('Returning update result', updateResult);
-    return updateResult;
+    } while (hasNextPage);
+  }
+
+  private async *toPatchOpsIterable(
+    request: ListOffersPayload,
+    listOffersResponse: ListOffersResponse
+  ): AsyncIterable<OfferPatch> {
+    let hasNextPage;
+    do {
+      if (!listOffersResponse.diff) {
+        throw new StatusError(
+          'Illegal producer response, ' +
+            'paged response was answered in multiple formats',
+          'PRODUCER_ILLEGAL_RESPONSE_PAGES_INCONSISTENT',
+          500
+        );
+      }
+      for (const patchOp of listOffersResponse.diff) {
+        yield patchOp;
+      }
+      hasNextPage = listOffersResponse.nextPageToken !== undefined;
+      if (hasNextPage) {
+        listOffersResponse = await this.client.list(this.organizationUrl, {
+          ...request,
+          pageToken: listOffersResponse.nextPageToken,
+        });
+      }
+    } while (hasNextPage);
   }
 }

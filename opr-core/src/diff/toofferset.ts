@@ -16,7 +16,7 @@
 
 import {Offer} from 'opr-models';
 import {deepClone} from 'fast-json-patch';
-import {getFullOfferId} from '../model/getfullofferid';
+import {idToUrl} from '../model/offerid';
 
 /**
  * Returns a collection of offers as an "offer set record." An offer set record
@@ -37,7 +37,7 @@ export function toOfferSet(
   const out = {} as Record<string, Offer>;
   for (const offer of offers) {
     const cloned = clone ? (deepClone(offer) as Offer) : offer;
-    out[getFullOfferId(cloned)] = cloned;
+    out[idToUrl(cloned, true)] = cloned;
   }
   return out;
 }

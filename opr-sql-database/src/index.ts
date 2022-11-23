@@ -16,5 +16,6 @@
 
 import 'reflect-metadata';
 
-export * from './sqloprdatabase';
+export * from './sqloffermodel';
 export * from './postgrestestinglauncher';
+export * from './sqloprpersistentstorage';

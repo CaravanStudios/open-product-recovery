@@ -6,13 +6,20 @@
     "examples" : [
       {},
       {
-        "historySinceUTC" : 1660152248000
+        "historySinceUTC" : 1660152248000,
+        "pageToken": "fakeToken"
       }
     ],
     "additionalProperties" : false,
     "properties" : {
       "historySinceUTC" : {
         "$ref" : "timestamp.schema.json"
+      },
+      "pageToken" : {
+        "type" : "string"
+      },
+      "maxResultsPerPage" : {
+        "type" : "number"
       }
     },
     "required" : [

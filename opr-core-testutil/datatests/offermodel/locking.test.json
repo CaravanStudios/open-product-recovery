@@ -7,23 +7,23 @@
       "time": 1,
       "calls": [
         {
-          "op": "LOCK",
-          "producerId": "https://citadelofdanas.org/org.json",
+          "op": "READPRODUCERMETADATA",
+          "organizationUrl": "https://citadelofdanas.org/org.json",
           "expect": ["expect(result).to.be.undefined"]
         },
         {
-          "op": "UNLOCK",
+          "op": "WRITEPRODUCERMETADATA",
           "metadata": {
-            "producerId": "https://citadelofdanas.org/org.json",
+            "organizationUrl": "https://citadelofdanas.org/org.json",
             "lastUpdateTimeUTC": 1,
             "nextRunTimestampUTC": 10
           }
         },
         {
-          "op": "LOCK",
-          "producerId": "https://citadelofdanas.org/org.json",
+          "op": "READPRODUCERMETADATA",
+          "organizationUrl": "https://citadelofdanas.org/org.json",
           "expectedMetadata": {
-            "producerId": "https://citadelofdanas.org/org.json",
+            "organizationUrl": "https://citadelofdanas.org/org.json",
             "lastUpdateTimeUTC": 1,
             "nextRunTimestampUTC": 10
           },

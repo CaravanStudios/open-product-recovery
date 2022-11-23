@@ -31,6 +31,7 @@ import {
   FakeOfferProducer,
   OfferChange,
   CustomRequestHandler,
+  PersistentOfferModel,
 } from 'opr-core';
 import yargs from 'yargs';
 import * as dotenv from 'dotenv';
@@ -38,7 +39,8 @@ log.setLevel('WARN');
 import {
   DataSourceOptions,
   PostgresTestingLauncher,
-  SqlOprDatabase,
+  SqlOfferModel,
+  SqlOprPersistentStorage,
 } from 'opr-sql-database';
 import {
   CloudStorageJwksProvider,
@@ -182,19 +184,21 @@ async function main() {
   // Create a listing policy so that we know how to list ingested offers to
   // other servers.
   const listingPolicy = new UniversalAcceptListingPolicy(['*']);
-  const database = new SqlOprDatabase({
+  const storageDriver: SqlOprPersistentStorage = new SqlOprPersistentStorage({
     dsOptions: getDbOptions(),
+  });
+  const offerModel = new PersistentOfferModel({
+    storage: storageDriver,
+    hostOrgUrl: frontendConfig.organizationURL,
     listingPolicy: listingPolicy,
     signer: signer,
-    hostOrgUrl: frontendConfig.organizationURL,
-    enableInternalChecks: true,
   });
 
   // We create a fake offer producer. Replace this with an offer producer that
   // reads from your inventory system to publish new offers.
   const offerProducer = new FakeOfferProducer({
     sourceOrgUrl: frontendConfig.organizationURL,
-    database: database,
+    offerModel: offerModel,
     updateFrequencyMillis: 3000,
     newItemFrequencyMillis: 10000,
   });
@@ -205,7 +209,7 @@ async function main() {
     method: ['POST'],
     handle: async () => {
       const changes = [] as Array<OfferChange>;
-      const changeHandler = database.registerChangeHandler(async change => {
+      const changeHandler = offerModel.registerChangeHandler(async change => {
         changes.push(change);
       });
       await s.ingest();
@@ -219,7 +223,7 @@ async function main() {
   const synchronizeEndpoint = {
     method: ['POST', 'GET'],
     handle: async () => {
-      await database.synchronize(true);
+      await storageDriver.synchronize(true);
       return 'ok - db initialized';
     },
   } as CustomRequestHandler;
@@ -233,7 +237,7 @@ async function main() {
   const allOffersEndpoint = {
     method: ['GET', 'POST'],
     handle: async () => {
-      return await database.getAllOffers();
+      return await offerModel.getAllOffers();
     },
   } as CustomRequestHandler;
 
@@ -244,7 +248,7 @@ async function main() {
   const s = new OprServer({
     frontendConfig: frontendConfig,
     orgConfigProvider: orgConfigProvider,
-    database: database,
+    offerModel: offerModel,
     jwksProvider: jwksProvider,
     signer: signer,
     accessControlList: accessControlList,
@@ -263,9 +267,9 @@ async function main() {
       allOffers: allOffersEndpoint,
     },
   });
-  s.start(port);
+  await s.start(port);
 }
-main();
+void main();
 
 function getDbOptions(): DataSourceOptions {
   const options = {

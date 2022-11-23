@@ -15,7 +15,7 @@
  */
 
 import {Verifier} from '../../auth/verifier';
-import {OprDatabase} from '../../database/oprdatabase';
+import {OfferModel} from '../../model/offermodel';
 import {JWTPayload} from 'jose';
 import {
   AcceptOfferPayload,
@@ -28,7 +28,7 @@ export class AcceptRequestHandler extends BaseAcceptHandler<
   AcceptOfferPayload,
   AcceptOfferResponse
 > {
-  constructor(database: OprDatabase, myOrgUrl?: string, verifier?: Verifier) {
+  constructor(database: OfferModel, myOrgUrl?: string, verifier?: Verifier) {
     super(
       database,
       'accept.payload.schema.json',

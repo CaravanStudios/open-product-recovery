@@ -10,6 +10,7 @@
   "scripts": {
     "start": "NODE_PATH=./build node build/index.js",
     "build": "tsc -p .",
+    "builddocker": "docker build . --tag gcr.io/open-product-recovery/example-gcp",
     "watch": "tsc -w -p .",
     "test": "echo No tests yet",
     "lint": "eslint",

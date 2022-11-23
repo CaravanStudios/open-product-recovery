@@ -30,16 +30,13 @@ import {OfferSnapshot} from './offersnapshot';
 @Entity()
 export class ProducerMetadata {
   @PrimaryColumn()
-  producerId: string;
+  organizationUrl: string;
 
   @Column({type: 'bigint'})
   nextRunTimestampUTC: number;
 
   @Column({type: 'bigint', nullable: true})
   lastUpdateTimeUTC?: number;
-
-  @Column()
-  locked: boolean;
 
   @AfterLoad()
   restoreBigInt() {

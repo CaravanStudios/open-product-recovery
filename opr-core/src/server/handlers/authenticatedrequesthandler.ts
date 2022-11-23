@@ -17,16 +17,16 @@
 import {Validator} from 'opr-models';
 import {StatusError} from '../../util/statuserror';
 import {JWTPayload} from 'jose';
-import {OprDatabase} from '../../database/oprdatabase';
+import {OfferModel} from '../../model/offermodel';
 
 export abstract class AuthenticatedRequestHandler<RequestType, ResponseType> {
   public readonly scopes: Readonly<Array<string>>;
   private requestSchemaId: string;
   private responseSchemaId: string;
-  protected readonly database: OprDatabase;
+  protected readonly database: OfferModel;
 
   constructor(
-    database: OprDatabase,
+    database: OfferModel,
     scopes: Readonly<Array<string>>,
     requestSchemaId: string,
     responseSchemaId: string

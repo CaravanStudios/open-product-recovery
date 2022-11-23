@@ -16,7 +16,8 @@
 
 import {Offer} from 'opr-models';
 import {RandomSeed, create} from 'random-seed';
-import {OprDatabase} from '../database/oprdatabase';
+import {OfferModel} from '../model/offermodel';
+import {iterableToAsync} from '../util/asynciterable';
 import {Clock} from '../util/clock';
 import {DefaultClock} from '../util/defaultclock';
 import getUuid from '../util/randomuuid';
@@ -38,7 +39,7 @@ export class FakeOfferProducer implements OfferProducer {
   private expirationAgeMillis: number;
   private minOfferCount: number;
   private maxOfferCount: number;
-  private database: OprDatabase;
+  private offerModel: OfferModel;
   private random: RandomSeed;
   private descTemplates: Array<string>;
 
@@ -53,7 +54,7 @@ export class FakeOfferProducer implements OfferProducer {
       options.expirationAgeMillis ?? 1000 * 60 * 60 * 24;
     this.minOfferCount = options.minOfferCount ?? 1;
     this.maxOfferCount = options.maxOfferCount ?? 24;
-    this.database = options.database;
+    this.offerModel = options.offerModel;
     this.random = options.random ?? create();
     this.descTemplates = options.descTemplates ?? DEFAULT_DESC_TEMPLATES;
   }
@@ -121,7 +122,7 @@ export class FakeOfferProducer implements OfferProducer {
 
   async produceOffers(/* ignoring all params */): Promise<OfferSetUpdate> {
     const now = this.clock.now();
-    const offers = await this.database.getAllOffers();
+    const offers = await this.offerModel.getAllOffers();
     // If we don't have enough offers, create the missing ones.
     for (let i = offers.length; i < this.minOfferCount; i++) {
       offers.push(this.createOffer());
@@ -155,7 +156,7 @@ export class FakeOfferProducer implements OfferProducer {
       offers.splice(0, offers.length - this.maxOfferCount);
     }
     return {
-      offers: offers,
+      offers: iterableToAsync(offers),
       updateCurrentAsOfTimestampUTC: now,
       earliestNextRequestUTC:
         now + Math.min(this.newItemFrequencyMillis, this.updateFrequencyMillis),
@@ -243,11 +244,11 @@ export interface FakeOfferProducerOptions {
   sourceOrgUrl: string;
 
   /**
-   * The OPR server's database. Normal offer producers do not need a reference
-   * to a database, but this fake offer producer needs to look up existing
-   * offers to decide when to create/update new offers.
+   * The OPR server's offer model. Normal offer producers do not need a
+   * reference to the offer model, but this fake offer producer needs to look up
+   * existing offers to decide when to create/update new offers.
    */
-  database: OprDatabase;
+  offerModel: OfferModel;
 
   /**
    * A random number generator. The caller may provide a random number generator

@@ -11,17 +11,25 @@
       "calls": [
         {
           "op": "UPDATE",
-          "producerId": "local",
+          "producerId": "https://citadelofdanas.org/org.json",
           "time": 1,
           "param": {
             "sourceOrgUrl": "https://citadelofdanas.org/org.json",
             "delta": [
               {
-                "op": "add",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc",
-                "value": {
-                  "$model": "SimpleOffer"
-                }
+                "target": {
+                  "id": "abc",
+                  "postingOrgUrl": "https://citadelofdanas.org/org.json"
+                },
+                "patch": [
+                  {
+                    "op": "add",
+                    "path": "",
+                    "value": {
+                      "$model": "SimpleOffer"
+                    }
+                  }
+                ]
               }
             ],
             "diffStartTimeUTC": 0,
@@ -31,20 +39,28 @@
         },
         {
           "op": "UPDATE",
-          "producerId": "local",
+          "producerId": "https://citadelofdanas.org/org.json",
           "time": 2,
           "param": {
             "sourceOrgUrl": "https://citadelofdanas.org/org.json",
             "delta": [
               {
-                "op": "replace",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc/description",
-                "value": "An even faker offer"
-              },
-              {
-                "op": "replace",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc/updateTimestampUTC",
-                "value": 2
+                "target": {
+                  "id": "abc",
+                  "postingOrgUrl": "https://citadelofdanas.org/org.json"
+                },
+                "patch": [
+                  {
+                    "op": "replace",
+                    "path": "/description",
+                    "value": "An even faker offer"
+                  },
+                  {
+                    "op": "replace",
+                    "path": "/offerUpdateUTC",
+                    "value": 2
+                  }
+                ]
               }
             ],
             "updateCurrentAsOfTimestampUTC": 2,
@@ -77,11 +93,19 @@
             "sourceOrgUrl": "https://citadelofdanas.org/org.json",
             "delta": [
               {
-                "op": "add",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc",
-                "value": {
-                  "$model": "SimpleOffer"
-                }
+                "target": {
+                  "id": "abc",
+                  "postingOrgUrl": "https://citadelofdanas.org/org.json"
+                },
+                "patch": [
+                  {
+                    "op": "add",
+                    "path": "",
+                    "value": {
+                      "$model": "SimpleOffer"
+                    }
+                  }
+                ]
               }
             ],
             "diffStartTimeUTC": 0,
@@ -96,11 +120,19 @@
             "sourceOrgUrl": "https://citadelofdanas.org/org.json",
             "delta": [
               {
-                "op": "add",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc",
-                "value": {
-                  "$model": "SimpleOffer"
-                }
+                "target": {
+                  "id": "abc",
+                  "postingOrgUrl": "https://citadelofdanas.org/org.json"
+                },
+                "patch": [
+                  {
+                    "op": "add",
+                    "path": "",
+                    "value": {
+                      "$model": "SimpleOffer"
+                    }
+                  }
+                ]
               }
             ],
             "diffStartTimeUTC": 0,
@@ -116,14 +148,22 @@
             "sourceOrgUrl": "https://citadelofdanas.org/org.json",
             "delta": [
               {
-                "op": "replace",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc/description",
-                "value": "The most fakest offer"
-              },
-              {
-                "op": "replace",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc/offerUpdateUTC",
-                "value": 3
+                "target": {
+                  "id": "abc",
+                  "postingOrgUrl": "https://citadelofdanas.org/org.json"
+                },
+                "patch": [
+                  {
+                    "op": "replace",
+                    "path": "/description",
+                    "value": "The most fakest offer"
+                  },
+                  {
+                    "op": "replace",
+                    "path": "/offerUpdateUTC",
+                    "value": 3
+                  }
+                ]
               }
             ],
             "updateCurrentAsOfTimestampUTC": 3,
@@ -139,14 +179,22 @@
             "sourceOrgUrl": "https://citadelofdanas.org/org.json",
             "delta": [
               {
-                "op": "replace",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc/description",
-                "value": "An even faker offer"
-              },
-              {
-                "op": "replace",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc/offerUpdateUTC",
-                "value": 2
+                "target": {
+                  "id": "abc",
+                  "postingOrgUrl": "https://citadelofdanas.org/org.json"
+                },
+                "patch": [
+                  {
+                    "op": "replace",
+                    "path": "/description",
+                    "value": "An even faker offer"
+                  },
+                  {
+                    "op": "replace",
+                    "path": "/offerUpdateUTC",
+                    "value": 2
+                  }
+                ]
               }
             ],
             "updateCurrentAsOfTimestampUTC": 2,
@@ -185,7 +233,7 @@
             "updateCurrentAsOfTimestampUTC": 0,
             "earliestNextRequestUTC": 1000
           },
-          "expect" : "expect(changes.length).to.equal(1)"
+          "expect": "expect(changes.length).to.equal(1)"
         },
         {
           "op": "UPDATE",
@@ -200,7 +248,7 @@
             "updateCurrentAsOfTimestampUTC": 0,
             "earliestNextRequestUTC": 1000
           },
-          "expect" : "expect(changes.length).to.equal(0)"
+          "expect": "expect(changes.length).to.equal(0)"
         }
       ]
     }

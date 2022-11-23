@@ -1,0 +1,349 @@
+{
+  "description": "Timeline Edits",
+  "hostOrgUrl": "https://citadelofdanas.org/org.json",
+  "tests": [
+    {
+      "description": "List entries, no interval, no org",
+      "calls": [
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "offerUpdateUTC": 0
+          },
+          "expect": ["expect(result).to.equal('ADD')"]
+        },
+        {
+          "op": "addTimelineEntries",
+          "timelineEntries": [
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 0,
+              "endTimeUTC": 10,
+              "isReservation": true
+            },
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 10,
+              "endTimeUTC": 20,
+              "isReservation": false
+            },
+            {
+              "targetOrganizationUrl": "https://bob.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 9,
+              "endTimeUTC": 20,
+              "isReservation": false
+            }
+          ]
+        },
+        {
+          "op": "getTimelineForOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "expect": [
+            "expect(result.length).to.equal(3)",
+            "expect(result[0].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[0].offerId).to.equal('abc')",
+            "expect(result[0].startTimeUTC).to.equal(0)",
+            "expect(result[1].targetOrganizationUrl).to.equal('https://bob.org')",
+            "expect(result[1].offerId).to.equal('abc')",
+            "expect(result[1].startTimeUTC).to.equal(9)",
+            "expect(result[2].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[2].offerId).to.equal('abc')",
+            "expect(result[2].startTimeUTC).to.equal(10)"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "List entries, org query",
+      "calls": [
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "offerUpdateUTC": 0
+          },
+          "expect": ["expect(result).to.equal('ADD')"]
+        },
+        {
+          "op": "addTimelineEntries",
+          "timelineEntries": [
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 0,
+              "endTimeUTC": 10,
+              "isReservation": true
+            },
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 10,
+              "endTimeUTC": 20,
+              "isReservation": false
+            },
+            {
+              "targetOrganizationUrl": "https://bob.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 9,
+              "endTimeUTC": 20,
+              "isReservation": false
+            }
+          ]
+        },
+        {
+          "op": "getTimelineForOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "targetOrgUrl": "https://alice.org",
+          "expect": [
+            "expect(result.length).to.equal(2)",
+            "expect(result[0].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[0].offerId).to.equal('abc')",
+            "expect(result[0].startTimeUTC).to.equal(0)",
+            "expect(result[1].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[1].offerId).to.equal('abc')",
+            "expect(result[1].startTimeUTC).to.equal(10)"
+          ]
+        },
+        {
+          "op": "getTimelineForOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "targetOrgUrl": "https://bob.org",
+          "expect": [
+            "expect(result.length).to.equal(1)",
+            "expect(result[0].targetOrganizationUrl).to.equal('https://bob.org')",
+            "expect(result[0].offerId).to.equal('abc')",
+            "expect(result[0].startTimeUTC).to.equal(9)"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "List entries, interval query",
+      "calls": [
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "offerUpdateUTC": 0
+          },
+          "expect": ["expect(result).to.equal('ADD')"]
+        },
+        {
+          "op": "addTimelineEntries",
+          "timelineEntries": [
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 0,
+              "endTimeUTC": 10,
+              "isReservation": true
+            },
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 10,
+              "endTimeUTC": 20,
+              "isReservation": false
+            },
+            {
+              "targetOrganizationUrl": "https://bob.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 9,
+              "endTimeUTC": 20,
+              "isReservation": false
+            }
+          ]
+        },
+        {
+          "op": "getTimelineForOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "queryInterval": {
+            "startTimeUTC": -100,
+            "endTimeUTC": 100
+          },
+          "expect": [
+            "expect(result.length).to.equal(3)",
+            "expect(result[0].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[0].offerId).to.equal('abc')",
+            "expect(result[0].startTimeUTC).to.equal(0)",
+            "expect(result[1].targetOrganizationUrl).to.equal('https://bob.org')",
+            "expect(result[1].offerId).to.equal('abc')",
+            "expect(result[1].startTimeUTC).to.equal(9)",
+            "expect(result[2].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[2].offerId).to.equal('abc')",
+            "expect(result[2].startTimeUTC).to.equal(10)"
+          ]
+        },
+        {
+          "op": "getTimelineForOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "queryInterval": {
+            "startTimeUTC": 9,
+            "endTimeUTC": 10
+          },
+          "expect": [
+            "expect(result.length).to.equal(2)",
+            "expect(result[0].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[0].offerId).to.equal('abc')",
+            "expect(result[0].startTimeUTC).to.equal(0)",
+            "expect(result[1].targetOrganizationUrl).to.equal('https://bob.org')",
+            "expect(result[1].offerId).to.equal('abc')",
+            "expect(result[1].startTimeUTC).to.equal(9)"
+          ]
+        },
+        {
+          "comment": "Note that only one timeline entry is returned for time",
+          "comment": "8 because the interval does not include the instant of",
+          "comment": "its end time.",
+          "op": "getTimelineForOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "queryInterval": {
+            "startTimeUTC": 8,
+            "endTimeUTC": 9
+          },
+          "expect": [
+            "expect(result.length).to.equal(1)",
+            "expect(result[0].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[0].offerId).to.equal('abc')",
+            "expect(result[0].startTimeUTC).to.equal(0)"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Truncate",
+      "calls": [
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "offerUpdateUTC": 0
+          },
+          "expect": ["expect(result).to.equal('ADD')"]
+        },
+        {
+          "op": "addTimelineEntries",
+          "timelineEntries": [
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 0,
+              "endTimeUTC": 10,
+              "isReservation": true
+            },
+            {
+              "targetOrganizationUrl": "https://alice.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 10,
+              "endTimeUTC": 20,
+              "isReservation": false
+            },
+            {
+              "targetOrganizationUrl": "https://bob.org",
+              "offerId": "abc",
+              "postingOrgUrl": "https://citadelofdanas.org/org.json",
+              "offerUpdateTimestampUTC": 0,
+              "startTimeUTC": 8,
+              "endTimeUTC": 20,
+              "isReservation": false
+            }
+          ]
+        },
+        {
+          "comment": "Truncating way in the future should have no effect",
+          "op": "truncateFutureTimelineForOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "timestampUTC": 100
+        },
+        {
+          "op": "getTimelineForOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "queryInterval": {
+            "startTimeUTC": -100,
+            "endTimeUTC": 100
+          },
+          "expect": [
+            "expect(result.length).to.equal(3)",
+            "expect(result[0].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[0].offerId).to.equal('abc')",
+            "expect(result[0].startTimeUTC).to.equal(0)",
+            "expect(result[1].targetOrganizationUrl).to.equal('https://bob.org')",
+            "expect(result[1].offerId).to.equal('abc')",
+            "expect(result[1].startTimeUTC).to.equal(8)",
+            "expect(result[2].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[2].offerId).to.equal('abc')",
+            "expect(result[2].startTimeUTC).to.equal(10)"
+          ]
+        },
+        {
+          "op": "truncateFutureTimelineForOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "timestampUTC": 9
+        },
+        {
+          "op": "getTimelineForOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "queryInterval": {
+            "startTimeUTC": -100,
+            "endTimeUTC": 100
+          },
+          "expect": [
+            "expect(result.length).to.equal(2)",
+            "expect(result[0].targetOrganizationUrl).to.equal('https://alice.org')",
+            "expect(result[0].offerId).to.equal('abc')",
+            "expect(result[0].startTimeUTC).to.equal(0)",
+            "expect(result[0].endTimeUTC).to.equal(9)",
+            "expect(result[1].targetOrganizationUrl).to.equal('https://bob.org')",
+            "expect(result[1].offerId).to.equal('abc')",
+            "expect(result[1].startTimeUTC).to.equal(8)",
+            "expect(result[1].endTimeUTC).to.equal(9)"
+          ]
+        }
+      ]
+    }
+  ]
+}
