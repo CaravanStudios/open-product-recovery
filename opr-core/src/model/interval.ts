@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-import {ChainScope} from '../auth/chainscope';
-
-export const WILDCARD_ORG_ID = '*';
-
+/**
+ * A time interval. The interval includes the instant at startTimeUTC, but does
+ * NOT include the instant at endTimeUTC.
+ */
 export interface Interval {
   startTimeUTC: number;
   endTimeUTC: number;
 }
-
-export interface ListingTarget {
-  orgUrl: string;
-  scopes?: Array<ChainScope>;
-}
-
-export interface Listing extends Interval, ListingTarget {}
 
 export interface TrimIntervalOptions {
   startAt?: number;
@@ -59,7 +52,10 @@ export function intersect(
 }
 
 /** Sub */
-export function subtract(basis: Interval, other: Interval): Array<Interval> {
+export function subtract(basis: Interval, other?: Interval): Array<Interval> {
+  if (!other) {
+    return [basis];
+  }
   const result = [];
   const left = trim(basis, {
     startAt: Math.min(basis.startTimeUTC, other.startTimeUTC),

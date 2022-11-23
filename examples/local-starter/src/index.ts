@@ -35,9 +35,10 @@ import {
   FakeOfferProducer,
   OfferChange,
   CustomRequestHandler,
+  PersistentOfferModel,
 } from 'opr-core';
 log.setLevel('WARN');
-import {SqlOprDatabase} from 'opr-sql-database';
+import {SqlOprPersistentStorage} from 'opr-sql-database';
 
 // We need a main method because we want to use the "await" keyword,
 // and it's not allowed in top-level script code. But we can declare an
@@ -88,7 +89,7 @@ async function main() {
     // Replace this with a list of servers that can actually talk to your
     // OPR server
     // 'https://opr.otherexamplehost.org/org.json',
-    '*' // This is the 'wildcard' option - it makes offers public to everyone!
+    '*', // This is the 'wildcard' option - it makes offers public to everyone!
   ]);
   // Deal with encryption keys. For this toy server, we're generating new keys
   // every time the server starts. In production, they should be loaded from
@@ -120,32 +121,34 @@ async function main() {
   // tells the server that it should show offers to everyone.
   const listingPolicy = new UniversalAcceptListingPolicy([
     // 'https://opr.otherexamplehost.org/org.json', // Example "real" entry
-    '*' // This is the 'wildcard' option - it makes offers public to everyone!
+    '*', // This is the 'wildcard' option - it makes offers public to everyone!
   ]);
   // Start a local in memory server to track offers.
-  // Build a database. Note you can use many different database types here.
-  const database = new SqlOprDatabase({
-    dsOptions: {
-      type: 'sqlite',
-      database: ':memory:',
-      // DON'T USE THE NEXT TWO OPTIONS IN PROD!!!
-      // This option forces the database to rewrite table schemas to match the
-      // entity descriptions in code.
-      synchronize: true,
-      // This option drops all TypeOrm tables when the database starts up.
-      dropSchema: true,
-    },
+  // Build an offer model. Note you can use many different persistent storage
+  // drivers here.
+  const offerModel = new PersistentOfferModel({
+    storage: new SqlOprPersistentStorage({
+      dsOptions: {
+        type: 'sqlite',
+        database: ':memory:',
+        // DON'T USE THE NEXT TWO OPTIONS IN PROD!!!
+        // This option forces the database to rewrite table schemas to match the
+        // entity descriptions in code.
+        synchronize: true,
+        // This option drops all TypeOrm tables when the database starts up.
+        dropSchema: true,
+      },
+    }),
+    hostOrgUrl: frontendConfig.organizationURL,
     listingPolicy: listingPolicy,
     signer: signer,
-    hostOrgUrl: frontendConfig.organizationURL,
-    enableInternalChecks: true,
   });
 
   // We create a fake offer producer. Replace this with an offer producer that
   // reads from your inventory system to publish new offers.
   const fakeOfferProducer = new FakeOfferProducer({
     sourceOrgUrl: frontendConfig.organizationURL,
-    database: database,
+    offerModel: offerModel,
     updateFrequencyMillis: 3000,
     newItemFrequencyMillis: 10000,
   });
@@ -163,7 +166,7 @@ async function main() {
     method: ['GET', 'POST'],
     handle: async () => {
       const changes = [] as Array<OfferChange>;
-      const changeHandler = database.registerChangeHandler(async change => {
+      const changeHandler = offerModel.registerChangeHandler(async change => {
         changes.push(change);
       });
       await s.ingest();
@@ -181,7 +184,7 @@ async function main() {
   const allOffersEndpoint = {
     method: ['GET', 'POST'],
     handle: async () => {
-      return await database.getAllOffers();
+      return await offerModel.getAllOffers();
     },
   } as CustomRequestHandler;
 
@@ -189,11 +192,11 @@ async function main() {
   const s = new OprServer({
     frontendConfig: frontendConfig,
     orgConfigProvider: orgConfigProvider,
-    database: database,
+    offerModel: offerModel,
     jwksProvider: jwksProvider,
     signer: signer,
     clientConfig: {
-      urlMapper: urlMapper
+      urlMapper: urlMapper,
     },
     accessControlList: accessControlList,
     feedConfigProvider: feedConfigProvider,
@@ -203,6 +206,6 @@ async function main() {
       allOffers: allOffersEndpoint,
     },
   });
-  s.start(5000);
+  await s.start(5000);
 }
-main();
+void main();

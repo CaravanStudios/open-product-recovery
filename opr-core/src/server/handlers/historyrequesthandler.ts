@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {OprDatabase} from '../../database/oprdatabase';
+import {OfferModel} from '../../model/offermodel';
 import {JWTPayload} from 'jose';
 import {HistoryPayload, HistoryResponse} from 'opr-models';
 import {AuthenticatedRequestHandler} from './authenticatedrequesthandler';
@@ -23,7 +23,7 @@ export class HistoryRequestHandler extends AuthenticatedRequestHandler<
   HistoryPayload,
   HistoryResponse
 > {
-  constructor(database: OprDatabase) {
+  constructor(database: OfferModel) {
     super(
       database,
       ['PRODUCTHISTORY'],
@@ -40,12 +40,9 @@ export class HistoryRequestHandler extends AuthenticatedRequestHandler<
     request: HistoryPayload,
     decodedAuthToken: JWTPayload
   ): Promise<HistoryResponse> {
-    const historyItems = await this.database.getHistory(
+    return await this.database.getHistory(
       decodedAuthToken.iss!,
-      request.historySinceUTC
+      request
     );
-    return {
-      offerHistories: historyItems,
-    };
   }
 }

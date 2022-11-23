@@ -20,6 +20,7 @@ import * as path from 'path';
 import {Resolver, ResolverOptions} from '../json/resolver';
 import {
   createArtificialLocation,
+  JsonObject,
   parsePathSync,
   SourcedJsonArray,
   SourcedJsonObject,
@@ -133,6 +134,7 @@ export class DataDrivenTest {
         }
       }
       if (!found) {
+        console.log('dirname', config.cwd);
         expect.fail('No tests found for config: ' + config.name);
       }
     });

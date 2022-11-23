@@ -14,21 +14,8 @@
  * limitations under the License.
  */
 
-import 'mocha';
-import {expect} from 'chai';
-import {DataDrivenTest} from 'opr-devtools';
-import {SqlDatabaseTestConfig} from './sqldatabasetestconfig';
+import {Offer} from 'opr-models';
 
-const driver = new DataDrivenTest(
-  new SqlDatabaseTestConfig(
-    __dirname,
-    {
-      type: 'sqlite',
-      database: ':memory:',
-      synchronize: true,
-      dropSchema: true,
-    },
-    'SQLite SQL Tests'
-  )
-);
-driver.initialize();
+export function getUpdateTimestamp(offer: Offer): number {
+  return offer.offerUpdateUTC ?? offer.offerCreationUTC;
+}

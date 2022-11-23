@@ -5,9 +5,10 @@
     "opr-devtools",
     "opr-models",
     "opr-core",
+    "opr-core-testutil",
     "opr-sql-database",
     "opr-google-cloud",
     "examples/*"
   ],
-  "version": "0.5.6"
+  "version": "0.6.0"
 }

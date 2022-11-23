@@ -22,15 +22,23 @@
       "responseFormat": "DIFF",
       "diff": [
         {
-          "op": "add",
-          "path": "/https:~1~1citadelofdanas.org~1org.json#abc",
-          "value": {
-            "$ref": "exampleoffers/simpleoffer.json"
-          }
+          "target": {
+            "id": "abc",
+            "postingOrgUrl": "https://citadelofdanas.org/org.json"
+          },
+          "patch": [
+            {
+              "op": "add",
+              "path": "",
+              "value": {
+                "$ref": "exampleoffers/simpleoffer.json"
+              }
+            }
+          ]
         }
       ],
       "resultsTimestampUTC": 1660152248000,
-      "nextPageToken" : "x"
+      "nextPageToken": "x"
     }
   ],
   "additionalProperties": false,
@@ -52,7 +60,10 @@
       }
     },
     "diff": {
-      "$ref": "jsonpatch.schema.json"
+      "type": "array",
+      "items": {
+        "$ref": "offerpatch.schema.json"
+      }
     }
   },
   "required": ["responseFormat", "resultsTimestampUTC"],

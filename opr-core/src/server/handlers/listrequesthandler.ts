@@ -17,13 +17,13 @@
 import {ListOffersPayload, ListOffersResponse} from 'opr-models';
 import {JWTPayload} from 'jose';
 import {AuthenticatedRequestHandler} from './authenticatedrequesthandler';
-import {OprDatabase} from '../../database/oprdatabase';
+import {OfferModel} from '../../model/offermodel';
 
 export class ListRequestHandler extends AuthenticatedRequestHandler<
   ListOffersPayload,
   ListOffersResponse
 > {
-  constructor(database: OprDatabase) {
+  constructor(database: OfferModel) {
     super(
       database,
       ['LISTPRODUCTS'],

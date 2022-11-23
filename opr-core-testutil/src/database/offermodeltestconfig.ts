@@ -16,28 +16,29 @@
 
 import {expect, config} from 'chai';
 import {
+  Clock,
   diff,
   FakeClock,
   FakeListingPolicy,
   Listing,
   LocalKeySigner,
   OfferChange,
+  OfferListingPolicy,
+  OfferModel,
   OfferProducerMetadata,
   OfferSetUpdate,
+  Signer,
   UniversalAcceptListingPolicy,
 } from 'opr-core';
+import {ResolverOptions, SourcedJsonObject, TestConfig} from 'opr-devtools';
 import {
-  $,
-  Directive,
-  Resolver,
-  ResolverOptions,
-  SourcedJsonObject,
-  SourcedJsonValue,
-  TestConfig,
-} from 'opr-devtools';
-import {DecodedReshareChain, ListOffersPayload} from 'opr-models';
-import {DataSourceOptions, SqlOprDatabase} from '../src/sqloprdatabase';
-import {examples} from 'opr-models';
+  DecodedReshareChain,
+  HistoryPayload,
+  ListOffersPayload,
+} from 'opr-models';
+import path from 'path';
+import {EncodeChainDirective} from '../json/encodechaindirective';
+import {ModelDirective} from '../json/modeldirective';
 
 // Show the entire mismatched object on error.
 config.truncateThreshold = 0;
@@ -46,47 +47,36 @@ interface SqlTestObjects {
   readonly clock: FakeClock;
   readonly signer: LocalKeySigner;
   readonly listingPolicy: FakeListingPolicy;
-  readonly db: SqlOprDatabase;
+  readonly model: OfferModel;
 }
 
-class ModelDirective implements Directive {
-  accept(key: string): boolean {
-    return key === '$model';
-  }
+export type ModelBuilderFn = (
+  context: SourcedJsonObject,
+  listingPolicy: OfferListingPolicy,
+  clock: Clock,
+  signer: Signer,
+  hostOrgUrl: string
+) => Promise<OfferModel>;
 
-  async transform(
-    resolver: Resolver,
-    obj: SourcedJsonValue,
-    key: string,
-    value: SourcedJsonValue
-  ): Promise<SourcedJsonValue> {
-    value.assertIsString();
-    const name = value.value;
-    return $((examples as Record<string, unknown>)[name]);
-  }
-}
-
-export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
+export class OfferModelTestConfig implements TestConfig<SqlTestObjects> {
   readonly name: string;
   readonly cwd: string;
-  private dsOptions: DataSourceOptions;
   readonly resolverOptions?: ResolverOptions | undefined;
+  readonly pathGlob: string;
+  private modelBuilderFn: ModelBuilderFn;
 
-  constructor(cwd: string, dsOptions: DataSourceOptions, name = 'SQL Tests') {
-    this.cwd = cwd;
+  constructor(modelBuilderFn: ModelBuilderFn, name = 'OfferModel Tests') {
+    this.cwd = path.resolve(__dirname, '../../datatests');
     this.name = name;
-    this.dsOptions = dsOptions;
+    this.pathGlob = 'offermodel/**.test.json';
+    this.modelBuilderFn = modelBuilderFn;
     this.resolverOptions = {
-      installDirectives: [new ModelDirective()],
+      installDirectives: [new ModelDirective(), new EncodeChainDirective()],
     };
   }
 
-  protected getDsOptions(): DataSourceOptions {
-    return {...this.dsOptions};
-  }
-
   async teardownTestObject(testObject: SqlTestObjects): Promise<void> {
-    await testObject.db.shutdown();
+    await testObject.model.shutdown();
   }
 
   async buildTestObject(context: SourcedJsonObject): Promise<SqlTestObjects> {
@@ -109,20 +99,19 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
     const listingPolicy = new FakeListingPolicy(
       new UniversalAcceptListingPolicy(listingOrgs as Array<string>)
     );
-    const db = new SqlOprDatabase({
-      dsOptions: this.getDsOptions(),
-      listingPolicy: listingPolicy,
-      clock: clock,
-      signer: signer,
-      hostOrgUrl: hostOrgUrl,
-      enableInternalChecks: true,
-    });
-    await db.initialize();
+    const model = await this.modelBuilderFn(
+      context,
+      listingPolicy,
+      clock,
+      signer,
+      hostOrgUrl
+    );
+    await model.initialize();
     return {
       clock: clock,
       signer: signer,
       listingPolicy: listingPolicy,
-      db: db,
+      model: model,
     };
   }
 
@@ -138,7 +127,7 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
       testObject.clock.setTime(time);
     }
     const changes = [] as Array<OfferChange>;
-    const handlerReg = testObject.db.registerChangeHandler(async change => {
+    const handlerReg = testObject.model.registerChangeHandler(async change => {
       changes.push(change);
     });
     const op = context.propAsString('op').req();
@@ -155,7 +144,7 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
           );
         }
         const updateParam = context.propAsObject('param').req();
-        const result = await testObject.db.processUpdate(
+        const result = await testObject.model.processUpdate(
           producerId,
           updateParam as unknown as OfferSetUpdate
         );
@@ -167,7 +156,7 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
         const payload: ListOffersPayload = context
           .propAsObject('payload')
           .req();
-        const listResult = await testObject.db.list(orgUrl, payload);
+        const listResult = await testObject.model.list(orgUrl, payload);
         const offers = listResult.offers;
         const offerSet = offers ? diff.toOfferSet(offers) : undefined;
         const expectDiff = context.propAsArray('expectDiff').get();
@@ -192,7 +181,7 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
         const decodedReshareChain: DecodedReshareChain | undefined = context
           .propAsArray('decodedReshareChain')
           .get();
-        const result = await testObject.db.accept(
+        const result = await testObject.model.accept(
           offerId,
           orgUrl,
           ifNoNewerThanTimestampUTC,
@@ -203,13 +192,8 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
       }
       case 'HISTORY': {
         const orgUrl = context.propAsString('orgUrl').req();
-        const sinceTimestampUTC = context
-          .propAsNumber('sinceTimestampUTC')
-          .get();
-        const result = await testObject.db.getHistory(
-          orgUrl,
-          sinceTimestampUTC
-        );
+        const payload = context.propAsObject('payload').req() as HistoryPayload;
+        const result = await testObject.model.getHistory(orgUrl, payload);
         resultInfo.result = result;
         break;
       }
@@ -219,7 +203,7 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
         const reservationSecs = context
           .propAsNumber('requestedReservationSecs')
           .req();
-        const result = await testObject.db.reserve(
+        const result = await testObject.model.reserve(
           offerId,
           reservationSecs,
           orgUrl
@@ -231,7 +215,7 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
         const orgUrl = context.propAsString('orgUrl').req();
         const offerId = context.propAsString('offerId').req();
         const offeredByUrl = context.propAsString('offeredByUrl').get();
-        const result = await testObject.db.reject(
+        const result = await testObject.model.reject(
           orgUrl,
           offerId,
           offeredByUrl
@@ -239,23 +223,19 @@ export class SqlDatabaseTestConfig implements TestConfig<SqlTestObjects> {
         resultInfo.result = result;
         break;
       }
-      case 'LOCK': {
-        const producerId = context.propAsString('producerId').req();
-        const result = await testObject.db.lockProducer(producerId);
+      case 'READPRODUCERMETADATA': {
+        const organizationUrl = context.propAsString('organizationUrl').req();
+        const result = await testObject.model.getOfferProducerMetadata(
+          organizationUrl
+        );
         resultInfo.result = result;
         break;
       }
-      case 'UNLOCK': {
+      case 'WRITEPRODUCERMETADATA': {
         const metadata: OfferProducerMetadata = context
           .propAsObject('metadata')
           .req();
-        await testObject.db.unlockProducer(metadata);
-        break;
-      }
-      case 'DUMP': {
-        /** Dumps a table contents for debugging. */
-        const tablename = context.propAsString('table').req();
-        await testObject.db.dumpTable(tablename);
+        await testObject.model.writeOfferProducerMetadata(metadata);
         break;
       }
       default: {

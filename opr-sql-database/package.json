@@ -1,6 +1,6 @@
 {
   "name": "opr-sql-database",
-  "version": "0.5.6",
+  "version": "0.6.0",
   "description": "SQL Database Implementation for Open Product Recovery",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -12,10 +12,10 @@
     "build": "tsc -p .",
     "watch": "tsc -w -p .",
     "test": "mocha -r ts-node/register -R spec --diff 'test/**/*.spec.ts'",
-    "lint": "eslint",
+    "lint": "eslint .",
     "clean": "rm -rf build",
     "compile": "tsc",
-    "fix": "eslint --fix",
+    "fix": "eslint --fix .",
     "prepare": "npm run compile",
     "pretest": "npm run compile && npm run lint"
   },
@@ -39,16 +39,18 @@
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "glob-promise": "^5.0.0",
+    "jose": "^4.10.4",
     "mocha": "^10.0.0",
-    "opr-devtools": "^0.5.4",
+    "opr-core-testutil": "^0.6.0",
+    "opr-devtools": "^0.6.0",
     "pg": "^8.8.0",
     "ts-node": "^10.9.1",
     "typescript": "^4.7.4"
   },
   "dependencies": {
     "loglevel": "^1.8.0",
-    "opr-core": "^0.5.6",
-    "opr-models": "^0.5.6",
+    "opr-core": "^0.6.0",
+    "opr-models": "^0.6.0",
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^5.0.11",
     "typeorm": "^0.3.9"

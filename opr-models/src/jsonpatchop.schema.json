@@ -25,7 +25,8 @@
           "enum": ["add", "replace", "test"]
         },
         "value": {
-          "description": "The value to add, replace or test."
+          "description": "The value to add, replace or test.",
+          "type": ["number", "string", "boolean", "object", "array", "null"]
         }
       }
     },

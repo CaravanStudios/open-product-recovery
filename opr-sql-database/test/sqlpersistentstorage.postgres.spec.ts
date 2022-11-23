@@ -15,31 +15,38 @@
  */
 
 import 'mocha';
-import {expect} from 'chai';
-import {DataDrivenTest} from 'opr-devtools';
-import {log} from 'opr-core';
-import {SqlDatabaseTestConfig} from './sqldatabasetestconfig';
+import {PersistentTestConfig} from 'opr-core-testutil';
+import {DataDrivenTest, SourcedJsonObject} from 'opr-devtools';
 import {PostgresTestingLauncher} from '../src/postgrestestinglauncher';
+import {SqlOprPersistentStorage} from '../src/sqloprpersistentstorage';
 import {DataSourceOptions} from 'typeorm';
 import {PostgresConnectionOptions} from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 // Uncomment to enable detailed logging during tests
 //log.setLevel('TRACE');
 
-class PostgresTestConfig extends SqlDatabaseTestConfig {
+class PostgresTestConfig extends PersistentTestConfig {
   private psLauncher: PostgresTestingLauncher;
+  private dsOptions: DataSourceOptions;
+
   constructor(
-    cwd: string,
     dsOptions: DataSourceOptions,
     psLauncher: PostgresTestingLauncher
   ) {
-    super(cwd, dsOptions, 'Postgres SQL Tests');
+    super(() => this.createDb(), 'Postgres Persistent Tests');
+    this.dsOptions = dsOptions;
     this.psLauncher = psLauncher;
+  }
+
+  private async createDb(): Promise<SqlOprPersistentStorage> {
+    return new SqlOprPersistentStorage({
+      dsOptions: this.getDsOptions(),
+    });
   }
 
   protected getDsOptions(): PostgresConnectionOptions {
     return {
-      ...super.getDsOptions(),
+      ...this.dsOptions,
       port: this.psLauncher.getPort(),
     } as PostgresConnectionOptions;
   }
@@ -60,7 +67,6 @@ if (!pg.isPostgresAvailable()) {
 } else {
   const driver = new DataDrivenTest(
     new PostgresTestConfig(
-      __dirname,
       {
         type: 'postgres',
         host: 'localhost',

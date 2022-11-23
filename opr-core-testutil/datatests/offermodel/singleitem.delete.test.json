@@ -26,7 +26,7 @@
         },
         {
           "op": "UPDATE",
-          "time" : 2,
+          "time": 2,
           "producerId": "https://citadelofdanas.org/org.json",
           "param": {
             "sourceOrgUrl": "https://citadelofdanas.org/org.json",
@@ -34,12 +34,12 @@
             "updateCurrentAsOfTimestampUTC": 2,
             "earliestNextRequestUTC": 1000
           },
-          "expectChanges" : [
+          "expectChanges": [
             {
-              "type" : "DELETE",
-              "timestampUTC" : 2,
-              "oldValue" : {
-                "$model" : "SimpleOffer"
+              "type": "DELETE",
+              "timestampUTC": 2,
+              "oldValue": {
+                "$model": "SimpleOffer"
               }
             }
           ]
@@ -47,7 +47,7 @@
         {
           "op": "LIST",
           "orgUrl": "https://fakeorgb.org/org.json",
-          "time" : 2,
+          "time": 2,
           "payload": {
             "requestedResultFormat": "SNAPSHOT"
           },
@@ -77,25 +77,33 @@
         },
         {
           "op": "UPDATE",
-          "time" : 2,
+          "time": 2,
           "producerId": "https://citadelofdanas.org/org.json",
           "param": {
             "sourceOrgUrl": "https://citadelofdanas.org/org.json",
             "delta": [
               {
-                "op": "remove",
-                "path": "/https:~1~1citadelofdanas.org~1org.json#abc"
+                "target": {
+                  "id": "abc",
+                  "postingOrgUrl": "https://citadelofdanas.org/org.json"
+                },
+                "patch": [
+                  {
+                    "op": "remove",
+                    "path": ""
+                  }
+                ]
               }
             ],
             "updateCurrentAsOfTimestampUTC": 2,
             "earliestNextRequestUTC": 1000
           },
-          "expectChanges" : [
+          "expectChanges": [
             {
-              "type" : "DELETE",
-              "timestampUTC" : 2,
-              "oldValue" : {
-                "$model" : "SimpleOffer"
+              "type": "DELETE",
+              "timestampUTC": 2,
+              "oldValue": {
+                "$model": "SimpleOffer"
               }
             }
           ]
@@ -103,7 +111,7 @@
         {
           "op": "LIST",
           "orgUrl": "https://fakeorgb.org/org.json",
-          "time" : 2,
+          "time": 2,
           "payload": {
             "requestedResultFormat": "SNAPSHOT"
           },

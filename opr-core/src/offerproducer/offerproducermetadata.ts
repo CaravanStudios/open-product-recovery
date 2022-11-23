@@ -17,5 +17,5 @@
 export interface OfferProducerMetadata {
   readonly lastUpdateTimeUTC?: number;
   readonly nextRunTimestampUTC: number;
-  readonly producerId: string;
+  readonly organizationUrl: string;
 }

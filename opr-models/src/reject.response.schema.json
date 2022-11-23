@@ -3,13 +3,17 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "RejectOfferResponse",
   "description": "Response to a request to reject an offer.",
-  "examples": [
-    {}
-  ],
+  "examples": [{
+    "offer": {
+      "$ref": "exampleoffers/simpleoffer.json"
+    }
+  }],
+  "type": "object",
   "additionalProperties": false,
   "properties": {
+    "offer": {
+      "$ref": "offer.schema.json"
+    }
   },
-  "required": [
-  ],
-  "type": "object"
+  "required": ["offer"]
 }

@@ -1,0 +1,45 @@
+{
+  "$id": "offerpatch.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OfferPatch",
+  "description": "A JSON patch targeted at an offer",
+  "examples": [
+    {
+      "target": {
+        "id": "abc",
+        "postingOrgUrl": "https://citadelofdanas.org/org.json",
+        "lastUpdateTimeUTC": 1
+      },
+      "patch": [
+        {
+          "op": "replace",
+          "path": "",
+          "value": {
+            "$ref": "exampleoffers/simpleoffer.json"
+          }
+        }
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "anyOf": [
+            {"$ref": "structuredofferid.schema.json"},
+            {"$ref": "versionedstructuredofferid.schema.json"}
+          ]
+        },
+        "patch": {
+          "$ref": "jsonpatch.schema.json"
+        }
+      },
+      "required": ["target", "patch"],
+      "type": "object"
+    },
+    {
+      "const": "clear"
+    }
+  ]
+}

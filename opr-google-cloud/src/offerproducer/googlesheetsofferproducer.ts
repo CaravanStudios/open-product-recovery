@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Clock, DefaultClock, OfferProducer, OfferSetUpdate} from 'opr-core';
+import {Clock, DefaultClock, iterableToAsync, OfferProducer, OfferSetUpdate} from 'opr-core';
 import {GoogleSheetsClient} from '../googlesheets/googlesheetsclient';
 import {SimpleSheetFormat} from '../googlesheets/simplesheetformat';
 import {GoogleSheetsFormat} from '../googlesheets/googlesheetsformat';
@@ -42,7 +42,7 @@ export class GoogleSheetsOfferProducer implements OfferProducer {
       earliestNextRequestUTC: now,
       updateCurrentAsOfTimestampUTC: now,
       sourceOrgUrl: this.sourceOrgUrl,
-      offers: offers,
+      offers: iterableToAsync(offers),
     } as OfferSetUpdate;
   }
 }

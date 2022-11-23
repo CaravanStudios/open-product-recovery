@@ -16,7 +16,7 @@
 
 import {Verifier} from '../../auth/verifier';
 import {StatusError} from '../../util/statuserror';
-import {OprDatabase} from '../../database/oprdatabase';
+import {OfferModel} from '../../model/offermodel';
 import {JWTPayload} from 'jose';
 import {
   AcceptOfferPayload,
@@ -33,7 +33,7 @@ export abstract class BaseAcceptHandler<
   private myOrgUrl?: string;
 
   constructor(
-    database: OprDatabase,
+    database: OfferModel,
     requestSchemaId: string,
     responseSchemaId: string,
     myOrgUrl?: string,
@@ -76,7 +76,7 @@ export abstract class BaseAcceptHandler<
   }
 
   shouldIgnoreAccessControlList(requestBody: RequestType): boolean {
-    return 'reshareChain' in requestBody;
+    return 'reshareChain' in (requestBody as Record<string, unknown>);
   }
 
   async handle(
