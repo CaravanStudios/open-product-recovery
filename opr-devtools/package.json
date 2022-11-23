@@ -1,6 +1,6 @@
 {
   "name": "opr-devtools",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "description": "Open Product Recovery Development Tools",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -53,5 +53,6 @@
   },
   "engines": {
     "node": ">=12.0.0"
-  }
+  },
+  "gitHead": "d9a5cd4e90c917cbcfa9b803a6b0469aba31c62a"
 }
