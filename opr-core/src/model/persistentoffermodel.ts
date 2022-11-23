@@ -271,7 +271,6 @@ export class PersistentOfferModel implements OfferModel {
         const result = await applyOfferPatch(lookup, op);
         switch (result.type) {
           case 'CLEAR': {
-            // TODO: Clear the corpus
             for await (const offer of this.storage.getCorpusOffers(
               t,
               this.hostOrgUrl,
@@ -861,7 +860,7 @@ export class PersistentOfferModel implements OfferModel {
     handlerFn: (change: OfferChange) => Promise<void>
   ): HandlerRegistration {
     this.changeHandlers.push(handlerFn);
-    return new PersistenOfferModelHandlerRegistration(
+    return new PersistentOfferModelHandlerRegistration(
       handlerFn,
       this.changeHandlers
     );
@@ -880,7 +879,7 @@ export class PersistentOfferModel implements OfferModel {
   }
 }
 
-class PersistenOfferModelHandlerRegistration implements HandlerRegistration {
+class PersistentOfferModelHandlerRegistration implements HandlerRegistration {
   private changeHandlers: Array<(change: OfferChange) => Promise<void>>;
   private handler: (change: OfferChange) => Promise<void>;
 

@@ -12,7 +12,7 @@
     "build": "tsc -p .",
     "watch": "tsc -w -p .",
     "test": "echo 'No tests in opr-core-testutil'",
-    "lint": "eslint",
+    "lint": "eslint .",
     "clean": "rm -rf build",
     "compile": "tsc",
     "fix": "eslint --fix",

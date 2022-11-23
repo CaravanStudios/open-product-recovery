@@ -2,7 +2,7 @@
   "$id": "versionedstructuredofferid.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "VersionedStructuredOfferId",
-  "description": "A structured representation of a unique offer id",
+  "description": "A versioned, structured representation of a unique offer id, where a particular offer version is specified via the lastUpdateTimeUTC property.",
   "examples": [
     {
       "id": "id",

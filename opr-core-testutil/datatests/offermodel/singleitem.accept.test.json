@@ -34,7 +34,7 @@
           "op": "HISTORY",
           "orgUrl": "https://citadelofdanas.org/org.json",
           "time": 2,
-          "payload" : {},
+          "payload": {},
           "expect": [
             "expect(result, 'History result should be defined').to.be.not.undefined",
             "expect(result.offerHistories.length, 'Wrong history length').to.equal(1)",
@@ -45,7 +45,7 @@
           "op": "HISTORY",
           "orgUrl": "https://fakeorga.org/org.json",
           "time": 2,
-          "payload" : {},
+          "payload": {},
           "expect": [
             "expect(result, 'History result should be defined').to.be.not.undefined",
             "expect(result.offerHistories.length, 'Wrong history length').to.equal(1)",
@@ -57,7 +57,7 @@
           "op": "HISTORY",
           "orgUrl": "https://fakeorgb.org/org.json",
           "time": 2,
-          "payload" : {},
+          "payload": {},
           "expect": [
             "expect(result, 'History result should be defined').to.be.not.undefined",
             "expect(result.offerHistories.length, 'Wrong history length').to.equal(0)"

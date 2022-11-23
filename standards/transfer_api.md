@@ -16,7 +16,7 @@ An open protocol for exchanging and accepting recovered products.
   * [3.2. Organizations](#32-organizations)
   * [3.3. Responsibility](#33-responsibility)
 * [4. Security Concepts](#4-security-concepts)
-  * [4.1. Cryptographic Signing & Related Assumptions](#41-cryptographic-signing--related-assumptions)
+  * [4.1. Cryptographic Signing \& Related Assumptions](#41-cryptographic-signing--related-assumptions)
   * [4.2. Organization-Based Security](#42-organization-based-security)
   * [4.3. Organization Access Lists](#43-organization-access-lists)
   * [4.4. Friend of a Friend Sharing](#44-friend-of-a-friend-sharing)
@@ -28,8 +28,8 @@ An open protocol for exchanging and accepting recovered products.
     * [5.3.2. File Format](#532-file-format)
 * [6. REST API](#6-rest-api)
   * [6.1. Required and Optional Operations](#61-required-and-optional-operations)
-  * [6.2. Authentication & Authorization](#62-authentication--authorization)
-    * [6.2.1. Authenticating & Authorizing Requests](#621-authenticating--authorizing-requests)
+  * [6.2. Authentication \& Authorization](#62-authentication--authorization)
+    * [6.2.1. Authenticating \& Authorizing Requests](#621-authenticating--authorizing-requests)
       * [6.2.1.1. Access Tokens](#6211-access-tokens)
         * [6.2.1.1.1. Access Token Header](#62111-access-token-header)
         * [6.2.1.1.2. Access Token Payload](#62112-access-token-payload)
@@ -497,7 +497,7 @@ Implementations that create OfferPatches must decide whether to specify the `las
 
 * The patch updates the entire contents of the offer (i.e. the JSON Patch contains a single 'update' operation where the path is "").
 
-`lastUpdateTime` should *always* be specified when:
+`lastUpdateTimeUTC` should *always* be specified when:
 
 * The patch includes `add` or `remove` operations on an array, because those operations may have highly unexpected results if applied to a different object than intended.
 * The offer may be modified multiple times, and those modifications may target different collections of fields.
@@ -510,12 +510,12 @@ To apply an `OfferPatch`:
 
 1) Check whether the `OfferPatch` is the value `clear`. If it is, delete the entire relevant collection of offers (for example, the cached list of offers from the OPR server that produced this patch)
 2) Look up the offer specified by the StructuredOfferId in the `target` field. If the offer cannot be found, the patch must be ignored.
-3) If the StructuredOfferId specifies the lastUpdateTimestampUTC field, ensure that the offer's last update timestamp (or creation timestamp, if the offer has never been updated) matches the lastUpdateTimestampUTC field. If it does not, the patch must be ignored.
+3) If the StructuredOfferId specifies the lastUpdateTimeUTC field, ensure that the offer's last update timestamp (or creation timestamp, if the offer has never been updated) matches the lastUpdateTimeUTC field. If it does not, the patch must be ignored.
 4) Apply the JSON Patch in the `patch` field to the Offer.
 
 A [JSON patch](https://jsonpatch.com/) ([RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902/)) is an array of operation descriptions for modifying a JSON value. A JSON patch can be applied to an offer using a [standard JSON patch library](https://jsonpatch.com/#libraries).
 
-A malformed or buggy JSON patch may leave an offer in an invalid and unusable state. If an offer is invalid after a patch is applied, that patch should be ignored. Note that every valid update to an offer should advance that offer's `offerUpdateTimestampUTC`. If a patch is applied and the Offer's offerUpdateTimestampUTC field does not change, the patch should be considered invalid and ignored.
+A malformed or buggy JSON patch may leave an offer in an invalid and unusable state. If an offer is invalid after a patch is applied, that patch should be ignored. Note that every valid update to an offer should advance that offer's `offerUpdateUTC`. If a patch is applied and the Offer's `offerUpdateUTC` field does not change, the patch should be considered invalid and ignored.
 
 #### 6.3.2.3. Reservation Considerations
 
@@ -580,14 +580,14 @@ If the accept endpoint is called for an offer that is currently [reserved](#635-
 
 If the accept endpoint is called for an offer that does not exist, is expired, has been [rejected](#634-rejectproduct) by the calling organization, or is otherwise unavailable for acceptance, an HTTP 404 status (not found) must be returned.
 
-If a caller wants to ensure that they know the exact contents of the offer they are accepting, they may specify the `ifNotNewerThanTimestampUTC` parameter. If the offer's `lastUpdateTimestampUTC` is newer than this parameter, the accept request must fail, and the latest version of the offer must be returned in the [error message](#6333-acceptproduct-error-messages).
+If a caller wants to ensure that they know the exact contents of the offer they are accepting, they may specify the `ifNotNewerThanTimestampUTC` parameter. If the offer's `lastUpdateTimeUTC` is newer than this parameter, the accept request must fail, and the latest version of the offer must be returned in the [error message](#6333-acceptproduct-error-messages).
 
 #### 6.3.3.1. `acceptProduct` Request Body
 
 The request body should be a JSON map with the following properties:
 
 * `offerId` (`string`) : The id of the offer to accept.
-* `ifNotNewerThanTimestampUTC` (`number`, optional) : An optional timestamp indicating the latest version of the offer that the requesting organization is willing to accept. If the offer's `lastUpdateTimestampUTC` is newer than this timestamp, the request must fail. See [Accept Error Messages](#6333-acceptproduct-error-messages) below.
+* `ifNotNewerThanTimestampUTC` (`number`, optional) : An optional timestamp indicating the latest version of the offer that the requesting organization is willing to accept. If the offer's `lastUpdateTimeUTC` is newer than this timestamp, the request must fail. See [Accept Error Messages](#6333-acceptproduct-error-messages) below.
 * `reshareChain` (`Array<url>`, optional) : An optional array of JSON Web Tokens specifying the chain of resharing by which the current recipient organization discovered this offer. This field must be provided for offers that were received via resharing. See [Friend of a Friend Sharing](#44-friend-of-a-friend-sharing) for details.
 
 #### 6.3.3.2. `acceptProduct` Response Body
