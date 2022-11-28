@@ -21,6 +21,7 @@
 # npm login --registry https://wombat-dressing-room.appspot.com/opr-core/_ns
 # npm login --registry https://wombat-dressing-room.appspot.com/opr-sql-database/_ns
 # npm login --registry https://wombat-dressing-room.appspot.com/opr-google-cloud/_ns
+# npm login --registry https://wombat-dressing-room.appspot.com/opr-core-testutil/_ns
 
 npx lerna run build
 npx lerna run test
