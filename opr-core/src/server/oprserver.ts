@@ -105,7 +105,6 @@ export class OprServer {
   private networkClient?: OprNetworkClient;
   private integrationClient: IntegrationApi;
   private feedConfigProvider?: FeedConfigProvider;
-  // private customHandlers: Record<string, CustomRequestHandler>;
   private customStartupRoutines: Array<CustomStartupRoutine>;
   private isStarted = false;
 
@@ -163,7 +162,6 @@ export class OprServer {
     this.feedConfigProvider = options.feedConfigProvider;
     this.strictCorrectnessChecks = options.strictCorrectnessChecks || false;
     this.offerProducers = options.producers ?? [];
-    // this.customHandlers = options.customHandlers || {};
     this.customStartupRoutines = options.customStartupRoutines || [];
   }
 

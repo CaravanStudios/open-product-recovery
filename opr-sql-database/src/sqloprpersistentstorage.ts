@@ -273,7 +273,6 @@ export class SqlOprPersistentStorage implements PersistentStorage {
     postingOrgUrl: string,
     updateTimestampUTC?: number
   ): Promise<Array<string>> {
-    // Find the version of this offer in this corpus
     let query = t.em
       .getRepository(CorpusOffer)
       .createQueryBuilder('corpusoffers')
