@@ -196,6 +196,38 @@ export class PersistentTestConfig implements TestConfig<SqlTestObjects> {
           );
           break;
         }
+        case 'getOffer': {
+          const offerId = context.propAsString('offerId').req();
+          const postingOrgUrl = context.propAsString('postingOrgUrl').req();
+          const updateTimestampUTC = context
+            .propAsNumber('updateTimestampUTC')
+            .get();
+          const offer = await testObject.db.getOffer(
+            transaction,
+            hostOrgUrl,
+            offerId,
+            postingOrgUrl,
+            updateTimestampUTC
+          );
+          resultInfo.result = offer;
+          break;
+        }
+        case 'getOfferSources': {
+          const offerId = context.propAsString('offerId').req();
+          const postingOrgUrl = context.propAsString('postingOrgUrl').req();
+          const updateTimestampUTC = context
+            .propAsNumber('updateTimestampUTC')
+            .get();
+          const sources = await testObject.db.getOfferSources(
+            transaction,
+            hostOrgUrl,
+            offerId,
+            postingOrgUrl,
+            updateTimestampUTC
+          );
+          resultInfo.result = sources;
+          break;
+        }
         case 'getOffersAtTime': {
           const viewingOrgUrl = context.propAsString('viewingOrgUrl').req();
           const timestampUTC = context.propAsNumber('timestampUTC').req();

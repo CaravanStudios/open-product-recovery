@@ -1,0 +1,66 @@
+{
+  "description": "Get most recent version of offer",
+  "hostOrgUrl": "https://citadelofdanas.org/org.json",
+  "tests": [
+    {
+      "description": "Get latest",
+      "calls": [
+        {
+          "time": 0,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "offerUpdateUTC": 0
+          },
+          "expect": ["expect(result).to.equal('ADD')"]
+        },
+        {
+          "time": 1,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "description": "modified offer",
+            "offerUpdateUTC": 1
+          },
+          "expect": ["expect(result).to.equal('UPDATE')"]
+        },
+        {
+          "time": 1,
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "description": "re-modified offer",
+            "offerUpdateUTC": 2
+          },
+          "expect": ["expect(result).to.equal('UPDATE')"]
+        },
+        {
+          "time": 1,
+          "op": "getOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "expect": [
+            "expect(result.id).to.equal('abc')",
+            "expect(result.description).to.equal('re-modified offer')",
+            "expect(result.offerUpdateUTC).to.equal(2)"
+          ]
+        },
+        {
+          "time": 1,
+          "op": "getOffer",
+          "offerId": "abc",
+          "postingOrgUrl": "https://citadelofdanas.org/org.json",
+          "updateTimestampUTC": 1,
+          "expect": [
+            "expect(result.id).to.equal('abc')",
+            "expect(result.description).to.equal('modified offer')",
+            "expect(result.offerUpdateUTC).to.equal(1)"
+          ]
+        }
+      ]
+    }
+  ]
+}

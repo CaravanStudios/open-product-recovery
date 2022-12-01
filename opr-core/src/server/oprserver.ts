@@ -40,7 +40,7 @@ import {RejectRequestHandler} from './handlers/rejectrequesthandler';
 import {ReserveRequestHandler} from './handlers/reserverequesthandler';
 import {HistoryRequestHandler} from './handlers/historyrequesthandler';
 import {OfferModel} from '../model/offermodel';
-import {OprClient, OprClientConfig} from '../net/oprclient';
+import {OprNetworkClient, OprClientConfig} from '../net/oprnetworkclient';
 import loglevel, {Logger} from '../util/loglevel';
 import {OprFeedProducer} from '../offerproducer/oprfeedproducer';
 import {ServerAccessControlList} from '../policy/serveraccesscontrollist';
@@ -48,13 +48,19 @@ import {FeedConfig, FeedConfigProvider} from '../policy/feedconfig';
 import {OfferProducer, OfferSetUpdate} from '../offerproducer/offerproducer';
 import {CustomRequestHandler} from './customrequesthandler';
 import {getBearerToken} from '../auth/getbearertoken';
+import {IntegrationApi} from '../integrations/integrationapi';
+import {IntegrationApiImpl} from './integrationapiimpl';
+import {PersistentStorage} from '../database/persistentstorage';
+import {PersistentOfferModel} from '../model/persistentoffermodel';
+import {OfferListingPolicy} from '../coreapi';
 
 const DEFAULT_RESERVATION_TIME_SECS = 5 * 60;
 
 export interface OprServerOptions {
   frontendConfig: FrontendConfig;
   orgConfigProvider: OrgConfigProvider;
-  offerModel: OfferModel;
+  listingPolicy: OfferListingPolicy;
+  storage: PersistentStorage;
   signer?: Signer;
   jwksProvider?: JwksProvider;
   app?: Express;
@@ -76,7 +82,7 @@ export interface OprServerOptions {
   customStartupRoutines?: Array<CustomStartupRoutine>;
 }
 
-export type CustomStartupRoutine = (app: Express) => Promise<void>;
+export type CustomStartupRoutine = (client: IntegrationApi) => Promise<void>;
 
 export class OprServer {
   readonly app: Express;
@@ -96,10 +102,12 @@ export class OprServer {
   private reserveRequestHandler: ReserveRequestHandler;
   private historyRequestHandler: HistoryRequestHandler;
   private offerProducers: Array<OfferProducer>;
-  private client?: OprClient;
+  private networkClient?: OprNetworkClient;
+  private integrationClient: IntegrationApi;
   private feedConfigProvider?: FeedConfigProvider;
-  private customHandlers: Record<string, CustomRequestHandler>;
+  // private customHandlers: Record<string, CustomRequestHandler>;
   private customStartupRoutines: Array<CustomStartupRoutine>;
+  private isStarted = false;
 
   constructor(options: OprServerOptions) {
     this.frontendConfig = options.frontendConfig;
@@ -108,10 +116,20 @@ export class OprServer {
     this.app = options.app || express();
     this.orgConfigProvider = options.orgConfigProvider;
     this.jwksProvider = options.jwksProvider;
-    this.offerModel = options.offerModel;
     this.clock = options.clock || new DefaultClock();
     this.verifier =
       options.verifier || new StandardVerifier(this.orgConfigProvider);
+
+    const signer = options.clientConfig?.signer ?? options.signer;
+
+    this.offerModel = new PersistentOfferModel({
+      hostOrgUrl: this.frontendConfig.organizationURL,
+      listingPolicy: options.listingPolicy,
+      signer: signer,
+      storage: options.storage,
+      clock: this.clock,
+    });
+
     this.listRequestHandler = new ListRequestHandler(this.offerModel);
     this.acceptRequestHandler = new AcceptRequestHandler(
       this.offerModel,
@@ -126,30 +144,26 @@ export class OprServer {
       this.verifier
     );
     this.historyRequestHandler = new HistoryRequestHandler(this.offerModel);
-    if (options.clientConfig || options.signer) {
-      this.logger.debug(
-        'Starting server with opr client config',
-        options.clientConfig
-      );
-      if (!options.signer) {
-        throw new StatusError(
-          'Cannot create an opr client without a signer',
-          'SERVER_CONFIG_ERROR',
-          500
-        );
-      }
-      this.client = new OprClient({
-        signer: options.clientConfig?.signer ?? options.signer,
+    if (signer) {
+      this.networkClient = new OprNetworkClient({
+        signer: signer,
         configProvider:
           options.clientConfig?.configProvider ?? options.orgConfigProvider,
         urlMapper: options.clientConfig?.urlMapper,
         jsonFetcher: options.clientConfig?.jsonFetcher,
       });
     }
+    this.integrationClient = new IntegrationApiImpl({
+      hostOrgUrl: this.frontendConfig.organizationURL,
+      model: this.offerModel,
+      server: this,
+      storage: options.storage,
+      netClient: this.networkClient,
+    });
     this.feedConfigProvider = options.feedConfigProvider;
     this.strictCorrectnessChecks = options.strictCorrectnessChecks || false;
     this.offerProducers = options.producers ?? [];
-    this.customHandlers = options.customHandlers || {};
+    // this.customHandlers = options.customHandlers || {};
     this.customStartupRoutines = options.customStartupRoutines || [];
   }
 
@@ -184,6 +198,14 @@ export class OprServer {
     await Promise.all(promises);
   }
 
+  installOfferProducer(offerProducer: OfferProducer): void {
+    this.offerProducers.push(offerProducer);
+  }
+
+  getExpressServer(): Express {
+    return this.app;
+  }
+
   private async getFeedProducers(): Promise<Array<OfferProducer>> {
     if (!this.feedConfigProvider) {
       return [];
@@ -197,7 +219,7 @@ export class OprServer {
   private getOfferProducerFromFeedConfig(
     feedConfig: FeedConfig
   ): OfferProducer {
-    if (!this.client) {
+    if (!this.networkClient) {
       throw new StatusError(
         'An OPR client must be specified to install feeds',
         'SERVER_CONFIG_ERROR_NO_OPR_CLIENT',
@@ -205,7 +227,7 @@ export class OprServer {
       );
     }
     return new OprFeedProducer(
-      this.client,
+      this.networkClient,
       feedConfig.organizationUrl,
       feedConfig.maxUpdateFrequencyMillis
     );
@@ -302,29 +324,44 @@ export class OprServer {
     return 10 * 1000 /* 10 seconds */;
   }
 
-  private serveCustomEndpoints() {
-    for (const key in this.customHandlers) {
-      const handler = this.customHandlers[key];
-      const expressHandler = async (req: Request, res: Response) => {
-        this.logger.info('Called custom handler', key);
-        res.json(await handler.handle(req.body as unknown, req));
-      };
-      const path = key.startsWith('/') ? key : '/' + key;
-      const methods = Array.isArray(handler.method)
-        ? handler.method
-        : handler.method ?? 'POST';
-      if (methods.indexOf('GET') >= 0) {
-        this.app.get(path, expressHandler);
-      }
-      if (methods.indexOf('POST') >= 0) {
-        this.app.post(path, expressHandler);
-      }
+  installCustomHandler(path: string, handler: CustomRequestHandler) {
+    if (this.isStarted) {
+      throw new StatusError(
+        'Cannot install custom handlers after the server has started',
+        'SERVER_ERROR_INSTALL_CUSTOM_HANDLER'
+      );
     }
+    const expressHandler = async (req: Request, res: Response) => {
+      this.logger.info('Called custom handler', path);
+      res.json(
+        await handler.handle(req.body as unknown, req, this.integrationClient)
+      );
+    };
+    path = path.startsWith('/') ? path : '/' + path;
+    const methods = Array.isArray(handler.method)
+      ? handler.method
+      : handler.method ?? 'POST';
+    if (methods.indexOf('GET') >= 0) {
+      this.app.get(path, expressHandler);
+    }
+    if (methods.indexOf('POST') >= 0) {
+      this.app.post(path, expressHandler);
+    }
+  }
+
+  installCustomStartupRoutine(routine: CustomStartupRoutine) {
+    if (this.isStarted) {
+      throw new StatusError(
+        'Cannot install startup routines after the server has started',
+        'SERVER_ERROR_INSTALL_CUSTOM_STARTUP'
+      );
+    }
+    this.customStartupRoutines.push(routine);
   }
 
   private async doCustomStartup(): Promise<void> {
     for (const customStartupRoutine of this.customStartupRoutines) {
-      await customStartupRoutine(this.app);
+      await customStartupRoutine(this.integrationClient);
     }
   }
 
@@ -337,7 +374,7 @@ export class OprServer {
 
     // user customizations
     await this.doCustomStartup();
-    this.serveCustomEndpoints();
+    this.isStarted = true;
 
     // catch unhandled errors
     this.app.use(

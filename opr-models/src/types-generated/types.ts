@@ -412,7 +412,7 @@ export interface TypeIdentifier {
 }
 
 /**
- * A structured representation of a unique offer id
+ * A versioned, structured representation of a unique offer id, where a particular offer version is specified via the lastUpdateTimeUTC property.
  */
 export interface VersionedStructuredOfferId {
   id: string;

@@ -91,6 +91,15 @@ export function isVersionedId(
 }
 
 /**
+ * Returns the update timestamp of the offer id if it is available, or undefined
+ * if it is not.
+ */
+export function getIdVersion(offerId: OfferId): number | undefined {
+  const structured = asStructuredId(offerId);
+  return (structured as VersionedStructuredOfferId).lastUpdateTimeUTC;
+}
+
+/**
  * Converts the given OfferId value to an idUrl of the form:
  * postingOrgUrl#id&lastUpdateTimestampUTC
  * If version information is not available, the trailing &lastUpdateTimestampUTC

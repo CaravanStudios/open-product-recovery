@@ -11,7 +11,7 @@
     "start": "NODE_PATH=./build node build/index.js",
     "build": "tsc -p .",
     "watch": "tsc -w -p .",
-    "test": "mocha -r ts-node/register -R spec --diff 'test/**/*.spec.ts'",
+    "test": "mocha -r ts-node/register -R spec --timeout 5000 --diff 'test/**/*.spec.ts'",
     "lint": "eslint .",
     "clean": "rm -rf build",
     "compile": "tsc",
@@ -52,7 +52,7 @@
     "opr-core": "^0.6.2",
     "opr-models": "^0.6.2",
     "reflect-metadata": "^0.1.13",
-    "sqlite3": "^5.0.11",
+    "sqlite3": "^5.1.2",
     "typeorm": "^0.3.9"
   },
   "engines": {

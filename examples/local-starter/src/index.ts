@@ -34,8 +34,7 @@ import {
   StaticServerAccessControlList,
   FakeOfferProducer,
   OfferChange,
-  CustomRequestHandler,
-  PersistentOfferModel,
+  asyncIterableToArray,
 } from 'opr-core';
 log.setLevel('WARN');
 import {SqlOprPersistentStorage} from 'opr-sql-database';
@@ -76,9 +75,9 @@ async function main() {
     jwksURL: '/jwks.json',
     listProductsPath: '/api/list',
     acceptProductPath: '/api/accept',
-    rejectProductPath: '/api/list',
-    reserveProductPath: '/api/list',
-    historyPath: '/api/list',
+    rejectProductPath: '/api/reject',
+    reserveProductPath: '/api/reserve',
+    historyPath: '/api/history',
   };
 
   // Create an access control list that allows us to control which organizations
@@ -124,87 +123,101 @@ async function main() {
     '*', // This is the 'wildcard' option - it makes offers public to everyone!
   ]);
   // Start a local in memory server to track offers.
-  // Build an offer model. Note you can use many different persistent storage
-  // drivers here.
-  const offerModel = new PersistentOfferModel({
-    storage: new SqlOprPersistentStorage({
-      dsOptions: {
-        type: 'sqlite',
-        database: ':memory:',
-        // DON'T USE THE NEXT TWO OPTIONS IN PROD!!!
-        // This option forces the database to rewrite table schemas to match the
-        // entity descriptions in code.
-        synchronize: true,
-        // This option drops all TypeOrm tables when the database starts up.
-        dropSchema: true,
-      },
-    }),
-    hostOrgUrl: frontendConfig.organizationURL,
-    listingPolicy: listingPolicy,
-    signer: signer,
-  });
 
-  // We create a fake offer producer. Replace this with an offer producer that
-  // reads from your inventory system to publish new offers.
-  const fakeOfferProducer = new FakeOfferProducer({
-    sourceOrgUrl: frontendConfig.organizationURL,
-    offerModel: offerModel,
-    updateFrequencyMillis: 3000,
-    newItemFrequencyMillis: 10000,
-  });
-
-  // Create a custom endpoint that will call server.ingest() to pull in any
-  // new offers, and return any changes that occurred.
-  // NOTE: For a real server, you probably want to require some authentication
-  // to call this endpoint. Otherwise bad guys might hammer your server with
-  // ingest() requests.
-
-  // Here, we are only using one OfferProducer, the "FakeOfferProducer".
-  // in this example, ingest() will call the FakeOfferProducer and generate fake
-  // offers for testing/demo use.
-  const ingestEndpoint = {
-    method: ['GET', 'POST'],
-    handle: async () => {
-      const changes = [] as Array<OfferChange>;
-      const changeHandler = offerModel.registerChangeHandler(async change => {
-        changes.push(change);
-      });
-      await s.ingest();
-      changeHandler.remove();
-      return changes;
+  // Build a persistent storage system for caching offers.
+  const storage = new SqlOprPersistentStorage({
+    dsOptions: {
+      type: 'sqlite',
+      database: ':memory:',
+      // DON'T USE THE NEXT TWO OPTIONS IN PROD!!!
+      // This option forces the database to rewrite table schemas to match the
+      // entity descriptions in code.
+      synchronize: true,
+      // This option drops all TypeOrm tables when the database starts up.
+      dropSchema: true,
     },
-  } as CustomRequestHandler;
-
-  // Create a custom debug endpoint that will return the list of ALL offers on
-  // this server.
-  // ADD AUTHENTICATION TO AN ENDPOINT LIKE THIS! This is exposing all offers
-  // on your server to anyone that calls this endpoint. For a real server,
-  // only admins and developers should be able to see this information.
-  // Organizations should only see offers that are listed for them.
-  const allOffersEndpoint = {
-    method: ['GET', 'POST'],
-    handle: async () => {
-      return await offerModel.getAllOffers();
-    },
-  } as CustomRequestHandler;
+  });
 
   // Now we have all the pieces to start our server.
   const s = new OprServer({
     frontendConfig: frontendConfig,
     orgConfigProvider: orgConfigProvider,
-    offerModel: offerModel,
+    storage: storage,
+    listingPolicy: listingPolicy,
     jwksProvider: jwksProvider,
     signer: signer,
+
     clientConfig: {
       urlMapper: urlMapper,
     },
     accessControlList: accessControlList,
     feedConfigProvider: feedConfigProvider,
-    producers: [fakeOfferProducer],
-    customHandlers: {
-      ingest: ingestEndpoint,
-      allOffers: allOffersEndpoint,
-    },
+  });
+
+  // Now for the fun part. Let's customize our server with lots of crazy
+  // extensions!
+  s.installCustomStartupRoutine(async api => {
+    // We create a fake offer producer. Replace this with an offer producer that
+    // reads from your inventory system to publish new offers.
+
+    api.installOfferProducer(
+      new FakeOfferProducer({
+        sourceOrgUrl: frontendConfig.organizationURL,
+        integrationApi: api,
+        updateFrequencyMillis: 3000,
+        newItemFrequencyMillis: 10000,
+      })
+    );
+
+    // Create a custom debug endpoint that will return the list of offers made
+    // by this server.
+    // ADD AUTHENTICATION TO AN ENDPOINT LIKE THIS! This is exposing offers
+    // on your server to anyone that calls this endpoint. For a real server,
+    // only admins and developers should be able to see this information.
+    // Organizations should only see offers that are listed for them.
+    api.installCustomHandler('myOffers', {
+      method: ['GET', 'POST'],
+      handle: async () => {
+        return await asyncIterableToArray(api.getOffersFromThisHost());
+      },
+    });
+
+    // Create a custom debug endpoint that will return the list of offers this
+    // host can accept
+    // ADD AUTHENTICATION TO AN ENDPOINT LIKE THIS! This is exposing offers
+    // on your server to anyone that calls this endpoint. For a real server,
+    // only admins and developers should be able to see this information.
+    // Organizations should only see offers that are listed for them.
+    api.installCustomHandler('theirOffers', {
+      method: ['GET', 'POST'],
+      handle: async () => {
+        return await asyncIterableToArray(
+          api.getListedOffers(frontendConfig.organizationURL)
+        );
+      },
+    });
+
+    // Create a custom endpoint that will call server.ingest() to pull in any
+    // new offers, and return any changes that occurred.
+    // NOTE: For a real server, you probably want to require some authentication
+    // to call this endpoint. Otherwise bad guys might hammer your server with
+    // ingest() requests.
+
+    // Here, we are only using one OfferProducer, the "FakeOfferProducer".
+    // In this example, ingest() will call the FakeOfferProducer and generate
+    // fake offers for testing/demo use.
+    api.installCustomHandler('ingest', {
+      method: ['GET', 'POST'],
+      handle: async () => {
+        const changes = [] as Array<OfferChange>;
+        const changeHandler = api.registerChangeHandler(async change => {
+          changes.push(change);
+        });
+        await s.ingest();
+        changeHandler.remove();
+        return changes;
+      },
+    });
   });
   await s.start(5000);
 }

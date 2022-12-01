@@ -71,7 +71,7 @@ export class PersistentOfferModel implements OfferModel {
   private maxPageSize: number;
   private hostOrgUrl: string;
   private listingPolicy: OfferListingPolicy;
-  private signer: Signer;
+  private signer?: Signer;
   private clock: Clock;
   private logger: Logger;
   private changeHandlers: Array<(change: OfferChange) => Promise<void>>;
@@ -350,7 +350,6 @@ export class PersistentOfferModel implements OfferModel {
       await t.commit();
     } else if (update.offers) {
       const offerIds: Set<string> = new Set();
-      const t = await this.storage.createTransaction();
       for await (const offer of update.offers) {
         offerIds.add(idToUrl(offer, true));
         const oldOffer = await lookup.get(offer);
@@ -398,6 +397,7 @@ export class PersistentOfferModel implements OfferModel {
       }
       await t.commit();
     } else {
+      await t.fail();
       throw new StatusError(
         'Update specifies neither offers nor diff',
         'ERROR_BAD_UPDATE_NO_CHANGES',
@@ -609,6 +609,10 @@ export class PersistentOfferModel implements OfferModel {
     listing: Listing,
     reshareChainRoot: ReshareChain
   ): Promise<ReshareChain | undefined> {
+    // If no signer is configured, resharing is disabled.
+    if (!this.signer) {
+      return undefined;
+    }
     // Figure out whether a reshare chain is required. We don't want to
     // provide reshare chains that only have a single link with the ACCEPT
     // permission; that's equivalent to no reshare chain at all.
@@ -901,7 +905,7 @@ interface PersistentOfferModelOptions {
   storage: PersistentStorage;
   hostOrgUrl: string;
   listingPolicy: OfferListingPolicy;
-  signer: Signer;
+  signer?: Signer;
   clock?: Clock;
   maxPageSize?: number;
   logger?: Logger;
