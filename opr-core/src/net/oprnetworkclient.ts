@@ -17,9 +17,9 @@
 import {Signer, IssueTokenOptions} from '../auth/signer';
 import {OrgConfig} from '../config/orgconfig';
 import {OrgConfigProvider} from '../config/orgconfigprovider';
-import {NullUrlMapper} from '../net/nullurlmapper';
+import {NullUrlMapper} from './nullurlmapper';
 import {StatusError} from '../util/statuserror';
-import {UrlMapper} from '../net/urlmapper';
+import {UrlMapper} from './urlmapper';
 import {DefaultJsonFetcher} from './defaultjsonfetcher';
 import {JsonFetcher} from './jsonfetcher';
 import {getRequiredScopes} from '../auth/getrequiredscopes';
@@ -35,10 +35,10 @@ export type Command = 'ACCEPT' | 'LIST' | 'HISTORY' | 'REJECT' | 'RESERVE';
  *    organization's configuration file
  * 3) Attaching credentials to the request
  * 4) Issuing the request.
- * 
+ *
  * All requests between OPR servers should be done via an OprClient class.
  */
-export class OprClient {
+export class OprNetworkClient {
   private signer: Signer;
   private configProvider: OrgConfigProvider;
   private urlMapper: UrlMapper;
@@ -83,7 +83,7 @@ export class OprClient {
       scopes: getRequiredScopes(command),
     } as IssueTokenOptions;
     const token = await this.signer.issueToken(target, signerOptions);
-    const url = OprClient.getFetchUrl(orgConfig, command);
+    const url = OprNetworkClient.getFetchUrl(orgConfig, command);
     if (!url) {
       throw new StatusError(
         'Organization ' + target + 'does not support ' + command,

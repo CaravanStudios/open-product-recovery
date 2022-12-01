@@ -21,12 +21,12 @@ import {
   Offer,
   OfferPatch,
 } from 'opr-models';
-import {Clock, DefaultClock, OprClient, StatusError} from '../coreapi';
+import {Clock, DefaultClock, OprNetworkClient, StatusError} from '../coreapi';
 import {OfferProducer, OfferSetUpdate} from './offerproducer';
 import {log, Logger} from '../util/loglevel';
 
 export class OprFeedProducer implements OfferProducer {
-  private client: OprClient;
+  private client: OprNetworkClient;
   private organizationUrl: string;
   private clock: Clock;
   private pollFrequencyMillis: number;
@@ -34,7 +34,7 @@ export class OprFeedProducer implements OfferProducer {
   readonly id: string;
 
   constructor(
-    client: OprClient,
+    client: OprNetworkClient,
     organizationUrl: string,
     pollFrequencyMillis = 10 * 60 * 1000 /* 10 minutes */,
     clock = new DefaultClock(),

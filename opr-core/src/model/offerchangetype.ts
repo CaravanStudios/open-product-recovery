@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
-type OfferChangeType = 'ADD' | 'DELETE' | 'UPDATE' | 'ACCEPT';
+type OfferChangeType =
+  | 'ADD'
+  | 'DELETE'
+  | 'UPDATE'
+  // Indicates that an offer from this host was accepted.
+  | 'ACCEPT'
+  // Indicates that an offer was accepted BY this host via an OprClient
+  | 'REMOTE_ACCEPT'
+  // Indicates that an offer was rejected BY this host via an OprClient
+  | 'REMOTE_REJECT'
+  // Indicates that an offer was reserved BY this host via an OprClient
+  | 'REMOTE_RESERVE';
 
 export {OfferChangeType};

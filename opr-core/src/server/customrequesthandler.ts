@@ -1,4 +1,5 @@
 import type {Request} from 'express';
+import { IntegrationApi } from '../integrations/integrationapi';
 
 export type CustomRequestMethod = 'POST' | 'GET';
 
@@ -13,5 +14,5 @@ export interface CustomRequestHandler {
   readonly method?: Array<CustomRequestMethod> | CustomRequestMethod;
 
   /** Handles the request and returns a JSON response. */
-  handle(body: unknown, request: Request): Promise<unknown>;
+  handle(body: unknown, request: Request, client: IntegrationApi): Promise<unknown>;
 }

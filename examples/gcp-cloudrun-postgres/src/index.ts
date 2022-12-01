@@ -18,30 +18,21 @@
  * A fake example server.
  */
 import {
-  generateKeys,
-  LocalJwksProvider,
-  LocalKeySigner,
   log,
   OprServer,
   OrgConfigProvider,
-  RegexpUrlMapper,
   StaticFeedConfigProvider,
   UniversalAcceptListingPolicy,
   StaticServerAccessControlList,
   FakeOfferProducer,
   OfferChange,
   CustomRequestHandler,
-  PersistentOfferModel,
+  asyncIterableToArray,
 } from 'opr-core';
 import yargs from 'yargs';
 import * as dotenv from 'dotenv';
 log.setLevel('WARN');
-import {
-  DataSourceOptions,
-  PostgresTestingLauncher,
-  SqlOfferModel,
-  SqlOprPersistentStorage,
-} from 'opr-sql-database';
+import {DataSourceOptions, SqlOprPersistentStorage} from 'opr-sql-database';
 import {
   CloudStorageJwksProvider,
   CloudStorageKeySigner,
@@ -146,8 +137,8 @@ async function main() {
     listProductsPath: '/api/list',
     acceptProductPath: '/api/accept',
     rejectProductPath: '/api/list',
-    reserveProductPath: '/api/list',
-    historyPath: '/api/list',
+    reserveProductPath: '/api/reserve',
+    historyPath: '/api/history',
   };
 
   // Create an access control list that allows us to control which organizations
@@ -187,59 +178,6 @@ async function main() {
   const storageDriver: SqlOprPersistentStorage = new SqlOprPersistentStorage({
     dsOptions: getDbOptions(),
   });
-  const offerModel = new PersistentOfferModel({
-    storage: storageDriver,
-    hostOrgUrl: frontendConfig.organizationURL,
-    listingPolicy: listingPolicy,
-    signer: signer,
-  });
-
-  // We create a fake offer producer. Replace this with an offer producer that
-  // reads from your inventory system to publish new offers.
-  const offerProducer = new FakeOfferProducer({
-    sourceOrgUrl: frontendConfig.organizationURL,
-    offerModel: offerModel,
-    updateFrequencyMillis: 3000,
-    newItemFrequencyMillis: 10000,
-  });
-
-  // Create a custom endpoint that will call server.ingest() to pull in any
-  // new offers, and return any changes that occurred.
-  const ingestEndpoint = {
-    method: ['POST'],
-    handle: async () => {
-      const changes = [] as Array<OfferChange>;
-      const changeHandler = offerModel.registerChangeHandler(async change => {
-        changes.push(change);
-      });
-      await s.ingest();
-      changeHandler.remove();
-      return changes;
-    },
-  } as CustomRequestHandler;
-
-  // Create a custom endpoint that will call db.synchronize() to initialize the
-  // database.
-  const synchronizeEndpoint = {
-    method: ['POST', 'GET'],
-    handle: async () => {
-      await storageDriver.synchronize(true);
-      return 'ok - db initialized';
-    },
-  } as CustomRequestHandler;
-
-  // Create a custom debug endpoint that will return the list of ALL offers on
-  // this server.
-  // ADD AUTHENTICATION TO AN ENDPOINT LIKE THIS! This is exposing all offers
-  // on your server to anyone that calls this endpoint. For a real server,
-  // only admins and developers should be able to see this information.
-  // Organizations should only see offers that are listed for them.
-  const allOffersEndpoint = {
-    method: ['GET', 'POST'],
-    handle: async () => {
-      return await offerModel.getAllOffers();
-    },
-  } as CustomRequestHandler;
 
   const oprServiceAccount =
     args.serviceaccount ?? process.env.OPR_SERVICE_ACCOUNT;
@@ -248,24 +186,89 @@ async function main() {
   const s = new OprServer({
     frontendConfig: frontendConfig,
     orgConfigProvider: orgConfigProvider,
-    offerModel: offerModel,
+    storage: storageDriver,
+    listingPolicy: listingPolicy,
     jwksProvider: jwksProvider,
     signer: signer,
     accessControlList: accessControlList,
-    producers: [offerProducer],
-    customHandlers: {
-      ingest: IamCustomEndpointWrapper.wrap(ingestEndpoint, {
+  });
+
+  // Now for the fun part. Let's customize our server with lots of crazy
+  // extensions!
+  s.installCustomStartupRoutine(async api => {
+    // We create a fake offer producer. Replace this with an offer producer that
+    // reads from your inventory system to publish new offers.
+    api.installOfferProducer(
+      new FakeOfferProducer({
+        sourceOrgUrl: frontendConfig.organizationURL,
+        integrationApi: api,
+        updateFrequencyMillis: 3000,
+        newItemFrequencyMillis: 10000,
+      })
+    );
+
+    // Create a custom debug endpoint that will return the list of ALL offers on
+    // this server.
+    // ADD AUTHENTICATION TO AN ENDPOINT LIKE THIS! This is exposing all offers
+    // on your server to anyone that calls this endpoint. For a real server,
+    // only admins and developers should be able to see this information.
+    // Organizations should only see offers that are listed for them.
+    api.installCustomHandler('allOffers', {
+      method: ['GET', 'POST'],
+      handle: async () => {
+        return await asyncIterableToArray(api.getOffersFromThisHost());
+      },
+    });
+
+    // Create a custom endpoint that will call db.synchronize() to initialize
+    // the database.
+    const synchronizeEndpoint = {
+      method: ['POST', 'GET'],
+      handle: async () => {
+        await storageDriver.synchronize(true);
+        return 'ok - db initialized';
+      },
+    } as CustomRequestHandler;
+    api.installCustomHandler(
+      'synchronize',
+      // Install the synchronize endpoint, wrapped with an authentication
+      // checker that ensures the request is coming from our service account.
+      IamCustomEndpointWrapper.wrap(synchronizeEndpoint, {
         isAllowed: async (email: string) => {
           return email === oprServiceAccount;
         },
-      }),
-      synchronize: IamCustomEndpointWrapper.wrap(synchronizeEndpoint, {
+      })
+    );
+
+    // Create a custom endpoint that will call server.ingest() to pull in any
+    // new offers, and return any changes that occurred.
+    // Here, we are only using one OfferProducer, the "FakeOfferProducer".
+    // In this example, ingest() will call the FakeOfferProducer and generate
+    // fake offers for testing/demo use.
+    // Create a custom endpoint that will call server.ingest() to pull in any
+    // new offers, and return any changes that occurred.
+    const ingestEndpoint = {
+      method: ['POST'],
+      handle: async () => {
+        const changes = [] as Array<OfferChange>;
+        const changeHandler = api.registerChangeHandler(async change => {
+          changes.push(change);
+        });
+        await s.ingest();
+        changeHandler.remove();
+        return changes;
+      },
+    } as CustomRequestHandler;
+    api.installCustomHandler(
+      'ingest',
+      // Install the ingest endpoint, wrapped with an authentication checker
+      // that ensures the request is coming from our service account.
+      IamCustomEndpointWrapper.wrap(ingestEndpoint, {
         isAllowed: async (email: string) => {
           return email === oprServiceAccount;
         },
-      }),
-      allOffers: allOffersEndpoint,
-    },
+      })
+    );
   });
   await s.start(port);
 }

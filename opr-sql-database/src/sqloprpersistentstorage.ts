@@ -80,8 +80,10 @@ export class SqlTransaction implements Transaction {
   private entityManager: EntityManager;
   private db: DataSource;
   private isolationLevel: IsolationLevel;
+  private type: TransactionType;
 
   constructor(db: DataSource, type: TransactionType) {
+    this.type = type;
     const isolationLevel =
       type === 'READONLY'
         ? db.driver.options.type === 'sqlite'
@@ -92,20 +94,30 @@ export class SqlTransaction implements Transaction {
     this.db = db;
   }
 
-  startInternal(): Promise<void> {
-    return new Promise(startAcceptFn => {
-      this.completionPromise = this.db.manager.transaction(
-        this.isolationLevel,
-        async em => {
-          this.entityManager = em;
-          startAcceptFn();
-          return new Promise<void>((acceptFn, rejectFn) => {
-            this.commitCallbackFn = acceptFn;
-            this.rejectCallbackFn = rejectFn;
-          });
-        }
-      );
-    });
+  async startInternal(): Promise<void> {
+    // TODO: Add cleanup functions to fail() this transaction after a long
+    // timeout or when the process is exiting.
+    if (this.type === 'READONLY') {
+      this.entityManager = this.db.manager;
+      this.completionPromise = new Promise<void>((acceptFn, rejectFn) => {
+        this.commitCallbackFn = acceptFn;
+        this.rejectCallbackFn = rejectFn;
+      });
+    } else {
+      return new Promise(startAcceptFn => {
+        this.completionPromise = this.db.manager.transaction(
+          this.isolationLevel,
+          async em => {
+            this.entityManager = em;
+            startAcceptFn();
+            return new Promise<void>((acceptFn, rejectFn) => {
+              this.commitCallbackFn = acceptFn;
+              this.rejectCallbackFn = rejectFn;
+            });
+          }
+        );
+      });
+    }
   }
 
   get em(): EntityManager {
@@ -224,6 +236,66 @@ export class SqlOprPersistentStorage implements PersistentStorage {
       })
       .getOne();
     return result ? result.snapshot.offer : undefined;
+  }
+
+  async getOffer(
+    t: SqlTransaction,
+    hostOrgUrl: string,
+    offerId: string,
+    postingOrgUrl: string,
+    updateTimestampUTC?: number
+  ): Promise<Offer | undefined> {
+    let query = t.em
+      .getRepository(OfferSnapshot)
+      .createQueryBuilder('offers')
+      .where('offers.offerId = :offerId')
+      .andWhere('offers.postingOrgUrl = :postingOrgUrl');
+    if (updateTimestampUTC !== undefined) {
+      query = query.andWhere('offers.lastUpdateUTC = :updateTimestampUTC');
+    }
+    query = query.orderBy('offers.lastUpdateUTC', 'DESC');
+    const result = await query
+      .limit(1)
+      .setParameters({
+        offerId: offerId,
+        hostOrgUrl: hostOrgUrl,
+        postingOrgUrl: postingOrgUrl,
+        updateTimestampUTC: updateTimestampUTC,
+      })
+      .getOne();
+    return result ? result.offer : undefined;
+  }
+
+  async getOfferSources(
+    t: SqlTransaction,
+    hostOrgUrl: string,
+    offerId: string,
+    postingOrgUrl: string,
+    updateTimestampUTC?: number
+  ): Promise<Array<string>> {
+    let query = t.em
+      .getRepository(CorpusOffer)
+      .createQueryBuilder('corpusoffers')
+      .select('corpusoffers.corpusOrgUrl', 'corpusOrgUrl')
+      .distinct()
+      .where('corpusoffers.offerId = :offerId')
+      .andWhere('corpusoffers.postingOrgUrl = :postingOrgUrl')
+      .andWhere('corpusoffers.hostOrgUrl = :hostOrgUrl');
+    if (updateTimestampUTC !== undefined) {
+      query = query.andWhere(
+        'corpusoffers.lastUpdateUTC = :updateTimestampUTC'
+      );
+    }
+    query = query.orderBy('corpusoffers.corpusOrgUrl', 'ASC');
+    const results = await query
+      .setParameters({
+        offerId: offerId,
+        hostOrgUrl: hostOrgUrl,
+        updateTimestampUTC: updateTimestampUTC,
+        postingOrgUrl: postingOrgUrl,
+      })
+      .getRawMany();
+    return results.map(x => x.corpusOrgUrl);
   }
 
   async insertOrUpdateOfferInCorpus(

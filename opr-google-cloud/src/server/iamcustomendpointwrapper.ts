@@ -3,6 +3,7 @@ import {
   CustomRequestHandler,
   CustomRequestMethod,
   getBearerToken,
+  IntegrationApi,
   StatusError,
 } from 'opr-core';
 import {GoogleAuth, OAuth2Client, TokenPayload} from 'google-auth-library';
@@ -23,7 +24,11 @@ export class IamCustomEndpointWrapper implements CustomRequestHandler {
     this.method = delegate.method;
   }
 
-  async handle(body: unknown, req: Request): Promise<unknown> {
+  async handle(
+    body: unknown,
+    req: Request,
+    integrationClient: IntegrationApi
+  ): Promise<unknown> {
     const token = getBearerToken(req.header('Authorization'));
     const client = new OAuth2Client();
     const ticket = await client.verifyIdToken({
@@ -38,7 +43,7 @@ export class IamCustomEndpointWrapper implements CustomRequestHandler {
     ) {
       throw new StatusError('Forbidden', 'ERROR_FORBIDDEN', 403);
     }
-    return await this.delegate.handle(body, req);
+    return await this.delegate.handle(body, req, integrationClient);
   }
 
   static wrap(delegate: CustomRequestHandler, acl: IamAccessControlList) {

@@ -78,6 +78,32 @@ export interface PersistentStorage {
   ): Promise<Offer | undefined>;
 
   /**
+   * Returns the latest version of an offer (or a specific version of an offer,
+   * if updateTimestampUTC is provided) if it is in stable storage. This method
+   * may return an offer that has no listings, that has been deleted from every
+   * corpus, or is expired.
+   */
+  getOffer(
+    t: Transaction,
+    hostOrgUrl: string,
+    offerId: string,
+    postingOrgUrl: string,
+    updateTimestampUTC?: number
+  ): Promise<Offer | undefined>;
+
+  /**
+   * Returns the organization urls of all organizations that are currently
+   * publishing this offer to this server.
+   */
+  getOfferSources(
+    t: Transaction,
+    hostOrgUrl: string,
+    offerId: string,
+    postingOrgUrl: string,
+    updateTimestampUTC?: number
+  ): Promise<Array<string>>;
+
+  /**
    * Returns the best reshare chain to use as a root for resharing the given
    * offer. If the result is undefined, it means no suitable reshare chain
    * could be found.
