@@ -14,12 +14,15 @@
 # limitations under the License.
 
 rm -rf node_modules
-rm -rf opr-*/build
-rm -rf opr-*/node_modules
+rm -rf components/*/build
+rm -rf components/*/node_modules
+rm -rf integrations/*/build
+rm -rf integrations/*/node_modules
 rm -rf examples/*/build
 rm -rf examples/*/node_modules
 if [ "--keep-package-lock" != "$1" ]; then
-  rm -f opr-*/package-lock.json
+  rm -f components/*/package-lock.json
+  rm -f integrations/*/package-lock.json
   rm -f package-lock.json
   rm -f examples/*/package-lock.json
 fi

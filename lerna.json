@@ -2,12 +2,8 @@
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
   "packages": [
     ".",
-    "opr-devtools",
-    "opr-models",
-    "opr-core",
-    "opr-core-testutil",
-    "opr-sql-database",
-    "opr-google-cloud",
+    "components/*",
+    "integrations/*",
     "examples/*"
   ],
   "version": "0.6.3"
