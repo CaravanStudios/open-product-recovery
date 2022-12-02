@@ -53,6 +53,7 @@ import {IntegrationApiImpl} from './integrationapiimpl';
 import {PersistentStorage} from '../database/persistentstorage';
 import {PersistentOfferModel} from '../model/persistentoffermodel';
 import {OfferListingPolicy} from '../coreapi';
+import {ListOffersPayload} from 'opr-models';
 
 const DEFAULT_RESERVATION_TIME_SECS = 5 * 60;
 
@@ -286,10 +287,19 @@ export class OprServer {
         });
         return;
       }
-      result = await producer.produceOffers({
-        requestedResultFormat: 'DIFF',
-        diffStartTimestampUTC: metadata?.lastUpdateTimeUTC,
-      });
+      const diffStartTimestampUTC = metadata?.lastUpdateTimeUTC;
+      let listPayload: ListOffersPayload;
+      if (diffStartTimestampUTC !== undefined) {
+        listPayload = {
+          requestedResultFormat: 'DIFF',
+          diffStartTimestampUTC: metadata?.lastUpdateTimeUTC,
+        };
+      } else {
+        listPayload = {
+          requestedResultFormat: 'SNAPSHOT',
+        };
+      }
+      result = await producer.produceOffers(listPayload);
       nextRunTimestampUTC = result.earliestNextRequestUTC;
       await this.offerModel.processUpdate(producer.id, result);
       await this.offerModel.writeOfferProducerMetadata({
