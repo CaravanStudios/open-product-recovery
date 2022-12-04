@@ -933,8 +933,8 @@ export class SqlOprPersistentStorage implements PersistentStorage {
           ).orWhere('timelineentry.targetOrganizationUrl = :wildcard');
         })
       )
-      .andWhere('timelineentry.snapshot.offerId <= :offerId')
-      .andWhere('timelineentry.snapshot.postingOrgUrl <= :postingOrgUrl')
+      .andWhere('timelineentry.snapshot.offerId = :offerId')
+      .andWhere('timelineentry.snapshot.postingOrgUrl = :postingOrgUrl')
       .andWhere('timelineentry.startTimeUTC <= :timestampUTC')
       .andWhere('timelineentry.endTimeUTC > :timestampUTC')
       .andWhere('timelineentry.hostOrgUrl = :hostOrgUrl')
