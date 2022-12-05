@@ -104,7 +104,7 @@ export interface IntegrationApi {
    */
   getLocalAcceptHistory(
     sinceTimestampUTC?: number
-  ): AsyncIterator<OfferHistory>;
+  ): AsyncIterable<OfferHistory>;
 
   /**
    * Returns the history of offers accepted FROM THE GIVEN HOST. If the

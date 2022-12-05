@@ -240,6 +240,15 @@ async function main() {
       })
     );
 
+    // Create a custom endpoint that will display the offer acceptance history.
+    const historyEndpoint = {
+      method: ['POST', 'GET'],
+      handle: async () => {
+        return await asyncIterableToArray(api.getLocalAcceptHistory());
+      },
+    } as CustomRequestHandler;
+    api.installCustomHandler('history', historyEndpoint);
+
     // Create a custom endpoint that will call server.ingest() to pull in any
     // new offers, and return any changes that occurred.
     // Here, we are only using one OfferProducer, the "FakeOfferProducer".
