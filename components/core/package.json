@@ -1,6 +1,6 @@
 {
   "name": "opr-core",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Open Product Recovery Core Libraries",
   "main": "build/index.js",
   "types": "build/index.d.ts",
