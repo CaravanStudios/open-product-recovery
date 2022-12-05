@@ -31,7 +31,7 @@ import {
 } from 'opr-core';
 import yargs from 'yargs';
 import * as dotenv from 'dotenv';
-log.setLevel('WARN');
+log.setLevel('INFO');
 import {DataSourceOptions, SqlOprPersistentStorage} from 'opr-sql-database';
 import {
   CloudStorageJwksProvider,
@@ -129,7 +129,7 @@ async function main() {
   // organization config file, and how to map its contents to server endpoints.
   const frontendConfig = {
     // Replace with your organization name
-    name: 'ExampleServer',
+    name: "John' Home Server",
     // Replace with your organization's public org descriptor URL
     organizationURL: `${hostname}/org.json`,
     orgFilePath: '/org.json',
@@ -239,6 +239,15 @@ async function main() {
         },
       })
     );
+
+    // Create a custom endpoint that will display the offer acceptance history.
+    const historyEndpoint = {
+      method: ['POST', 'GET'],
+      handle: async () => {
+        return await asyncIterableToArray(api.getLocalAcceptHistory());
+      },
+    } as CustomRequestHandler;
+    api.installCustomHandler('history', historyEndpoint);
 
     // Create a custom endpoint that will call server.ingest() to pull in any
     // new offers, and return any changes that occurred.

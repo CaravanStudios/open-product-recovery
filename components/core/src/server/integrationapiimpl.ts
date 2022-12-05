@@ -265,7 +265,7 @@ export class IntegrationApiImpl implements IntegrationApi {
 
   async *getLocalAcceptHistory(
     sinceTimestampUTC?: number | undefined
-  ): AsyncIterator<OfferHistory> {
+  ): AsyncIterable<OfferHistory> {
     const t = await this.storage.createTransaction('READONLY');
     const iterable = this.storage.getHistory(
       t,
