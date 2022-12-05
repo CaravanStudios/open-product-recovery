@@ -31,7 +31,7 @@ import {
 } from 'opr-core';
 import yargs from 'yargs';
 import * as dotenv from 'dotenv';
-log.setLevel('INFO');
+log.setLevel('WARN');
 import {DataSourceOptions, SqlOprPersistentStorage} from 'opr-sql-database';
 import {
   CloudStorageJwksProvider,
@@ -129,7 +129,7 @@ async function main() {
   // organization config file, and how to map its contents to server endpoints.
   const frontendConfig = {
     // Replace with your organization name
-    name: "John' Home Server",
+    name: 'ExampleServer',
     // Replace with your organization's public org descriptor URL
     organizationURL: `${hostname}/org.json`,
     orgFilePath: '/org.json',
