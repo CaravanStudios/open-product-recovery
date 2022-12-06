@@ -21,6 +21,7 @@ import {
   PersistentStorage,
   TimelineEntry,
   OfferVersionPair,
+  asyncIterableToArray,
 } from 'opr-core';
 import {ResolverOptions, SourcedJsonObject, TestConfig} from 'opr-devtools';
 import {DecodedReshareChain, Offer, OfferHistory} from 'opr-models';
@@ -88,6 +89,34 @@ export class PersistentTestConfig implements TestConfig<SqlTestObjects> {
     for (const hostOrgUrl of hostOrgs) {
       const transaction = await testObject.db.createTransaction();
       switch (op) {
+        case 'storeValue': {
+          const key = context.propAsString('key').req();
+          const value = context.propAsObject('value').req();
+          const result = await testObject.db.storeValue(
+            transaction,
+            hostOrgUrl,
+            key,
+            value
+          );
+          resultInfo.result = result;
+          break;
+        }
+        case 'getValues': {
+          const key = context.propAsString('key').req();
+          const result = testObject.db.getValues(transaction, hostOrgUrl, key);
+          resultInfo.result = await asyncIterableToArray(result);
+          break;
+        }
+        case 'clearAllValues': {
+          const key = context.propAsString('key').req();
+          const result = await testObject.db.clearAllValues(
+            transaction,
+            hostOrgUrl,
+            key
+          );
+          resultInfo.result = result;
+          break;
+        }
         case 'insertOrUpdateOfferInCorpus': {
           const orgUrl = context.propAsString('corpusOrgUrl').req();
           const offer = context.propAsObject('offer').get();

@@ -1,0 +1,116 @@
+{
+  "description": "Key Value Storage",
+  "hostOrgUrl": [
+    "https://citadelofdanas.org/org.json",
+    "https://fano.org/org.json"
+  ],
+  "tests": [
+    {
+      "description": "Set, read",
+      "calls": [
+        {
+          "op": "storeValue",
+          "key": "idmapping/a/",
+          "value": {"id": "mappeda"}
+        },
+        {
+          "op": "storeValue",
+          "key": "idmapping/b/",
+          "value": {"id": "mappedb"}
+        },
+        {
+          "op": "storeValue",
+          "key": "usermapping/a/",
+          "value": {"user": "umapa"}
+        },
+        {
+          "op": "getValues",
+          "key": "idmapping/",
+          "expect": [
+            "expect(result).to.deep.equal([{id: 'mappeda'}, {id: 'mappedb'}])"
+          ]
+        },
+        {
+          "op": "getValues",
+          "key": "idmapping/a/",
+          "expect": ["expect(result).to.deep.equal([{id: 'mappeda'}])"]
+        },
+        {
+          "op": "getValues",
+          "key": "usermapping/",
+          "expect": ["expect(result).to.deep.equal([{user: 'umapa'}])"]
+        },
+        {
+          "op": "getValues",
+          "key": "",
+          "expect": [
+            "expect(result).to.deep.equal([{ id: 'mappeda' },{ id: 'mappedb' },{ user: 'umapa' }])"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Set, update",
+      "calls": [
+        {
+          "op": "storeValue",
+          "key": "idmapping/a/",
+          "value": {"id": "mappeda"}
+        },
+        {
+          "op": "storeValue",
+          "key": "idmapping/b/",
+          "value": {"id": "mappedb"}
+        },
+        {
+          "op": "storeValue",
+          "key": "usermapping/a/",
+          "value": {"user": "umapa"}
+        },
+        {
+          "op": "storeValue",
+          "key": "idmapping/b/",
+          "value": {"id": "mappedb2"},
+          "expect": ["expect(result).to.deep.equal({id: 'mappedb'})"]
+        },
+        {
+          "op": "getValues",
+          "key": "idmapping/",
+          "expect": [
+            "expect(result).to.deep.equal([{id: 'mappeda'}, {id: 'mappedb2'}])"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Set, delete",
+      "calls": [
+        {
+          "op": "storeValue",
+          "key": "idmapping/a/",
+          "value": {"id": "mappeda"}
+        },
+        {
+          "op": "storeValue",
+          "key": "idmapping/b/",
+          "value": {"id": "mappedb"}
+        },
+        {
+          "op": "storeValue",
+          "key": "usermapping/a/",
+          "value": {"user": "umapa"}
+        },
+        {
+          "op": "clearAllValues",
+          "key": "idmapping/",
+          "expect": ["expect(result).to.equal(2)"]
+        },
+        {
+          "op": "getValues",
+          "key": "",
+          "expect": ["expect(result).to.deep.equal([{ user: 'umapa' }])"]
+        }
+      ]
+    }
+  ]
+}

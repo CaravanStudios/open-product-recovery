@@ -23,12 +23,31 @@ import {OfferId} from '../model/offerid';
 import {TimelineEntry} from '../model/timelineentry';
 import {CustomRequestHandler} from '../server/customrequesthandler';
 import {Express} from 'express';
+import {JsonValue} from '../util/jsonvalue';
 
 /**
  * An API used by OPR integrations. This API is passed to custom startup
  * routines and custom handlers.
  */
 export interface IntegrationApi {
+  /**
+   * Stores a key-value pair. If a value already exists at the given key, it
+   * will be replaced and the old value returned.
+   */
+  storeValue(key: string, value: JsonValue): Promise<JsonValue | undefined>;
+
+  /**
+   * Deletes all values stored with the given key prefix. Returns the number of
+   * keys deleted if supported by the storage driver.
+   */
+  clearAllValues(keyPrefix: string): Promise<number | undefined>;
+
+  /**
+   * Returns all values for the given host where the key starts with the given
+   * prefix.
+   */
+  getValues(keyPrefix: string): AsyncIterable<JsonValue>;
+
   /**
    * Returns the latest version of an offer (or a specific version of an offer,
    * if requested using a versioned offer id) if it is in stable storage. Note
