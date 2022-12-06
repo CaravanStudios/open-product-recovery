@@ -257,7 +257,7 @@ export class SqlOprPersistentStorage implements PersistentStorage {
       .andWhere('key LIKE :keyPrefix')
       .setParameters({
         hostOrgUrl: hostOrgUrl,
-        keyPrefix: `${keyPrefix.replaceAll('%', '[%]')}%`,
+        keyPrefix: `${keyPrefix.replace(/%/g, '[%]')}%`,
       })
       .execute();
     return deleteResult.affected ?? undefined;
@@ -283,7 +283,7 @@ export class SqlOprPersistentStorage implements PersistentStorage {
         .orderBy('keyval.key', 'ASC')
         .setParameters({
           hostOrgUrl: hostOrgUrl,
-          keyPrefix: `${keyPrefix.replaceAll('%', '[%]')}%`,
+          keyPrefix: `${keyPrefix.replace(/%/g, '[%]')}%`,
         })
         .skip(cursorPos)
         .take(this.selectPageSize);
