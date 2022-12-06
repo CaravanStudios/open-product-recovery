@@ -23,6 +23,7 @@ import {
 import {Interval} from '../model/interval';
 import {TimelineEntry} from '../model/timelineentry';
 import {OfferProducerMetadata} from '../offerproducer/offerproducermetadata';
+import {JsonValue} from '../util/jsonvalue';
 import {Transaction} from './transaction';
 export type PersistentStorageUpdateType = 'NONE' | 'ADD' | 'UPDATE' | 'DELETE';
 export type TransactionType = 'READONLY' | 'READWRITE';
@@ -36,6 +37,39 @@ export type TransactionType = 'READONLY' | 'READWRITE';
  */
 export interface PersistentStorage {
   createTransaction(type?: TransactionType): Promise<Transaction>;
+
+  /**
+   * Stores a key-value pair for the given host. If a value already exists at
+   * the given key, it will be replaced and the old value returned.
+   */
+  storeValue(
+    t: Transaction,
+    hostOrgUrl: string,
+    key: string,
+    value: JsonValue
+  ): Promise<JsonValue | undefined>;
+
+  /**
+   * Clears all values for the given host where the key starts with the given
+   * prefix. It is very important to namespace keys correctly, since this can
+   * easily erase many values. Returns the number of values deleted if supported
+   * by the storage driver.
+   */
+  clearAllValues(
+    t: Transaction,
+    hostOrgUrl: string,
+    keyPrefix: string
+  ): Promise<number | undefined>;
+
+  /**
+   * Returns all values for the given host where the key starts with the given
+   * prefix.
+   */
+  getValues(
+    t: Transaction,
+    hostOrgUrl: string,
+    keyPrefix: string
+  ): AsyncIterable<JsonValue>;
 
   /**
    * Adds or updates the given offer in the corpus. Returns an update type flag

@@ -80,6 +80,7 @@ export * from './util/asynciterable';
 export * from './util/clock';
 export * from './util/defaultclock';
 export * from './util/fakeclock';
+export * from './util/jsonvalue';
 import loglevel from './util/loglevel';
 export {loglevel};
 export * from './util/loglevel';

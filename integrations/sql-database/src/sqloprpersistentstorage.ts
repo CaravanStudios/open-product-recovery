@@ -45,6 +45,7 @@ import {
   DataSource,
   DataSourceOptions,
   EntityManager,
+  FindOptionsWhere,
   QueryResult,
 } from 'typeorm';
 import {KnownOfferingOrg} from './persistentmodel/knownofferingorg';
@@ -56,6 +57,8 @@ import {StoredRejection} from './persistentmodel/storedrejection';
 import {StoredAcceptance} from './persistentmodel/storedacceptance';
 import {AcceptanceHistoryViewer} from './persistentmodel/acceptancehistoryviewer';
 import {ProducerMetadata} from './persistentmodel/producermetadata';
+import {JsonValue} from 'opr-core/build/util/jsonvalue';
+import {StoredKeyValue} from './persistentmodel/storedkeyvalue';
 
 export {DataSourceOptions} from 'typeorm';
 
@@ -167,6 +170,7 @@ export class SqlOprPersistentStorage implements PersistentStorage {
         OfferSnapshot,
         ProducerMetadata,
         StoredAcceptance,
+        StoredKeyValue,
         StoredRejection,
         StoredReshareChain,
         StoredTimelineEntry,
@@ -211,6 +215,88 @@ export class SqlOprPersistentStorage implements PersistentStorage {
     const t = new SqlTransaction(this.db, type);
     await t.startInternal();
     return t;
+  }
+
+  /**
+   * Stores a key-value pair for the given host. If a value already exists at
+   * the given key, it will be replaced and the old value returned.
+   */
+  async storeValue(
+    t: SqlTransaction,
+    hostOrgUrl: string,
+    key: string,
+    value: JsonValue
+  ): Promise<JsonValue | undefined> {
+    const oldValue = await t.em.findOneBy(StoredKeyValue, {
+      hostOrgUrl: hostOrgUrl,
+      key: key,
+    } as FindOptionsWhere<StoredKeyValue>);
+    const kv = new StoredKeyValue();
+    kv.key = key;
+    kv.hostOrgUrl = hostOrgUrl;
+    kv.value = value;
+    await t.em.save(kv);
+    return oldValue ? oldValue.value : undefined;
+  }
+
+  /**
+   * Clears all values for the given host where the key starts with the given
+   * prefix. It is very important to namespace keys correctly, since this can
+   * easily erase many values. Returns the number of values deleted.
+   */
+  async clearAllValues(
+    t: SqlTransaction,
+    hostOrgUrl: string,
+    keyPrefix: string
+  ): Promise<number | undefined> {
+    const deleteResult = await t.em
+      .createQueryBuilder()
+      .delete()
+      .from(StoredKeyValue)
+      .where('hostOrgUrl = :hostOrgUrl')
+      .andWhere('key LIKE :keyPrefix')
+      .setParameters({
+        hostOrgUrl: hostOrgUrl,
+        keyPrefix: `${keyPrefix.replace(/%/g, '[%]')}%`,
+      })
+      .execute();
+    return deleteResult.affected ?? undefined;
+  }
+
+  /**
+   * Returns all values for the given host where the key starts with the given
+   * prefix.
+   */
+  async *getValues(
+    t: SqlTransaction,
+    hostOrgUrl: string,
+    keyPrefix: string
+  ): AsyncIterable<JsonValue> {
+    let selectPage;
+    let cursorPos = 0;
+    do {
+      const query = t.em
+        .getRepository(StoredKeyValue)
+        .createQueryBuilder('keyval')
+        .where('keyval.hostOrgUrl = :hostOrgUrl')
+        .andWhere('keyval.key LIKE :keyPrefix')
+        .orderBy('keyval.key', 'ASC')
+        .setParameters({
+          hostOrgUrl: hostOrgUrl,
+          keyPrefix: `${keyPrefix.replace(/%/g, '[%]')}%`,
+        })
+        .skip(cursorPos)
+        .take(this.selectPageSize);
+      selectPage = await query.getMany();
+      for (const keyVal of selectPage) {
+        yield keyVal.value;
+      }
+      cursorPos += this.selectPageSize;
+    } while (
+      selectPage &&
+      selectPage.length &&
+      selectPage.length >= this.selectPageSize
+    );
   }
 
   async getOfferFromCorpus(

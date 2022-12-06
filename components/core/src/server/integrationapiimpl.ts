@@ -37,6 +37,7 @@ import {Logger, log} from '../util/loglevel';
 import {OfferModel} from '../model/offermodel';
 import {OfferProducer} from '../offerproducer/offerproducer';
 import {Express} from 'express';
+import {JsonValue} from '../util/jsonvalue';
 
 export interface IntegrationApiImplOptions {
   hostOrgUrl: string;
@@ -80,6 +81,48 @@ export class IntegrationApiImpl implements IntegrationApi {
 
   destroy(): void {
     this.modelRegistration.remove();
+  }
+
+  async storeValue(
+    key: string,
+    value: JsonValue
+  ): Promise<JsonValue | undefined> {
+    const t = await this.storage.createTransaction('READWRITE');
+    const returnVal = await this.storage.storeValue(
+      t,
+      this.hostOrgUrl,
+      key,
+      value
+    );
+    await t.commit();
+    return returnVal;
+  }
+
+  /**
+   * Deletes all values stored with the given key prefix. Returns the number of
+   * keys deleted if supported by the storage driver.
+   */
+  async clearAllValues(keyPrefix: string): Promise<number | undefined> {
+    const t = await this.storage.createTransaction('READWRITE');
+    const returnVal = await this.storage.clearAllValues(
+      t,
+      this.hostOrgUrl,
+      keyPrefix
+    );
+    await t.commit();
+    return returnVal;
+  }
+
+  /**
+   * Returns all values for the given host where the key starts with the given
+   * prefix.
+   */
+  async *getValues(keyPrefix: string): AsyncIterable<JsonValue> {
+    const t = await this.storage.createTransaction('READONLY');
+    const asyncIterator = this.storage.getValues(t, this.hostOrgUrl, keyPrefix);
+    for await (const x of asyncIterator) {
+      yield x;
+    }
   }
 
   async getOffer(offer: OfferId): Promise<Offer | undefined> {
