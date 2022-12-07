@@ -211,7 +211,7 @@ export class IntegrationApiImpl implements IntegrationApi {
       structured.postingOrgUrl,
       {
         offerId: structured.id,
-        ifNotNewerThanTimestamp: getIdVersion(structured),
+        ifNotNewerThanTimestampUTC: getIdVersion(structured),
         reshareChain: reshareChain,
       }
     );
