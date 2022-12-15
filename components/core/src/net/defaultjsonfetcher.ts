@@ -40,6 +40,7 @@ export class DefaultJsonFetcher implements JsonFetcher {
     const headers = new Headers(reqInit?.headers);
     if (reqInit?.body && !headers.has('Content-Type')) {
       headers.set('Content-Type', 'application/json');
+      headers.set('User-Agent', 'OpenProductRecovery'); //todo: add version?
     }
     return headers;
   }
