@@ -1,6 +1,6 @@
 {
   "name": "opr-core-testutil",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "description": "Open Product Recovery Core Testing libraries",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -40,7 +40,7 @@
     "chai": "^4.3.6",
     "jose": "^4.10.4",
     "mocha": "^10.0.0",
-    "opr-core": "^0.6.7",
+    "opr-core": "^0.6.8",
     "opr-devtools": "^0.6.4",
     "opr-models": "^0.6.4"
   },
