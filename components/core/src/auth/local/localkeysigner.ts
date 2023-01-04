@@ -17,9 +17,11 @@
 import {Clock} from '../../util/clock';
 import {DefaultClock} from '../../util/defaultclock';
 import {StatusError} from '../../util/statuserror';
-import {importJWK, JWK, JWTPayload, KeyLike, SignJWT} from 'jose';
+import {importJWK, JWK, JWTPayload, SignJWT} from 'jose';
 import {Signer, IssueTokenOptions, SignChainOptions} from '../signer';
 import {ReshareChain} from 'opr-models';
+import {ProviderIntegration} from '../../coreapi';
+import {HostIntegrationContext} from '../../config/hostintegrationcontext';
 
 const DEFAULT_TOKEN_MAX_AGE_MILLIS = 10 * 60 * 1000; // 10 minutes
 
@@ -107,3 +109,22 @@ export class LocalKeySigner implements Signer {
     return await signJwt.sign(key);
   }
 }
+
+export const LocalKeySignerIntegration = {
+  async construct(json, context?) {
+    const issuer = context?.hostOrgUrl;
+    if (!issuer) {
+      throw new StatusError(
+        'Unexpected condition, host org url not set in host integration',
+        'NO_HOST_ORG_URL'
+      );
+    }
+    if (!json.privateKey) {
+      throw new StatusError(
+        'No private key specified',
+        'LOCAL_KEY_SIGNER_NO_PRIVATE_KEY'
+      );
+    }
+    return new LocalKeySigner(context?.hostOrgUrl, json.privateKey as JWK);
+  },
+} as ProviderIntegration<LocalKeySigner, HostIntegrationContext>;

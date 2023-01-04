@@ -19,3 +19,8 @@ import 'reflect-metadata';
 export * from './sqloffermodel';
 export * from './postgrestestinglauncher';
 export * from './sqloprpersistentstorage';
+
+import {SqlOprPersistentStorageIntegration} from './sqloprpersistentstorageintegration';
+export const integrations = {
+  default: SqlOprPersistentStorageIntegration,
+};

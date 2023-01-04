@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-import {JwksProvider} from '../auth/jwksprovider';
-import {StandardVerifier, Verifier} from '../auth/verifier';
-import {FrontendConfig} from '../config/frontendconfig';
-import {frontendConfigToOrgConfig} from '../config/frontendconfigtoorgconfig';
-import {OrgConfigProvider} from '../config/orgconfigprovider';
 import {StatusError} from '../util/statuserror';
 import 'express-async-errors';
 import express, {
@@ -28,153 +23,83 @@ import express, {
   Response,
   json as expressJson,
 } from 'express';
-import {JWTPayload, JWTVerifyOptions} from 'jose';
 import {Clock} from '../util/clock';
 import {DefaultClock} from '../util/defaultclock';
 import {Server} from 'http';
-import {AuthenticatedRequestHandler} from './handlers/authenticatedrequesthandler';
-import {ListRequestHandler} from './handlers/listrequesthandler';
-import {Signer} from '../auth/signer';
-import {AcceptRequestHandler} from './handlers/acceptrequesthandler';
-import {RejectRequestHandler} from './handlers/rejectrequesthandler';
-import {ReserveRequestHandler} from './handlers/reserverequesthandler';
-import {HistoryRequestHandler} from './handlers/historyrequesthandler';
-import {OfferModel} from '../model/offermodel';
-import {OprNetworkClient, OprClientConfig} from '../net/oprnetworkclient';
 import loglevel, {Logger} from '../util/loglevel';
-import {OprFeedProducer} from '../offerproducer/oprfeedproducer';
-import {ServerAccessControlList} from '../policy/serveraccesscontrollist';
-import {FeedConfig, FeedConfigProvider} from '../policy/feedconfig';
-import {OfferProducer, OfferSetUpdate} from '../offerproducer/offerproducer';
-import {CustomRequestHandler} from './customrequesthandler';
-import {getBearerToken} from '../auth/getbearertoken';
-import {IntegrationApi} from '../integrations/integrationapi';
-import {IntegrationApiImpl} from './integrationapiimpl';
 import {PersistentStorage} from '../database/persistentstorage';
-import {PersistentOfferModel} from '../model/persistentoffermodel';
-import {OfferListingPolicy} from '../coreapi';
-import {ListOffersPayload} from 'opr-models';
+import {HostConfigJsonProvider} from '../config/hostconfigprovider';
+import {ServerConfigJson} from '../config/serverconfigjson';
+import {OprHost} from './oprhost';
+import {HostConfig} from './hostconfig';
+import {resolveConfigJson} from '../config/resolveconfigjson';
+import {HostIdExtractor} from '../config/hostidextractor';
+import {JsonMap} from '../util/jsonvalue';
 
-const DEFAULT_RESERVATION_TIME_SECS = 5 * 60;
-
-export interface OprServerOptions {
-  frontendConfig: FrontendConfig;
-  orgConfigProvider: OrgConfigProvider;
-  listingPolicy: OfferListingPolicy;
-  storage: PersistentStorage;
-  signer?: Signer;
-  jwksProvider?: JwksProvider;
+export type OprServerOptions = {
   app?: Express;
   clock?: Clock;
   logger?: Logger;
-  strictCorrectnessChecks?: boolean;
-  defaultReservationTimeSecs?: number;
-  clientConfig?: Partial<OprClientConfig>;
-  accessControlList: ServerAccessControlList;
-  feedConfigProvider?: FeedConfigProvider;
-  producers?: Array<OfferProducer>;
-  verifier?: Verifier;
-  /** Any custom handlers to install for user-specified behavior. */
-  customHandlers?: Record<string, CustomRequestHandler>;
+  config: ServerConfigJson;
   /**
    * Custom startup routines run after all built-in and custom handlers are
    * installed, but before the server actually begins listening for connections.
    */
   customStartupRoutines?: Array<CustomStartupRoutine>;
-}
+};
 
-export type CustomStartupRoutine = (client: IntegrationApi) => Promise<void>;
+export type CustomStartupRoutine = (
+  app: Express,
+  server: OprServer
+) => Promise<void>;
 
 export class OprServer {
   readonly app: Express;
-  private frontendConfig: FrontendConfig;
-  private orgConfigProvider: OrgConfigProvider;
-  private jwksProvider?: JwksProvider;
-  private verifier: Verifier;
-  private accessControlList: ServerAccessControlList;
-  private clock: Clock;
-  private offerModel: OfferModel;
+  private storage!: PersistentStorage;
+  private hostConfigProvider!: HostConfigJsonProvider;
+  private hostIdExtractor!: HostIdExtractor;
+  private hostName?: string;
+  private config: ServerConfigJson;
   private server?: Server;
   private logger: Logger;
-  private strictCorrectnessChecks: boolean;
-  private listRequestHandler: ListRequestHandler;
-  private acceptRequestHandler: AcceptRequestHandler;
-  private rejectRequestHandler: RejectRequestHandler;
-  private reserveRequestHandler: ReserveRequestHandler;
-  private historyRequestHandler: HistoryRequestHandler;
-  private offerProducers: Array<OfferProducer>;
-  private networkClient?: OprNetworkClient;
-  private integrationClient: IntegrationApi;
-  private feedConfigProvider?: FeedConfigProvider;
+  private clock: Clock;
+
   private customStartupRoutines: Array<CustomStartupRoutine>;
   private isStarted = false;
 
-  constructor(options: OprServerOptions) {
-    this.frontendConfig = options.frontendConfig;
-    this.accessControlList = options.accessControlList;
+  constructor(options: OprServerOptions | ServerConfigJson) {
+    if (!(options as OprServerOptions).config) {
+      const configJson = options as ServerConfigJson;
+      options = {
+        config: configJson,
+      } as OprServerOptions;
+    } else {
+      options = options as OprServerOptions;
+    }
+    this.config = options.config;
     this.logger = options.logger ?? loglevel.getLogger('OprServer');
     this.app = options.app || express();
-    this.orgConfigProvider = options.orgConfigProvider;
-    this.jwksProvider = options.jwksProvider;
     this.clock = options.clock || new DefaultClock();
-    this.verifier =
-      options.verifier || new StandardVerifier(this.orgConfigProvider);
-
-    const signer = options.clientConfig?.signer ?? options.signer;
-
-    this.offerModel = new PersistentOfferModel({
-      hostOrgUrl: this.frontendConfig.organizationURL,
-      listingPolicy: options.listingPolicy,
-      signer: signer,
-      storage: options.storage,
-      clock: this.clock,
-    });
-
-    this.listRequestHandler = new ListRequestHandler(this.offerModel);
-    this.acceptRequestHandler = new AcceptRequestHandler(
-      this.offerModel,
-      options.frontendConfig.organizationURL,
-      this.verifier
-    );
-    this.rejectRequestHandler = new RejectRequestHandler(this.offerModel);
-    this.reserveRequestHandler = new ReserveRequestHandler(
-      this.offerModel,
-      options.defaultReservationTimeSecs || DEFAULT_RESERVATION_TIME_SECS,
-      options.frontendConfig.organizationURL,
-      this.verifier
-    );
-    this.historyRequestHandler = new HistoryRequestHandler(this.offerModel);
-    if (signer) {
-      this.networkClient = new OprNetworkClient({
-        signer: signer,
-        configProvider:
-          options.clientConfig?.configProvider ?? options.orgConfigProvider,
-        urlMapper: options.clientConfig?.urlMapper,
-        jsonFetcher: options.clientConfig?.jsonFetcher,
-      });
-    }
-    this.integrationClient = new IntegrationApiImpl({
-      hostOrgUrl: this.frontendConfig.organizationURL,
-      model: this.offerModel,
-      server: this,
-      storage: options.storage,
-      netClient: this.networkClient,
-    });
-    this.feedConfigProvider = options.feedConfigProvider;
-    this.strictCorrectnessChecks = options.strictCorrectnessChecks || false;
-    this.offerProducers = options.producers ?? [];
     this.customStartupRoutines = options.customStartupRoutines || [];
   }
 
-  start(port: number): Promise<void> {
-    this.logger.info(
-      'Starting frontend server',
-      this.frontendConfig.organizationURL,
-      'on port',
-      port
-    );
+  /** Returns the storage system. */
+  getStorage(): PersistentStorage {
+    return this.storage;
+  }
+
+  async start(port: number): Promise<void> {
+    const resolved = await resolveConfigJson(this.config);
+    console.log('Resolved config', resolved);
+    this.hostIdExtractor = resolved.resolvedConfig.hostMapping;
+    this.hostConfigProvider = resolved.resolvedConfig.hostSetup;
+    this.storage = resolved.resolvedConfig.storage;
+    this.hostName = resolved.resolvedConfig.hostName;
+
+    this.logger.info('Starting frontend server on port', port);
     return new Promise(acceptFn => {
       this.server = this.app.listen(port, async () => {
+        console.log('server is listening');
         await this.initializeServer();
         acceptFn();
       });
@@ -182,179 +107,19 @@ export class OprServer {
   }
 
   async stop(): Promise<void> {
-    const promises = [
-      new Promise<void>((acceptFn, rejectFn) => {
-        this.server?.close(err => {
-          if (err) {
-            rejectFn(err);
-          } else {
-            acceptFn();
-          }
-        });
-      }),
-      this.offerModel.shutdown(),
-    ];
-    await Promise.all(promises);
-  }
-
-  installOfferProducer(offerProducer: OfferProducer): void {
-    this.offerProducers.push(offerProducer);
+    await new Promise<void>((acceptFn, rejectFn) => {
+      this.server?.close(err => {
+        if (err) {
+          rejectFn(err);
+        } else {
+          acceptFn();
+        }
+      });
+    });
   }
 
   getExpressServer(): Express {
     return this.app;
-  }
-
-  private async getFeedProducers(): Promise<Array<OfferProducer>> {
-    if (!this.feedConfigProvider) {
-      return [];
-    }
-    const feedConfigs = await this.feedConfigProvider.getFeeds();
-    return feedConfigs.map(feedConfig =>
-      this.getOfferProducerFromFeedConfig(feedConfig)
-    );
-  }
-
-  private getOfferProducerFromFeedConfig(
-    feedConfig: FeedConfig
-  ): OfferProducer {
-    if (!this.networkClient) {
-      throw new StatusError(
-        'An OPR client must be specified to install feeds',
-        'SERVER_CONFIG_ERROR_NO_OPR_CLIENT',
-        500
-      );
-    }
-    return new OprFeedProducer(
-      this.networkClient,
-      feedConfig.organizationUrl,
-      feedConfig.maxUpdateFrequencyMillis
-    );
-  }
-
-  async ingest(): Promise<void> {
-    this.logger.info('Ingesting offers');
-    const producers = [
-      ...(await this.getFeedProducers()),
-      ...this.offerProducers,
-    ];
-    this.logger.info(
-      'Found producers:',
-      producers.map(p => p.id)
-    );
-    const producerPromises = [];
-    for (const producer of producers) {
-      producerPromises.push(this.produceOffers(producer));
-    }
-    await Promise.all(producerPromises);
-    this.logger.info('Ingestion complete');
-  }
-
-  private async produceOffers(producer: OfferProducer): Promise<void> {
-    this.logger.info('Ingesting offers from', producer.id);
-    // Note: If there's already a request in process, locking the producer will
-    // throw an exception that cancels this entire operation.
-    this.logger.debug('Obtaining lock on', producer.id);
-    let metadata;
-    try {
-      metadata = await this.offerModel.getOfferProducerMetadata(producer.id);
-    } catch (e) {
-      this.logger.warn(
-        'Failed to obtain lock on',
-        producer.id,
-        'update frequency may be too high',
-        e
-      );
-      return;
-    }
-    this.logger.debug('Lock obtained on', producer.id);
-    const now = this.clock.now();
-    let nextRunTimestampUTC = metadata?.nextRunTimestampUTC;
-    let result: OfferSetUpdate | undefined;
-    try {
-      if (nextRunTimestampUTC && nextRunTimestampUTC > now) {
-        this.logger.info(
-          'Skipping feed',
-          producer.id,
-          ', cannot fetch again for',
-          nextRunTimestampUTC - now,
-          'ms'
-        );
-        await this.offerModel.writeOfferProducerMetadata({
-          lastUpdateTimeUTC: now,
-          nextRunTimestampUTC: nextRunTimestampUTC ?? now,
-          organizationUrl: producer.id,
-        });
-        return;
-      }
-      const diffStartTimestampUTC = metadata?.lastUpdateTimeUTC;
-      let listPayload: ListOffersPayload;
-      if (diffStartTimestampUTC !== undefined) {
-        listPayload = {
-          requestedResultFormat: 'DIFF',
-          diffStartTimestampUTC: metadata?.lastUpdateTimeUTC,
-        };
-      } else {
-        listPayload = {
-          requestedResultFormat: 'SNAPSHOT',
-        };
-      }
-      result = await producer.produceOffers(listPayload);
-      nextRunTimestampUTC = result.earliestNextRequestUTC;
-      await this.offerModel.processUpdate(producer.id, result);
-      await this.offerModel.writeOfferProducerMetadata({
-        lastUpdateTimeUTC: now,
-        nextRunTimestampUTC: nextRunTimestampUTC ?? now,
-        organizationUrl: producer.id,
-      });
-      this.logger.info('Ingestion of', producer.id, 'succeeded');
-      this.logger.debug('dbg Lock released on', producer.id);
-    } catch (e) {
-      this.logger.warn('Failed to fetch', producer.id, 'error:', e);
-      nextRunTimestampUTC =
-        now + this.getFailedRetryIntervalMillis(producer.id);
-      await this.offerModel.writeOfferProducerMetadata({
-        lastUpdateTimeUTC: metadata?.lastUpdateTimeUTC,
-        nextRunTimestampUTC: nextRunTimestampUTC ?? now,
-        organizationUrl: producer.id,
-      });
-      this.logger.debug('Lock released on', producer.id);
-    }
-  }
-
-  /**
-   * Returns the minimum number of milliseconds to wait before retrying a
-   * failed request from a producer. This takes the producer id so that
-   * a producer-specific backoff policy can be implemented.
-   */
-  protected getFailedRetryIntervalMillis(producerId: string): number {
-    // TODO: Build a useful, per-producer backoff policy.
-    return 10 * 1000 /* 10 seconds */;
-  }
-
-  installCustomHandler(path: string, handler: CustomRequestHandler) {
-    if (this.isStarted) {
-      throw new StatusError(
-        'Cannot install custom handlers after the server has started',
-        'SERVER_ERROR_INSTALL_CUSTOM_HANDLER'
-      );
-    }
-    const expressHandler = async (req: Request, res: Response) => {
-      this.logger.info('Called custom handler', path);
-      res.json(
-        await handler.handle(req.body as unknown, req, this.integrationClient)
-      );
-    };
-    path = path.startsWith('/') ? path : '/' + path;
-    const methods = Array.isArray(handler.method)
-      ? handler.method
-      : handler.method ?? 'POST';
-    if (methods.indexOf('GET') >= 0) {
-      this.app.get(path, expressHandler);
-    }
-    if (methods.indexOf('POST') >= 0) {
-      this.app.post(path, expressHandler);
-    }
   }
 
   installCustomStartupRoutine(routine: CustomStartupRoutine) {
@@ -369,19 +134,61 @@ export class OprServer {
 
   private async doCustomStartup(): Promise<void> {
     for (const customStartupRoutine of this.customStartupRoutines) {
-      await customStartupRoutine(this.integrationClient);
+      await customStartupRoutine(this.app, this);
     }
   }
 
   private async initializeServer() {
     // core server components
     this.app.use(expressJson());
-    this.serveOrgFile();
-    this.maybeServeJwks();
-    this.serveApiEndpoints();
 
     // user customizations
     await this.doCustomStartup();
+
+    this.app.use(
+      '/',
+      async (req: Request, res: Response, next: NextFunction) => {
+        const hostName =
+          this.hostName ?? req.protocol + '://' + req.get('host');
+        const fullUrl = hostName + req.originalUrl;
+        // const hostId = this.hostConfigProvider.getHostId(fullUrl);
+        const hostId = this.hostIdExtractor.getHostId(fullUrl);
+        if (hostId === undefined) {
+          next();
+          return;
+        }
+        let hostConfig: HostConfig;
+        try {
+          hostConfig = await this.getHostConfig(hostId);
+        } catch (e) {
+          next();
+          return;
+        }
+        const host = new OprHost(
+          {
+            ...hostConfig,
+            clock: this.clock,
+          } as HostConfig,
+          this.storage
+        );
+        await host.start();
+        res.on('finish', async () => {
+          console.log('Destroying host config for', host.hostOrgUrl);
+          await host.destroy();
+          await hostConfig.destroy();
+        });
+        const hostUrlRoot = this.hostIdExtractor.getRootPathFromId(hostId);
+        if (!fullUrl.startsWith(hostUrlRoot)) {
+          throw new StatusError(
+            `Unexpected different url roots: ${hostUrlRoot}, ${fullUrl}`,
+            'NO_URL_PREFIX_MATCH'
+          );
+        }
+        const relativePath = fullUrl.substring(hostUrlRoot.length);
+        req.url = relativePath;
+        host.getRouter()(req, res, next);
+      }
+    );
     this.isStarted = true;
 
     // catch unhandled errors
@@ -390,10 +197,48 @@ export class OprServer {
       // unused 'next' parameter as its last argument.
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       (error: Error, req: Request, res: Response, next: NextFunction) => {
+        this.logger.error(error);
         this.handleError(error, req, res);
       }
     );
-    await this.offerModel.initialize();
+  }
+
+  private async getHostConfig(hostId: string): Promise<HostConfig> {
+    // TODO: Cache these in memory for a few minutes
+    let hostUrlRoot = this.hostIdExtractor.getRootPathFromId(hostId);
+    const configJson = await this.hostConfigProvider.getHostConfig(hostId);
+    let orgFilePath = configJson.orgFilePath ?? './org.json';
+    if (orgFilePath.startsWith('/')) {
+      orgFilePath = '.' + orgFilePath;
+    }
+    if (!hostUrlRoot.endsWith('/')) {
+      hostUrlRoot = hostUrlRoot + '/';
+    }
+    const hostOrgUrl = new URL(orgFilePath, hostUrlRoot).toString();
+    console.log('Resolving cloud config json', configJson, hostOrgUrl);
+    const resolved = await resolveConfigJson(
+      configJson,
+      {hostOrgUrl},
+      // Transform installers into annotated installers
+      (x: unknown, config: JsonMap) => {
+        if (typeof x === 'function') {
+          return {
+            moduleName: config.moduleName,
+            params: config.params ?? {},
+            install: x,
+          };
+        } else {
+          return x;
+        }
+      }
+    );
+    console.log('Resolved', resolved);
+    return {
+      ...resolved.resolvedConfig,
+      hostOrgUrl: hostOrgUrl,
+      hostUrlRoot: hostUrlRoot,
+      destroy: () => resolved.destroyAll(),
+    } as HostConfig;
   }
 
   handleError(error: any, req: Request, res: Response) {
@@ -418,173 +263,14 @@ export class OprServer {
     });
   }
 
-  serveOrgFile(): void {
-    const orgFilePath = this.frontendConfig.orgFilePath || '/org.json';
-
-    const orgJson = frontendConfigToOrgConfig(this.frontendConfig);
-
-    this.app.get(orgFilePath, async (req, res) => {
-      res.json(orgJson);
-    });
-  }
-
-  maybeServeJwks(): void {
-    if (this.frontendConfig.jwksURL) {
-      const testUrl = new URL(this.frontendConfig.jwksURL, 'http://localhost');
-      if (testUrl.hostname === 'localhost') {
-        // If the jwksURL is just a pathname, we need to host the
-        // key set.
-        const jwksProvider = this.jwksProvider;
-        if (!jwksProvider) {
-          throw new StatusError(
-            'No jwksProvider specified. A JWKS provider is required if the ' +
-              'frontend server is hosting the JWKS file.',
-            'NO_JWKS_PROVIDER'
-          );
-        }
-        this.app.get(testUrl.pathname, async (req, res) => {
-          const publicKeys = await jwksProvider.getJwks();
-          res.send(publicKeys);
-        });
-      }
+  async ingest(): Promise<void> {
+    for await (const hostId of this.hostConfigProvider.getAllHostIds()) {
+      const hostConfig = await this.getHostConfig(hostId);
+      const host = new OprHost(hostConfig, this.storage);
+      this.logger.info('Starting ingest on host', host.hostOrgUrl);
+      await host.start();
+      await host.ingest();
+      await host.destroy();
     }
-  }
-
-  serveApiEndpoints(): void {
-    const c = this.frontendConfig;
-    if (c.listProductsPath) {
-      this.app.post(c.listProductsPath, async (req, res) => {
-        return await this.handleList(req, res);
-      });
-    }
-    if (c.acceptProductPath) {
-      this.app.post(c.acceptProductPath, (req, res) => {
-        return this.handleAccept(req, res);
-      });
-    }
-    if (c.rejectProductPath) {
-      this.app.post(c.rejectProductPath, (req, res) => {
-        return this.handleReject(req, res);
-      });
-    }
-    if (c.reserveProductPath) {
-      this.app.post(c.reserveProductPath, (req, res) => {
-        return this.handleReserve(req, res);
-      });
-    }
-    if (c.historyPath) {
-      this.app.post(c.historyPath, (req, res) => {
-        return this.handleHistory(req, res);
-      });
-    }
-  }
-
-  async checkAuth(
-    req: Request,
-    options?: JWTVerifyOptions
-  ): Promise<JWTPayload> {
-    options = {...options, currentDate: new Date(this.clock.now())};
-    const token = getBearerToken(req.header('Authorization'));
-    const payload = (await this.verifier.verify(token, options)).payload;
-    return payload;
-  }
-
-  async handleAuthenticatedRequest<RequestType, ResponseType>(
-    req: Request,
-    res: Response,
-    requestHandler: AuthenticatedRequestHandler<RequestType, ResponseType>
-  ): Promise<void> {
-    // Check the token.
-    const jwtPayload = await this.checkAuth(req);
-    // Check for required fields.
-    if (!jwtPayload.iss) {
-      throw new StatusError(
-        'Auth token does not specify the required iss field',
-        'AUTH_ERROR_ISS_MISSING',
-        401
-      );
-    }
-    if (jwtPayload.aud) {
-      if (jwtPayload.aud !== this.frontendConfig.organizationURL) {
-        // TODO(johndayrichter): Add support for a list of additional
-        // acceptable org urls to allow for smooth URL changes.
-        throw new StatusError(
-          'Auth token audience is ' +
-            jwtPayload.aud +
-            ', but this server' +
-            'requires audience ' +
-            this.frontendConfig.organizationURL,
-          'AUTH_ERROR_AUD_INVALID',
-          401
-        );
-      }
-    } else {
-      throw new StatusError(
-        'Auth token does not specify the required aud field',
-        'AUTH_ERROR_AUD_MISSING',
-        401
-      );
-    }
-    // Check the scopes
-    if (!this.frontendConfig.scopesDisabled) {
-      const jwtScopes = ((jwtPayload['scope'] as string) || '').split(' ');
-      for (const scope of requestHandler.scopes || []) {
-        if (jwtScopes.indexOf(scope) < 0) {
-          throw new StatusError(
-            'Auth token is missing required scope ' + scope,
-            'AUTH_ERROR_MISSING_SCOPE',
-            403
-          );
-        }
-      }
-    }
-    // Check that the request is valid.
-    const requestBody = req.body as unknown;
-    requestHandler.validateRequest(requestBody);
-
-    // Check the ACL, if appropriate
-    if (!requestHandler.shouldIgnoreAccessControlList(requestBody)) {
-      const matched = await this.accessControlList.isAllowed(jwtPayload.iss);
-      if (!matched) {
-        throw new StatusError(
-          'Organization ' +
-            jwtPayload.iss +
-            ' does not have permission to access this server',
-          'AUTH_ERROR_ORG_NOT_AUTHORIZED',
-          403
-        );
-      }
-    }
-
-    const response = await requestHandler.handle(requestBody, jwtPayload);
-    if (this.strictCorrectnessChecks) {
-      requestHandler.validateResponse(response);
-    }
-    res.json(response);
-  }
-
-  async handleList(req: Request, res: Response): Promise<void> {
-    this.logger.info('Handling request to list');
-    await this.handleAuthenticatedRequest(req, res, this.listRequestHandler);
-  }
-
-  async handleAccept(req: Request, res: Response): Promise<void> {
-    this.logger.info('Handling request to accept');
-    await this.handleAuthenticatedRequest(req, res, this.acceptRequestHandler);
-  }
-
-  async handleReject(req: Request, res: Response): Promise<void> {
-    this.logger.info('Handling request to reject');
-    await this.handleAuthenticatedRequest(req, res, this.rejectRequestHandler);
-  }
-
-  async handleReserve(req: Request, res: Response): Promise<void> {
-    this.logger.info('Handling request to reserve');
-    await this.handleAuthenticatedRequest(req, res, this.reserveRequestHandler);
-  }
-
-  async handleHistory(req: Request, res: Response): Promise<void> {
-    this.logger.info('Handling request to reserve');
-    await this.handleAuthenticatedRequest(req, res, this.historyRequestHandler);
   }
 }

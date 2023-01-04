@@ -15,7 +15,6 @@
  */
 
 import {
-  JSONPatchOp,
   ListOffersPayload,
   ListOffersResponse,
   Offer,

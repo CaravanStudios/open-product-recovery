@@ -12,7 +12,7 @@
     "build": "tsc -p .",
     "watch": "tsc -w -p .",
     "test": "mocha -r ts-node/register -R spec 'test/**/*.spec.ts'",
-    "lint": "eslint",
+    "lint": "eslint .",
     "clean": "rm -rf build",
     "compile": "tsc",
     "fix": "eslint --fix",

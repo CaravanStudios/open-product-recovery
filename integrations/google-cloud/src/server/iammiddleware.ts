@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type {Request, Response} from 'express';
+import {checkIamAuth} from './checkiamauth';
+import {IamAccessControlList} from './iamaccesscontrollist';
 
-import type {FrontendConfig} from '../../config/frontendconfig';
-import type {FrontendConfigProvider} from '../../config/frontendconfigprovider';
-import fs from 'fs';
-
-export class LocalFileFrontendConfigProvider implements FrontendConfigProvider {
-  private path: string;
-
-  constructor(path: string) {
-    this.path = path;
-  }
-
-  async getConfig(): Promise<FrontendConfig> {
-    return JSON.parse((await fs.promises.readFile(this.path)).toString());
-  }
+export function iamMiddleware(acl: IamAccessControlList) {
+  return async (request: Request, response: Response, next: () => void) => {
+    console.log('Checking iam auth');
+    await checkIamAuth(request, acl);
+    next();
+  };
 }
