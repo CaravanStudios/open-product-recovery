@@ -17,8 +17,7 @@
 /**
  * A fake example server.
  */
-import {log, OprServer, ServerConfigJson} from 'opr-core';
-import {Request, Response} from 'express';
+import {log, OprServer, Request, Response, ServerConfigJson} from 'opr-core';
 import yargs from 'yargs';
 import * as dotenv from 'dotenv';
 log.setLevel('WARN');

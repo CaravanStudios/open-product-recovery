@@ -83,6 +83,7 @@ export * from './net/urlmapper';
 export * from './offerproducer/offerproducer';
 export * from './offerproducer/offerproducermetadata';
 export * from './offerproducer/oprfeedproducer';
+export {Request, Response} from 'express';
 export * from './server/hostconfig';
 export * from './server/oprserver';
 export * from './server/customrequesthandler';
