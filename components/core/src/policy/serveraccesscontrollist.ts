@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
-export interface ServerAccessControlList {
+import {Pluggable} from '../integrations/pluggable';
+
+export interface ServerAccessControlList extends Pluggable {
+  readonly type: 'accessControlList';
+
   isAllowed(organizationURL: string): Promise<boolean>;
 }

@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-import {Logger} from 'loglevel';
-import {Clock} from '../util/clock';
-import {ResolvedConfigValue} from '../config/resolveconfigjson';
-import {HostConfigJson} from '../config/hostconfigjson';
+import {IntegrationApi} from './integrationapi';
+import {Pluggable} from './pluggable';
 
-export type HostConfig = ResolvedConfigValue<HostConfigJson> & {
-  logger?: Logger;
-  clock?: Clock;
-  // Destroys all objects used by this config.
-  destroy(): Promise<void>;
-};
+export type TenantNodeIntegrationUninstallFn = (
+  integrationApi: IntegrationApi
+) => Promise<void>;
+
+export type TenantNodeIntegrationInstallFn = (
+  integrationApi: IntegrationApi
+) => Promise<void>;
+
+export interface TenantNodeIntegrationInstaller extends Pluggable {
+  readonly type: 'integrationInstaller';
+
+  install: TenantNodeIntegrationInstallFn;
+  uninstall?: TenantNodeIntegrationUninstallFn;
+  mountPath?: string;
+}

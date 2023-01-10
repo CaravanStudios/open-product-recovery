@@ -17,6 +17,7 @@
 import {JWTVerifyOptions, JWTVerifyResult} from 'jose';
 import {ChainScope} from './chainscope';
 import {DecodedReshareChain, ReshareChain} from 'opr-models';
+import {Pluggable} from '../integrations/pluggable';
 
 export interface VerifyChainOptions {
   initialIssuer?: string;
@@ -25,7 +26,9 @@ export interface VerifyChainOptions {
   finalScope?: ChainScope;
 }
 
-export interface Verifier {
+export interface Verifier extends Pluggable {
+  readonly type: 'verifier';
+
   verify(token: string, options?: JWTVerifyOptions): Promise<JWTVerifyResult>;
   verifyChain(
     chain: Readonly<ReshareChain>,

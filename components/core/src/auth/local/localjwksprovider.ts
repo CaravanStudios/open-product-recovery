@@ -16,9 +16,11 @@
 
 import {JwksProvider} from '../../auth/jwksprovider';
 import {JSONWebKeySet, JWK} from 'jose';
-import {ProviderIntegration} from '../../coreapi';
+import {PluggableFactory} from '../../coreapi';
 
 export class LocalJwksProvider implements JwksProvider {
+  readonly type = 'jwksProvider';
+
   private publicKeysProvider: () => Promise<Array<JWK>>;
 
   constructor(publicKeysProvider: (() => Promise<Array<JWK>>) | Array<JWK>) {
@@ -38,9 +40,15 @@ export class LocalJwksProvider implements JwksProvider {
   }
 }
 
-export const LocalJwksIntegration = {
+export interface LocalJwksProviderOptions {
+  publicKeys: Array<JWK>;
+}
+
+export const LocalJwksIntegration: PluggableFactory<
+  LocalJwksProvider,
+  LocalJwksProviderOptions
+> = {
   async construct(json) {
-    const keys = json.publicKeys as Array<JWK>;
-    return new LocalJwksProvider(keys);
+    return new LocalJwksProvider(json.publicKeys);
   },
-} as ProviderIntegration<LocalJwksProvider>;
+};

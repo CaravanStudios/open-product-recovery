@@ -37,14 +37,14 @@ import {OfferModel} from '../model/offermodel';
 import {OfferProducer} from '../offerproducer/offerproducer';
 import {NextFunction, Request, Response, Router} from 'express';
 import {JsonValue} from '../util/jsonvalue';
-import {OprHost} from './oprhost';
+import {OprTenantNode} from './oprtenantnode';
 
 export interface IntegrationApiImplOptions {
   hostOrgUrl: string;
   storage: PersistentStorage;
   netClient?: OprNetworkClient;
   model: OfferModel;
-  host: OprHost;
+  host: OprTenantNode;
   clock?: Clock;
   logger?: Logger;
   router?: Router;
@@ -59,7 +59,7 @@ export class IntegrationApiImpl implements IntegrationApi {
   readonly hostOrgUrl: string;
   private storage: PersistentStorage;
   private netClient?: OprNetworkClient;
-  private host: OprHost;
+  private host: OprTenantNode;
   private clock: Clock;
   private model: OfferModel;
   private logger: Logger;

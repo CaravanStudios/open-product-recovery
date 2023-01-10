@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-import {JsonMap, ProviderIntegration, StatusError} from 'opr-core';
-import {CloudStorageHostConfigProvider} from './cloudstoragehostconfigprovider';
+import {PluggableFactory, StatusError} from 'opr-core';
+import {
+  CloudStorageTenantNodeConfigOptionsJson,
+  CloudStorageTenantNodeConfigProvider,
+} from './cloudstoragetenantnodeconfigprovider';
 
-export const CloudStorageHostConfigProviderIntegration = {
-  async construct(json?: JsonMap): Promise<CloudStorageHostConfigProvider> {
+export const CloudStorageTenantNodeConfigProviderIntegration = {
+  async construct(
+    json: CloudStorageTenantNodeConfigOptionsJson
+  ): Promise<CloudStorageTenantNodeConfigProvider> {
     if (!json || !json.bucket) {
       throw new StatusError(
         'CloudStorageHostConfig error: a bucket must be specified',
         'CLOUD_STORAGE_HOST_PROVIDER_NO_BUCKET'
       );
     }
-    return new CloudStorageHostConfigProvider({
-      bucket: json.bucket as string,
-    });
+    return new CloudStorageTenantNodeConfigProvider(json);
   },
-} as ProviderIntegration<CloudStorageHostConfigProvider>;
+} as PluggableFactory<
+  CloudStorageTenantNodeConfigProvider,
+  CloudStorageTenantNodeConfigOptionsJson
+>;

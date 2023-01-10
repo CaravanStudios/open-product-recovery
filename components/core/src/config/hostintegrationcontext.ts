@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export interface HostIntegrationContext {
+export interface TenantNodeIntegrationContext {
   hostOrgUrl: string;
 }

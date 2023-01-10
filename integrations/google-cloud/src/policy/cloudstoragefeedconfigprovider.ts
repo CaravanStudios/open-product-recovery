@@ -19,6 +19,8 @@ import {Storage} from '@google-cloud/storage';
 import {GcsFileSpec, getGcsJson} from '../util/gcs';
 
 export class CloudStorageFeedConfigProvider implements FeedConfigProvider {
+  readonly type = 'feedConfigProvider';
+
   private storage: Storage;
   private fileSpec: GcsFileSpec | string;
 

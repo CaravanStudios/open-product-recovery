@@ -33,6 +33,8 @@ import {extractSignature} from './tokenparts';
 import {Verifier, VerifyChainOptions} from './verifier';
 
 export class StandardVerifier implements Verifier {
+  readonly type = 'verifier';
+
   private configProvider: OrgConfigProvider;
 
   constructor(configProvider: OrgConfigProvider) {

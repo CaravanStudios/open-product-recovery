@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+import {PluggableFactory} from '../integrations/pluggablefactory';
 import {JsonMap} from '../util/jsonvalue';
 import {FeedConfig, FeedConfigProvider} from './feedconfig';
 
 const DEFAULT_MAX_UPDATE_FREQUENCY_MILLIS = 5 * 60 * 1000; /* 5 minutes */
 export class StaticFeedConfigProvider implements FeedConfigProvider {
+  readonly type = 'feedConfigProvider';
+
   private feeds: Array<FeedConfig>;
   constructor(
     feeds: Array<string | FeedConfig>,
@@ -45,10 +48,13 @@ export interface StaticFeedConfigProviderIntegrationOptions extends JsonMap {
   feeds: Array<FeedConfig | string>;
 }
 
-export const StaticFeedConfigProviderIntegration = {
+export const StaticFeedConfigProviderIntegration: PluggableFactory<
+  StaticFeedConfigProvider,
+  StaticFeedConfigProviderIntegrationOptions
+> = {
   construct: async (
     json: StaticFeedConfigProviderIntegrationOptions
-  ): Promise<Array<FeedConfig>> => {
+  ): Promise<StaticFeedConfigProvider> => {
     const feedJsonArray = (json.feeds ?? []) as Array<string | FeedConfig>;
     const feeds: FeedConfig[] = [];
     for (const feedJson of feedJsonArray) {
@@ -61,6 +67,6 @@ export const StaticFeedConfigProviderIntegration = {
         feeds.push(feedJson);
       }
     }
-    return feeds;
+    return new StaticFeedConfigProvider(feeds);
   },
 };

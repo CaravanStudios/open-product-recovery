@@ -15,10 +15,12 @@
  */
 
 import {Offer} from 'opr-models';
+import {Pluggable} from '../integrations/pluggable';
 import {Listing} from '../model/listing';
-import {asAsyncGetter, AsyncGetter} from '../util/asyncgetter';
 
-export interface OfferListingPolicy {
+export interface OfferListingPolicy extends Pluggable {
+  readonly type: 'listingPolicy';
+
   getListings(
     offer: Offer,
     firstListingTimeUTC: number,

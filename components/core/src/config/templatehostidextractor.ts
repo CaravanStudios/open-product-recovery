@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-import {ProviderIntegration} from '../coreapi';
+import {PluggableFactory} from '../coreapi';
 import {JsonMap} from '../util/jsonvalue';
 import {StatusError} from '../util/statuserror';
-import {HostIdExtractor} from './hostidextractor';
+import {TenantIdExtractor} from './tenantidextractor';
 
 export interface TemplateHostIdExtractorOptionsJson extends JsonMap {
   urlTemplate: string;
 }
 
-export class TemplateHostIdExtractor implements HostIdExtractor {
+export class TemplateHostIdExtractor implements TenantIdExtractor {
+  readonly type = 'tenantIdExtractor';
+
   private urlTemplate: string;
   private idExtractRegexp: RegExp;
 
@@ -34,7 +36,7 @@ export class TemplateHostIdExtractor implements HostIdExtractor {
     );
   }
 
-  getHostId(reqUrl: string): string | undefined {
+  getTenantId(reqUrl: string): string | undefined {
     const result = this.idExtractRegexp.exec(reqUrl);
     if (result && result.length > 0 && result[1]) {
       return result[1];
@@ -53,4 +55,7 @@ export const TemplateHostIdExtractorIntegration = {
       json as TemplateHostIdExtractorOptionsJson
     );
   },
-} as ProviderIntegration<TemplateHostIdExtractor>;
+} as PluggableFactory<
+  TemplateHostIdExtractor,
+  TemplateHostIdExtractorOptionsJson
+>;

@@ -18,18 +18,28 @@ import {JwksProvider} from '../auth/jwksprovider';
 import {Signer} from '../auth/signer';
 import {Verifier} from '../auth/verifier';
 import {OrgConfigProvider} from './orgconfigprovider';
-import {AnnotatedHostIntegrationInstaller} from '../integrations/hostintegration';
+import {TenantNodeIntegrationInstaller} from '../integrations/tenantnodeintegrationinstaller';
 import {OfferProducer} from '../offerproducer/offerproducer';
 import {FeedConfig} from '../policy/feedconfig';
 import {OfferListingPolicy} from '../policy/offerlistingpolicy';
 import {ServerAccessControlList} from '../policy/serveraccesscontrollist';
-import {ProviderIntegrationJson} from '../integrations/providerintegrationjson';
-import {JsonMap} from '../util/jsonvalue';
+import {Logger} from '../util/loglevel';
+import {Clock} from '../util/clock';
+import {PluggableFactorySet} from '../integrations/pluggablefactoryset';
+import {ConfigJson} from './resolveconfigjson';
 
-export interface HostConfigJson extends JsonMap {
+export interface TenantNodeConfig extends TenantNodeUserConfig {
+  hostUrlRoot: string;
+  logger?: Logger;
+  clock?: Clock;
+  // Destroys all objects used by this config.
+  destroy(): Promise<void>;
+}
+
+// User configurable tenant node options
+export interface TenantNodeUserConfig {
   name: string;
   hostOrgUrl?: string;
-  hostUrlRoot: string;
   orgFilePath?: string;
   enrollmentURL?: string;
   jwksFilePath?: string;
@@ -39,17 +49,19 @@ export interface HostConfigJson extends JsonMap {
   rejectProductPath?: string;
   reserveProductPath?: string;
   historyPath?: string;
-  orgConfigProvider?: ProviderIntegrationJson<OrgConfigProvider>;
-  listingPolicy: ProviderIntegrationJson<OfferListingPolicy>;
-  signer: ProviderIntegrationJson<Signer>;
-  jwks?: ProviderIntegrationJson<JwksProvider>;
+  orgConfigProvider?: OrgConfigProvider;
+  listingPolicy: OfferListingPolicy;
+  signer: Signer;
+  jwks?: JwksProvider;
   strictCorrectnessChecks?: boolean;
   defaultReservationTimeSecs?: number;
-  accessControlList: ProviderIntegrationJson<ServerAccessControlList>;
-  feedConfigs?: ProviderIntegrationJson<FeedConfig[]>;
-  producers?: ProviderIntegrationJson<Array<OfferProducer>>;
-  verifier?: ProviderIntegrationJson<Verifier>;
-  integrations?: ProviderIntegrationJson<
-    Array<AnnotatedHostIntegrationInstaller>
-  >;
+  accessControlList: ServerAccessControlList;
+  feedConfigs?: FeedConfig[];
+  producers?: Array<OfferProducer>;
+  verifier?: Verifier;
+  integrations?: Array<TenantNodeIntegrationInstaller>;
 }
+
+export type TenantNodeConfigJson<
+  Allowed extends PluggableFactorySet = PluggableFactorySet
+> = ConfigJson<TenantNodeUserConfig, Allowed>;

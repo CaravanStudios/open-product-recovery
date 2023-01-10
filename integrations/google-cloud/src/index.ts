@@ -16,7 +16,8 @@
 
 export * from './auth/cloudstoragejwksprovider';
 export * from './auth/cloudstoragekeysigner';
-export * from './config/cloudstoragehostconfigprovider';
+export * from './config/cloudstoragetenantnodeconfigprovider';
+export * from './integrations';
 export * from './net/authenticatedjsonfetcher';
 export * from './policy/cloudstoragefeedconfigprovider';
 export * from './policy/cloudstorageserveraccesscontrollist';
@@ -29,9 +30,3 @@ export * from './server/checkiamauth';
 export * from './server/iamaccesscontrollist';
 export * from './server/iamcustomendpointwrapper';
 export * from './server/iammiddleware';
-
-import {CloudStorageHostConfigProviderIntegration} from './config/cloudstoragehostconfigproviderintegration';
-
-export const integrations = {
-  GcsMultitenant: CloudStorageHostConfigProviderIntegration,
-};

@@ -31,6 +31,8 @@ import {Offer} from 'opr-models';
  * Later, this will support generic offer filters at any level in the hierarchy.
  */
 export class HierarchicalListingPolicy implements OfferListingPolicy {
+  readonly type = 'listingPolicy';
+
   private listingHierarchies: Array<ListingHierarchy>;
 
   constructor(listingHierarchies: Array<ListingHierarchy>) {

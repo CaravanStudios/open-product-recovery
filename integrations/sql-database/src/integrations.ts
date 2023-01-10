@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import {JsonMap} from '../util/jsonvalue';
+import {SqlOprPersistentStorageIntegration} from './sqloprpersistentstorageintegration';
 
-export interface ProviderIntegration<T, C = {}> {
-  construct(json: JsonMap, context?: C): Promise<T>;
-  destroy?(obj: T): Promise<void>;
-}
+export const integrations = {
+  SqlStorage: SqlOprPersistentStorageIntegration,
+};

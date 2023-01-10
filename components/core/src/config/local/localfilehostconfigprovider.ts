@@ -14,37 +14,41 @@
  * limitations under the License.
  */
 
-import {ProviderIntegration} from '../../integrations/providerintegration';
-import {HostConfigJsonProvider} from '../hostconfigprovider';
-import {HostConfigJson} from '../hostconfigjson';
+import {PluggableFactory} from '../../integrations/pluggablefactory';
+import {TenantNodeConfigProvider} from '../tenantnodeconfigprovider';
 import {StatusError} from '../../util/statuserror';
 import {JsonMap} from '../../util/jsonvalue';
 import path from 'path';
 import fs from 'fs/promises';
+import {TenantNodeConfigJson} from '../tenantnodeconfig';
+import {PluggableFactorySet} from '../../integrations/pluggablefactoryset';
 
 export interface LocalFileMultitenantOptionsJson extends JsonMap {
   // Path to the base directory of configuration files.
   basePath: string;
 }
 
-export class LocalFileMultitenantIntegration
-  implements ProviderIntegration<HostConfigJsonProvider>
-{
-  async construct(
+export const LocalFileMultitenantIntegration = {
+  async construct<Allowed extends PluggableFactorySet>(
     json: LocalFileMultitenantOptionsJson
-  ): Promise<HostConfigJsonProvider> {
+  ): Promise<LocalFileHostConfigProvider<Allowed>> {
     return new LocalFileHostConfigProvider(json);
-  }
-}
+  },
+};
 
-export class LocalFileHostConfigProvider implements HostConfigJsonProvider {
+export class LocalFileHostConfigProvider<Allowed extends PluggableFactorySet>
+  implements TenantNodeConfigProvider<Allowed>
+{
+  readonly type = 'tenantConfigProvider';
   private basePath: string;
 
   constructor(options: LocalFileMultitenantOptionsJson) {
     this.basePath = options.basePath;
   }
 
-  async getHostConfig(hostId: string): Promise<HostConfigJson> {
+  async getTenantConfig(
+    hostId: string
+  ): Promise<TenantNodeConfigJson<Allowed>> {
     const configFilePath = path.resolve(
       './' + hostId + '/config.json',
       this.basePath
@@ -61,7 +65,7 @@ export class LocalFileHostConfigProvider implements HostConfigJsonProvider {
     }
   }
 
-  async *getAllHostIds(): AsyncIterable<string> {
+  async *getAllTenantIds(): AsyncIterable<string> {
     const filePaths = await fs.readdir(this.basePath);
     for (const fileName of filePaths) {
       const stat = await fs.stat(path.resolve(fileName, this.basePath));

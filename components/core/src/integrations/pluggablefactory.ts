@@ -14,7 +14,24 @@
  * limitations under the License.
  */
 
-export interface HostIdExtractor {
-  getHostId(reqUrl: string): string | undefined;
-  getRootPathFromId(id: string): string;
+import {Schema} from 'jsonschema';
+import {ConfigJson} from '../config/resolveconfigjson';
+import {Pluggable} from './pluggable';
+import {PluggableFactorySet} from './pluggablefactoryset';
+
+export interface PluggableFactory<
+  T extends Pluggable = Pluggable,
+  C = undefined,
+  X = undefined
+> {
+  readonly schema?: Schema;
+  construct<Allowed extends PluggableFactorySet>(
+    config: C,
+    context: X,
+    allowed: Allowed
+  ): Promise<T>;
+  destroy?(obj: T): Promise<void>;
+  castSubConfig?<ResultType, Allowed extends PluggableFactorySet>(
+    config: C
+  ): ConfigJson<ResultType, Allowed>;
 }

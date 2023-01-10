@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {JsonMap, ProviderIntegration} from 'opr-core';
+import {PluggableFactory} from 'opr-core';
 import {DataSourceOptions} from 'typeorm';
 import {SqlOprPersistentStorage} from './sqloprpersistentstorage';
 
 export const SqlOprPersistentStorageIntegration = {
-  async construct(json?: JsonMap): Promise<SqlOprPersistentStorage> {
+  async construct(json: DataSourceOptions): Promise<SqlOprPersistentStorage> {
     const storage = new SqlOprPersistentStorage({
-      dsOptions: json as unknown as DataSourceOptions,
+      dsOptions: json,
     });
     await storage.initialize();
     return storage;
@@ -29,4 +29,4 @@ export const SqlOprPersistentStorageIntegration = {
   async destroy(obj: SqlOprPersistentStorage): Promise<void> {
     await obj.shutdown();
   },
-} as ProviderIntegration<SqlOprPersistentStorage>;
+} as PluggableFactory<SqlOprPersistentStorage, DataSourceOptions>;

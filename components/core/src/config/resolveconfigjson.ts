@@ -14,136 +14,291 @@
  * limitations under the License.
  */
 
-import {ProviderIntegration} from '../integrations/providerintegration';
+import {Pluggable} from '../integrations/pluggable';
+import {PluggableFactory} from '../integrations/pluggablefactory';
+import {PluggableFactorySet} from '../integrations/pluggablefactoryset';
 import {
-  isProviderIntegrationJson,
-  ProviderIntegrationJson,
-} from '../integrations/providerintegrationjson';
-import {JsonMap} from '../util/jsonvalue';
-import {StatusError} from '../util/statuserror';
+  isPluggableFactoryJsonStanza,
+  PluggableFactoryJsonMapStanza,
+  PluggableFactoryJsonStanza,
+} from '../integrations/pluggablefactoryjson';
+import {Simplify, ValueOf} from 'type-fest';
+import {integrations} from '../integrations';
+import {StaticMultitenantOptionsJson} from './statictenantnodeconfigprovider';
+import {Signer} from '../auth/signer';
+import {TenantNodeConfigJson} from './tenantnodeconfig';
+import {OfferListingPolicy} from '../coreapi';
 
-export type ResolvedConfigValue<Type> = {
-  [Property in keyof Type]: Type[Property] extends
-    | ProviderIntegrationJson<infer ReturnType, infer ConfigType>
-    | undefined
-    ? ReturnType
-    : Type[Property] extends Array<
-        ProviderIntegrationJson<infer ReturnType, infer ConfigType>
-      >
-    ? Array<ReturnType>
-    : Type[Property];
+type S = AllowedFactoriesOfType<typeof integrations, OfferListingPolicy>;
+type R = AllowedFactoryJsonsOfType<typeof integrations, Signer>;
+const nodeConfig: TenantNodeConfigJson<typeof integrations> = {
+  // jwks: {
+  //   moduleName: 'LocalJwks',
+  //   params: {
+  //     publicKeys: [],
+  //   },
+  // },
+  name: 'Example',
+  listingPolicy: {
+    moduleName: 'UniversalListingPolicy',
+    params: {
+      orgUrls: [],
+    },
+  },
+  accessControlList: {
+    moduleName: 'StaticAccessControlList',
+    params: {
+      allow: [],
+    },
+  },
+  signer: {
+    moduleName: 'LocalKeySigner',
+    params: {
+      privateKey: {},
+    },
+  },
 };
 
-export interface ResolutionResult<Type> {
-  resolvedConfig: ResolvedConfigValue<Type>;
+type LegalFactories = AllowedFactoryNamed<
+  typeof integrations,
+  'StaticMultitenant'
+>;
+type LegalStanza = Simplify<
+  LegalJsonMapStanza<typeof integrations, 'StaticMultitenant'>
+>;
+
+const x: LegalStanza = {
+  moduleName: 'StaticMultitenant',
+  params: {
+    hosts: {},
+  },
+};
+
+// export type AllowedFactoriesOfType<
+//   Allowed extends PluggableFactorySet,
+//   T extends Pluggable
+// > = {
+//   [key in StringKeyOf<Allowed>]: Allowed[key] extends PluggableFactory<
+//     infer P,
+//     unknown,
+//     unknown
+//   >
+//     ? P extends T
+//       ? Allowed[key]
+//       : never
+//     : never;
+// };
+export type AllowedFactoriesOfType<
+  Allowed extends PluggableFactorySet,
+  T extends Pluggable
+> = {
+  [key in StringKeyOf<Allowed> as key extends string
+    ? Allowed[key] extends PluggableFactory<T, unknown, unknown>
+      ? key
+      : never
+    : never]: Allowed[key];
+};
+
+export type AllowedFactoryJsonsOfType<
+  Allowed extends PluggableFactorySet,
+  T extends Pluggable
+> = {
+  [key in keyof AllowedFactoriesOfType<Allowed, T>]: AllowedFactoriesOfType<
+    Allowed,
+    T
+  >[key] extends PluggableFactory<Pluggable, infer C, unknown>
+    ? PluggableFactoryJsonStanza<key, C>
+    : never;
+};
+
+export type FactoryConfig<
+  Allowed extends PluggableFactorySet,
+  FactoryName extends StringKeyOf<Allowed>
+> = AllowedFactoryNamed<Allowed, FactoryName> extends PluggableFactory<
+  Pluggable,
+  infer C,
+  unknown
+>
+  ? C
+  : never;
+
+export type FactoryResult<T> = T extends PluggableFactory<
+  infer P,
+  unknown,
+  unknown
+>
+  ? P
+  : never;
+
+export type StringKeyOf<T> = Extract<keyof T, string>;
+
+export type AllowedFactoryNamed<
+  Allowed extends PluggableFactorySet,
+  ModuleName extends StringKeyOf<Allowed>
+> = ValueOf<Pick<Allowed, ModuleName>>;
+
+export interface ResolvedPluggableResult<
+  Allowed extends PluggableFactorySet,
+  ModuleName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>
+> {
+  result: FactoryResult<Allowed[ModuleName]>;
+  configJson: PluggableFactoryJsonStanza<
+    ModuleName,
+    FactoryConfig<Allowed, ModuleName>
+  >;
+  factory: Allowed[ModuleName];
+}
+
+export type LegalJsonStanza<
+  Allowed extends PluggableFactorySet,
+  ModuleName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>
+> = PluggableFactoryJsonStanza<ModuleName, FactoryConfig<Allowed, ModuleName>>;
+
+export type LegalJsonMapStanza<
+  Allowed extends PluggableFactorySet,
+  ModuleName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>
+> = PluggableFactoryJsonMapStanza<
+  ModuleName,
+  FactoryConfig<Allowed, ModuleName>
+>;
+
+export function extractModuleName<ModuleName extends string>(
+  configJson: PluggableFactoryJsonStanza<ModuleName, unknown>
+): ModuleName {
+  if (typeof configJson === 'string') {
+    return configJson;
+  } else if (Array.isArray(configJson)) {
+    return configJson[0];
+  } else {
+    const valAsMap = configJson as PluggableFactoryJsonMapStanza<
+      ModuleName,
+      unknown
+    >;
+    return valAsMap.moduleName;
+  }
+}
+
+export function extractParams<
+  ModuleName extends StringKeyOf<Allowed>,
+  Allowed extends PluggableFactorySet
+>(
+  configJson: PluggableFactoryJsonStanza<
+    ModuleName,
+    FactoryConfig<Allowed, ModuleName>
+  >
+): FactoryConfig<Allowed, ModuleName> {
+  if (typeof configJson === 'string') {
+    return undefined as FactoryConfig<Allowed, ModuleName>;
+  } else if (Array.isArray(configJson)) {
+    return configJson[1];
+  } else {
+    const valAsMap = configJson as PluggableFactoryJsonMapStanza<
+      ModuleName,
+      FactoryConfig<Allowed, ModuleName>
+    >;
+    return valAsMap.params;
+  }
+}
+
+export async function constructPluggableFromConfig<
+  Allowed extends PluggableFactorySet,
+  ModuleName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>,
+  ContextType = undefined
+>(
+  configJson: LegalJsonStanza<Allowed>,
+  allowed: Allowed,
+  context: ContextType
+): Promise<ResolvedPluggableResult<Allowed, ModuleName>> {
+  const moduleName = extractModuleName(configJson);
+  const params = extractParams(configJson);
+  const factory = allowed[moduleName];
+  const val = await factory.construct(params, context, allowed);
+  val.moduleNameSource = moduleName;
+  return {
+    result: val as FactoryResult<Allowed[ModuleName]>,
+    configJson: configJson as PluggableFactoryJsonStanza<
+      ModuleName,
+      FactoryConfig<Allowed, ModuleName>
+    >,
+    factory: factory as Allowed[ModuleName],
+  };
+}
+
+type PluggablesInCollection<T> = T extends Pluggable
+  ? T
+  : T extends Array<infer P extends Pluggable>
+  ? P
+  : never;
+
+export type ConfigJson<T, Allowed extends PluggableFactorySet> = {
+  [key in keyof T]: T[key] extends Pluggable | Pluggable[] | undefined
+    ? ValueOf<
+        AllowedFactoryJsonsOfType<Allowed, PluggablesInCollection<T[key]>>
+      >
+    : T[key];
+};
+
+export interface ResolutionResult<T> {
+  result: T;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  allPluggables: Array<ResolvedPluggableResult<any, any>>;
   destroyAll(): Promise<void>;
 }
 
-interface ResolvedProviderIntegration<T> {
-  value: T;
-  destructor?: (obj: T) => Promise<void>;
-}
-
-async function resolveProviderIntegrationJson<
-  ReturnType,
-  ConfigType extends JsonMap,
-  ContextType = {}
+/**
+ * Resolves a JSON configuration with pluggable configuration stanzas into an
+ * object where all the pluggable config stanzas are resolved into constructed
+ * Pluggable objects.
+ */
+export async function resolveConfigJson<
+  ResultType,
+  Allowed extends PluggableFactorySet,
+  X = undefined
 >(
-  val: ProviderIntegrationJson<ReturnType, ConfigType>,
-  context?: ContextType
-): Promise<ResolvedProviderIntegration<ReturnType>> {
-  if (!require.main) {
-    throw new StatusError(
-      'Dynamic module resolution requires a main module',
-      'NO_MAIN_MODULE'
-    );
-  }
-  const moduleParts = val.moduleName.split('#');
-  const moduleName = moduleParts[0];
-  const integrationName = moduleParts.length > 1 ? moduleParts[1] : 'default';
-  const dynamicModule = require.main?.require(moduleName);
-  if (!dynamicModule) {
-    throw new StatusError(
-      'Could not find module ' + moduleName,
-      'CANNOT_RESOLVE_MODULE'
-    );
-  }
-  const integrations = dynamicModule.integrations;
-  if (!integrations) {
-    throw new StatusError(
-      'Module ' + moduleName + ' does not publish any integrations',
-      'NO_INTEGRATIONS_IN_MODULE'
-    );
-  }
-  const providerIntegration = integrations[
-    integrationName
-  ] as ProviderIntegration<ReturnType, ContextType>;
-  if (!providerIntegration) {
-    throw new Error(
-      'Could not find ' +
-        integrationName +
-        ' in module ' +
-        moduleName +
-        ' from config ' +
-        JSON.stringify(val)
-    );
-  }
-  const constructedValue = await providerIntegration.construct(
-    val.params ?? {},
-    context
-  );
-  return {
-    value: constructedValue,
-    destructor: providerIntegration.destroy,
-  };
-}
-
-export async function resolveConfigJson<T extends JsonMap, C = {}>(
-  config: T,
-  context?: C,
-  valueMapper?: (x: unknown, config: JsonMap) => unknown
-): Promise<ResolutionResult<T>> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const resolvedConfig: any = {};
-  const destroyers: Array<() => Promise<void>> = [];
+  config: ConfigJson<ResultType, Allowed>,
+  allowed: Allowed,
+  context?: X
+): Promise<ResolutionResult<ResultType>> {
+  const resultObj: Record<string, unknown> = {};
+  const allPluggables: Array<ResolvedPluggableResult<Allowed>> = [];
   for (const key in config) {
-    const val = config[key];
-    if (isProviderIntegrationJson(val)) {
-      const resolved = await resolveProviderIntegrationJson(val, context);
-      const resolvedValue = valueMapper
-        ? valueMapper(resolved.value, val)
-        : resolved.value;
-      resolvedConfig[key] = resolvedValue;
-      if (resolved.destructor) {
-        destroyers.push(() => resolved.destructor!(resolved.value));
-      }
-    } else if (Array.isArray(val)) {
-      const arr: Array<unknown> = [];
-      for (const item of val) {
-        if (isProviderIntegrationJson(item)) {
-          const resolved = await resolveProviderIntegrationJson(item, context);
-          const resolvedValue = valueMapper
-            ? valueMapper(resolved.value, item)
-            : resolved.value;
-          resolvedConfig[key] = resolvedValue;
-          arr.push(resolvedValue);
-          if (resolved.destructor) {
-            destroyers.push(() => resolved.destructor!(resolved.value));
-          }
+    const configVal = config[key];
+    let resultVal;
+    if (isPluggableFactoryJsonStanza(configVal, allowed)) {
+      resultVal = await constructPluggableFromConfig(
+        configVal as LegalJsonStanza<Allowed>,
+        allowed,
+        context
+      );
+      allPluggables.push(resultVal);
+      resultObj[key] = resultVal.result;
+    } else if (Array.isArray(configVal)) {
+      const newArray = [];
+      for (const subVal of configVal) {
+        if (isPluggableFactoryJsonStanza(configVal, allowed)) {
+          const subResultVal = await constructPluggableFromConfig(
+            configVal as LegalJsonStanza<Allowed>,
+            allowed,
+            context
+          );
+          allPluggables.push(subResultVal);
+          newArray.push(subResultVal.result);
         } else {
-          arr.push(item);
+          newArray.push(subVal);
         }
       }
-      resolvedConfig[key] = arr;
+      resultObj[key] = resultVal;
     } else {
-      resolvedConfig[key] = val;
+      resultObj[key] = configVal;
     }
   }
-  const destroyAll = async () => {
-    await Promise.all(destroyers.map(async d => await d()));
-  };
   return {
-    resolvedConfig: resolvedConfig,
-    destroyAll: destroyAll,
+    result: resultObj as ResultType,
+    allPluggables: allPluggables,
+    async destroyAll(): Promise<void> {
+      await Promise.all(
+        allPluggables.map(p => p.result.destroy && p.result.destroy())
+      );
+    },
   };
 }

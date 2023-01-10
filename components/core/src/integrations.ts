@@ -16,18 +16,16 @@
 
 import {LocalJwksIntegration} from './auth/local/localjwksprovider';
 import {LocalKeySignerIntegration} from './auth/local/localkeysigner';
-import {StaticMultitenantIntegration} from './config/statichostconfigprovider';
+import {LocalFileMultitenantIntegration} from './config/local/localfilehostconfigprovider';
+import {StaticMultitenantIntegration} from './config/statictenantnodeconfigprovider';
 import {TemplateHostIdExtractorIntegration} from './config/templatehostidextractor';
-import {StaticServerAccessControlListIntegration} from './coreapi';
-import {ProviderIntegration} from './integrations/providerintegration';
 import {StaticFeedConfigProviderIntegration} from './policy/staticfeedconfigprovider';
+import {StaticServerAccessControlListIntegration} from './policy/staticserveraccesscontrollist';
 import {UniversalAcceptListingPolicyIntegration} from './policy/universalacceptlistingpolicy';
 
-export const integrations: Record<
-  string,
-  ProviderIntegration<unknown, unknown>
-> = {
-  StaticMultitenant: new StaticMultitenantIntegration(),
+export const integrations = {
+  StaticMultitenant: StaticMultitenantIntegration,
+  LocalFileMultitenant: LocalFileMultitenantIntegration,
   UniversalListingPolicy: UniversalAcceptListingPolicyIntegration,
   StaticFeeds: StaticFeedConfigProviderIntegration,
   LocalKeySigner: LocalKeySignerIntegration,

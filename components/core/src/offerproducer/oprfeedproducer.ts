@@ -25,6 +25,8 @@ import {OfferProducer, OfferSetUpdate} from './offerproducer';
 import {log, Logger} from '../util/loglevel';
 
 export class OprFeedProducer implements OfferProducer {
+  readonly type = 'offerProducer';
+
   private client: OprNetworkClient;
   private organizationUrl: string;
   private clock: Clock;

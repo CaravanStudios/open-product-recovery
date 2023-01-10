@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-import {JsonMap} from '../coreapi';
-import {IntegrationApi} from './integrationapi';
+import {Pluggable} from '../integrations/pluggable';
 
-export type HostItegrationTeardownFn = (
-  integrationApi: IntegrationApi
-) => Promise<void>;
+/**
+ * Extracts a TenantNode unique identifier from a URL.
+ */
+export interface TenantIdExtractor extends Pluggable {
+  readonly type: 'tenantIdExtractor';
 
-export type HostIntegrationInstallFn = (
-  integrationApi: IntegrationApi
-) => Promise<void | HostItegrationTeardownFn>;
+  /** Extracts the TenantNode id from a request url. */
+  getTenantId(reqUrl: string): string | undefined;
 
-export interface AnnotatedHostIntegrationInstaller {
-  moduleName: string;
-  params: JsonMap;
-  install: HostIntegrationInstallFn;
+  /**
+   * Generates the root path on the server for the given TenantNode id. This
+   * is the base path from which all other paths are generated for this
+   * TenantNode.
+   */
+  getRootPathFromId(id: string): string;
 }

@@ -15,6 +15,8 @@
  */
 
 import {Offer} from 'opr-models';
+import {Pluggable} from '../integrations/pluggable';
+import {PluggableFactory} from '../integrations/pluggablefactory';
 import {Listing} from '../model/listing';
 import {asAsyncGetter, AsyncGetter} from '../util/asyncgetter';
 import {JsonMap} from '../util/jsonvalue';
@@ -25,6 +27,8 @@ import {OfferListingPolicy} from './offerlistingpolicy';
  * offers, but not to reshare them.
  */
 export class UniversalAcceptListingPolicy implements OfferListingPolicy {
+  readonly type = 'listingPolicy';
+
   private orgCollectionProvider: AsyncGetter<Iterable<string>>;
 
   constructor(
@@ -60,6 +64,8 @@ export class UniversalAcceptListingPolicy implements OfferListingPolicy {
 }
 
 export class FakeListingPolicy implements OfferListingPolicy {
+  readonly type = 'listingPolicy';
+
   private listingMap?: Record<string, Array<Listing>>;
   private delegate?: OfferListingPolicy;
 
@@ -103,7 +109,10 @@ export interface UniversalAcceptListingPolicyIntegrationOptions
   orgUrls: string[];
 }
 
-export const UniversalAcceptListingPolicyIntegration = {
+export const UniversalAcceptListingPolicyIntegration: PluggableFactory<
+  UniversalAcceptListingPolicy,
+  UniversalAcceptListingPolicyIntegrationOptions
+> = {
   construct: async (
     json: UniversalAcceptListingPolicyIntegrationOptions
   ): Promise<UniversalAcceptListingPolicy> => {

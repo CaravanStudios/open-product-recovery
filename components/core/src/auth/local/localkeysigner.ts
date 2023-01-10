@@ -20,12 +20,15 @@ import {StatusError} from '../../util/statuserror';
 import {importJWK, JWK, JWTPayload, SignJWT} from 'jose';
 import {Signer, IssueTokenOptions, SignChainOptions} from '../signer';
 import {ReshareChain} from 'opr-models';
-import {ProviderIntegration} from '../../coreapi';
-import {HostIntegrationContext} from '../../config/hostintegrationcontext';
+import {TenantNodeIntegrationContext} from '../../config/hostintegrationcontext';
+import {PluggableFactory} from '../../integrations/pluggablefactory';
+import {JsonMap} from '../../util/jsonvalue';
 
 const DEFAULT_TOKEN_MAX_AGE_MILLIS = 10 * 60 * 1000; // 10 minutes
 
 export class LocalKeySigner implements Signer {
+  readonly type = 'signer';
+
   protected issuer: string;
   private privateKeyProvider: () => Promise<JWK>;
   private clock: Clock;
@@ -110,9 +113,16 @@ export class LocalKeySigner implements Signer {
   }
 }
 
+export interface LocalKeySignerIntegrationOptions {
+  privateKey: JWK;
+}
+
 export const LocalKeySignerIntegration = {
-  async construct(json, context?) {
-    const issuer = context?.hostOrgUrl;
+  async construct(
+    json: LocalKeySignerIntegrationOptions,
+    context: TenantNodeIntegrationContext
+  ) {
+    const issuer = context.hostOrgUrl;
     if (!issuer) {
       throw new StatusError(
         'Unexpected condition, host org url not set in host integration',
@@ -125,6 +135,6 @@ export const LocalKeySignerIntegration = {
         'LOCAL_KEY_SIGNER_NO_PRIVATE_KEY'
       );
     }
-    return new LocalKeySigner(context?.hostOrgUrl, json.privateKey as JWK);
+    return new LocalKeySigner(context.hostOrgUrl, json.privateKey);
   },
-} as ProviderIntegration<LocalKeySigner, HostIntegrationContext>;
+};

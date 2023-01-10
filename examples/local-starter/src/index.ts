@@ -21,7 +21,20 @@
  * offers, on request. It is useful for getting a feel for an OPR server's main
  * components, and can be used as a "partner" node for local development.
  */
-import {generateKeys, log, OprServer, ServerConfigJson} from 'opr-core';
+import {
+  AllowedFactoryNamed,
+  generateKeys,
+  integrations as CoreIntegrations,
+  LegalJsonMapStanza,
+  LegalJsonStanza,
+  log,
+  OprServer,
+  PluggableFactory,
+  StringKeyOf,
+} from 'opr-core';
+import {Pluggable} from 'opr-core/build/integrations/pluggable';
+import {PluggableFactorySet} from 'opr-core/build/integrations/pluggablefactoryset';
+import {integrations as SqlIntegrations} from 'opr-sql-database';
 log.setLevel('WARN');
 
 // We need a main method because we want to use the "await" keyword,
@@ -66,7 +79,7 @@ async function main() {
     },
     // Sets up a Json Web Key Set with the public key we just generated.
     jwks: {
-      moduleName: 'opr-core#LocalJwks',
+      moduleName: 'LocalJwks',
       params: {
         publicKeys: [PUBLIC_KEY],
       },
@@ -97,87 +110,105 @@ async function main() {
   };
 
   // Start a local in-memory server to track offers.
-  const s = new OprServer({
-    storage: {
-      moduleName: 'opr-sql-database',
-      params: {
-        type: 'sqlite',
-        database: ':memory',
-        synchronize: true,
-        dropSchema: true,
+  const mergedFactories = {...SqlIntegrations, ...CoreIntegrations};
+  type LegalFactoryNames = StringKeyOf<typeof mergedFactories>;
+  type FilteredFactories = Pick<typeof mergedFactories, 'SqlStorage'>;
+  type LegalFactories = AllowedFactoryNamed<
+    typeof mergedFactories,
+    'StaticMultitenant'
+  >;
+  const y = mergedFactories.StaticMultitenant;
+  const z: LegalFactories = mergedFactories.StaticMultitenant;
+
+  type LegalStanza = LegalJsonMapStanza<
+    typeof mergedFactories,
+    'StaticMultitenant'
+  >;
+  const x: LegalStanza = {
+    moduleName: 'StaticMultitenant',
+    params: {
+      hosts: {
+        main: {
+          ...baseHostConfig,
+          name: 'Example',
+        },
       },
     },
-    hostMapping: {
-      moduleName: 'opr-core#TemplateHostIds',
-      params: {
-        urlTemplate: 'http://localhost:5000/$',
+  };
+
+  type TEST = typeof mergedFactories extends PluggableFactorySet<
+    PluggableFactory<Pluggable, unknown, unknown>
+  >
+    ? number
+    : never;
+
+  const s = new OprServer(
+    {
+      storage: {
+        moduleName: 'SqlStorage',
+        params: {
+          type: 'sqlite',
+          database: ':memory',
+          synchronize: true,
+          dropSchema: true,
+        },
       },
-    },
-    hostSetup: {
-      // Use the StaticMultitenant driver to read host configurations. This
-      // means this server supports multiple hosts, each of which is configured
-      // in advance with host configuration read from memory.
-      moduleName: 'opr-core#StaticMultitenant',
-      params: {
-        hosts: {
-          // Sets up a server at http://localhost:5000/main/org.json. This id
-          // in this map becomes the first path segment to all requests made
-          // to this server.
-          main: {
-            ...baseHostConfig,
-            name: 'MainExampleServer',
-            feedConfigs: {
-              moduleName: 'opr-core#StaticFeeds',
-              params: {
-                feeds: ['http://localhost:5000/other/org.json'],
-              },
+      hostMapping: {
+        moduleName: 'TemplateHostIds',
+        params: {
+          urlTemplate: 'http://localhost:5000/$',
+          pap: 'rika',
+        },
+      },
+      hostSetup: {
+        // Use the StaticMultitenant driver to read host configurations. This
+        // means this server supports multiple hosts, each of which is
+        // configured in advance with host configuration read from memory.
+        moduleName: 'StaticMultitenant',
+        params: {
+          hosts: {
+            // Sets up a server at http://localhost:5000/main/org.json. This id
+            // in this map becomes the first path segment to all requests made
+            // to this server.
+            main: {
+              ...baseHostConfig,
+              name: 'MainExampleServer',
+              feedConfigs: [
+                {
+                  moduleName: 'StaticFeeds',
+                  params: {
+                    feeds: ['http://localhost:5000/other/org.json'],
+                  },
+                },
+              ],
+              // Install integrations. Integrations are really just installer
+              // functions that get passed an instance of IntegrationApi. They
+              // can install new endpoints, data providers, and behaviors that occur
+              // when the offers on a server change.
+              integrations: ['LocalMain', 'helloworld'],
             },
-            // Install integrations. Integrations are really just installer
-            // functions that get passed an instance of IntegrationApi. They can
-            // install new endpoints, data providers, and behaviors that occur
-            // when the offers on a server change.
-            integrations: [
-              {
-                moduleName: './localintegrations',
-              },
-              {
-                // The MainExampleServer uses the helloworld integration, which
-                // installs an endpoint that returns a hello world message at
-                // http://localhost:5000/main/helloworld
-                moduleName: './localintegrations#helloworld',
-              },
-            ],
-          },
-          // Sets up a server at http://localhost:5000/other/org.json
-          other: {
-            ...baseHostConfig,
-            name: 'OtherExampleServer',
-            feedConfigs: {
-              moduleName: 'opr-core#StaticFeeds',
-              params: {
-                feeds: ['http://localhost:5000/main/org.json'],
-              },
-            },
-            // Install integrations. Integrations are really just installer
-            // functions that get passed an instance of IntegrationApi. They can
-            // install new endpoints, data providers, and behaviors that occur
-            // when the offers on a server change.
-            integrations: [
-              {
-                moduleName: './localintegrations',
-              },
-              {
-                // The OtherExampleServer uses the howdyworld integration, which
-                // installs an endpoint that returns a hello world message at
-                // http://localhost:5000/other/howdyworld
-                moduleName: './localintegrations#howdyworld',
-              },
-            ],
+            // // Sets up a server at http://localhost:5000/other/org.json
+            // other: {
+            //   ...baseHostConfig,
+            //   name: 'OtherExampleServer',
+            //   feedConfigs: {
+            //     moduleName: 'StaticFeeds',
+            //     params: {
+            //       feeds: ['http://localhost:5000/main/org.json'],
+            //     },
+            //   },
+            //   // Install integrations. Integrations are really just installer
+            //   // functions that get passed an instance of IntegrationApi. They can
+            //   // install new endpoints, data providers, and behaviors that occur
+            //   // when the offers on a server change.
+            //   integrations: ['LocalMain', 'howdyworld'],
+            // },
           },
         },
       },
     },
-  } as ServerConfigJson);
+    {...CoreIntegrations, ...SqlIntegrations}
+  );
   await s.start(5000);
   // The server is up! Things to try:
   // See the MainExampleServer config at http://localhost:5000/main/org.json

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Pluggable} from '../integrations/pluggable';
 import {JsonMap} from '../util/jsonvalue';
 
 export interface FeedConfig extends JsonMap {
@@ -21,6 +22,8 @@ export interface FeedConfig extends JsonMap {
   readonly maxUpdateFrequencyMillis: number;
 }
 
-export interface FeedConfigProvider {
+export interface FeedConfigProvider extends Pluggable {
+  readonly type: 'feedConfigProvider';
+
   getFeeds(): Promise<Array<FeedConfig>>;
 }

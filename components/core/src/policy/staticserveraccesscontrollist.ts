@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import {ProviderIntegration} from '../coreapi';
+import {PluggableFactory} from '../coreapi';
 import {ServerAccessControlList} from './serveraccesscontrollist';
 
 export class StaticServerAccessControlList implements ServerAccessControlList {
+  readonly type = 'accessControlList';
+
   private accessControlList: Record<string, boolean>;
 
   constructor(accessControlList: Array<string>) {
@@ -36,8 +38,12 @@ export class StaticServerAccessControlList implements ServerAccessControlList {
   }
 }
 
+export interface IntegrationOptions {
+  allow: Array<string>;
+}
+
 export const StaticServerAccessControlListIntegration = {
-  async construct(json, context?) {
-    return new StaticServerAccessControlList(json.allow as Array<string>);
+  async construct(json) {
+    return new StaticServerAccessControlList(json.allow);
   },
-} as ProviderIntegration<StaticServerAccessControlList>;
+} as PluggableFactory<StaticServerAccessControlList, IntegrationOptions>;

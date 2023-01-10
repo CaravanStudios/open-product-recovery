@@ -152,6 +152,8 @@ export class SqlTransaction implements Transaction {
 }
 
 export class SqlOprPersistentStorage implements PersistentStorage {
+  readonly type = 'storage';
+
   private readonly db: DataSource;
   private initialized = false;
   private initializingPromise: Promise<DataSource> | undefined;

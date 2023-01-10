@@ -15,41 +15,34 @@
  */
 
 import {
-  HostConfigJson,
-  HostConfigJsonProvider,
-  JsonMap,
-  ProviderIntegration,
   StatusError,
+  TenantNodeConfigJson,
+  TenantNodeConfigProvider,
 } from 'opr-core';
 import {getGcsJson, listDir} from '../util/gcs';
 
-export interface CloudStorageHostConfigOptionsJson extends JsonMap {
+export interface CloudStorageTenantNodeConfigOptionsJson {
   bucket: string;
 }
 
-export class StaticMultitenantIntegration
-  implements ProviderIntegration<HostConfigJsonProvider>
+export class CloudStorageTenantNodeConfigProvider
+  implements TenantNodeConfigProvider
 {
-  async construct(
-    json: CloudStorageHostConfigOptionsJson
-  ): Promise<HostConfigJsonProvider> {
-    console.log('Constructing statichostconfigprovider with config', json);
-    return new CloudStorageHostConfigProvider(json);
-  }
-}
+  readonly type = 'tenantConfigProvider';
 
-export class CloudStorageHostConfigProvider implements HostConfigJsonProvider {
   private bucket: string;
 
-  constructor(options: CloudStorageHostConfigOptionsJson) {
+  constructor(options: CloudStorageTenantNodeConfigOptionsJson) {
     this.bucket = options.bucket;
   }
 
-  async getHostConfig(hostId: string): Promise<HostConfigJson> {
+  async getTenantConfig(
+    hostId: string
+  ): Promise<TenantNodeConfigJson<unknown>> {
     try {
       return await getGcsJson({
         bucket: this.bucket,
-        path: `hosts/${hostId}/config.json`,
+        path: `orgs/${hostId}/config.json`,
       });
     } catch (e) {
       throw new StatusError(
@@ -61,8 +54,8 @@ export class CloudStorageHostConfigProvider implements HostConfigJsonProvider {
     }
   }
 
-  async *getAllHostIds(): AsyncIterable<string> {
-    const files = await listDir({bucket: this.bucket, path: 'hosts'});
+  async *getAllTenantIds(): AsyncIterable<string> {
+    const files = await listDir({bucket: this.bucket, path: 'orgs'});
     for (const file of files) {
       const segments = file.cloudStorageURI.toString().split('/');
       const id = segments[segments.length - 1];

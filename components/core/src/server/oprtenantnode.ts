@@ -15,7 +15,6 @@
  */
 
 import {Request, Response, Router} from 'express';
-import {HostConfig} from './hostconfig';
 import {OprNetworkClient} from '../net/oprnetworkclient';
 import {OfferProducer, OfferSetUpdate} from '../offerproducer/offerproducer';
 import {OprFeedProducer} from '../offerproducer/oprfeedproducer';
@@ -43,16 +42,14 @@ import {AcceptRequestHandler} from './handlers/acceptrequesthandler';
 import {RejectRequestHandler} from './handlers/rejectrequesthandler';
 import {ReserveRequestHandler} from './handlers/reserverequesthandler';
 import {JwksProvider} from '../auth/jwksprovider';
-import {
-  AnnotatedHostIntegrationInstaller,
-  HostItegrationTeardownFn,
-} from '../integrations/hostintegration';
+import {TenantNodeIntegrationInstaller} from '../integrations/tenantnodeintegrationinstaller';
 import {IntegrationApiImpl} from './integrationapiimpl';
 import {StandardVerifier} from '../auth/standardverifier';
+import {TenantNodeConfig} from '../config/tenantnodeconfig';
 
 const DEFAULT_RESERVATION_TIME_SECS = 5 * 60;
 
-export class OprHost {
+export class OprTenantNode {
   readonly hostOrgUrl: string;
   readonly hostUrlRoot: string;
   readonly name: string;
@@ -77,8 +74,7 @@ export class OprHost {
   private orgFilePath: string;
   private jwksProvider?: JwksProvider;
   private accessControlList: ServerAccessControlList;
-  private hostIntegrations: AnnotatedHostIntegrationInstaller[];
-  private teardownFunctions: HostItegrationTeardownFn[];
+  private integrationInstallers: TenantNodeIntegrationInstaller[];
   private integrationApi: IntegrationApiImpl;
 
   private defaultReservationTimeSecs: number;
@@ -89,7 +85,7 @@ export class OprHost {
 
   private isStartedInternal: boolean;
 
-  constructor(config: HostConfig, storage: PersistentStorage) {
+  constructor(config: TenantNodeConfig, storage: PersistentStorage) {
     if (!config.hostOrgUrl) {
       throw new StatusError('Host org url must be set', 'NO_HOST_ORG_URL');
     }
@@ -140,7 +136,7 @@ export class OprHost {
       signer: this.signer,
     });
     console.log('integrations in config', config.integrations);
-    this.hostIntegrations = config.integrations ?? [];
+    this.integrationInstallers = config.integrations ?? [];
     this.orgConfig = {
       name: this.name,
       organizationURL: this.hostOrgUrl,
@@ -156,7 +152,6 @@ export class OprHost {
     this.logger =
       config.logger ?? loglevel.getLogger(`OprHost ${this.hostOrgUrl}`);
     this.strictCorrectnessChecks = config.strictCorrectnessChecks ?? false;
-    this.teardownFunctions = [];
     this.integrationApi = new IntegrationApiImpl({
       host: this,
       hostOrgUrl: this.hostOrgUrl,
@@ -176,11 +171,12 @@ export class OprHost {
 
   async start(): Promise<void> {
     const promises = [];
-    console.log('Starting with host integrations', this.hostIntegrations);
-    for (const installer of this.hostIntegrations) {
+    console.log('Starting with host integrations', this.integrationInstallers);
+    for (const installer of this.integrationInstallers) {
       const path =
-        (installer.params.mountPath as string) ??
-        'integrations/' + this.getPathFromModuleName(installer.moduleName);
+        installer.mountPath ??
+        'integrations/' +
+          this.getPathFromModuleName(installer.moduleNameSource!);
       const api = this.integrationApi.namespacedClone(path);
       promises.push(installer.install(api));
     }
@@ -190,7 +186,9 @@ export class OprHost {
 
   async destroy(): Promise<void> {
     await Promise.all(
-      this.teardownFunctions.map(async f => await f(this.integrationApi))
+      this.integrationInstallers.map(async f =>
+        f.uninstall ? await f.uninstall(this.integrationApi) : undefined
+      )
     );
     this.integrationApi.destroy();
   }
