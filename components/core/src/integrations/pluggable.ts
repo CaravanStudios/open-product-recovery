@@ -47,6 +47,9 @@ export interface ServerPluggableTypeMap {
   tenantIdExtractor: TenantIdExtractor;
 }
 
+export type PluggableTypeMap = TenantNodePluggableTypeMap &
+  ServerPluggableTypeMap;
+
 export type ServerPluggableTypeName = keyof ServerPluggableTypeMap;
 
 export type PluggableTypeName =
@@ -55,6 +58,6 @@ export type PluggableTypeName =
 
 export interface Pluggable {
   readonly type: PluggableTypeName;
-  moduleNameSource?: string;
+  factoryNameSource?: string;
   destroy?(): Promise<void>;
 }

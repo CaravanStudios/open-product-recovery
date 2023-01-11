@@ -20,9 +20,12 @@ import {
   Offer,
   OfferPatch,
 } from 'opr-models';
-import {Clock, DefaultClock, OprNetworkClient, StatusError} from '../coreapi';
 import {OfferProducer, OfferSetUpdate} from './offerproducer';
 import {log, Logger} from '../util/loglevel';
+import {OprNetworkClient} from '../net/oprnetworkclient';
+import {Clock} from '../util/clock';
+import {DefaultClock} from '../util/defaultclock';
+import {StatusError} from '../util/statuserror';
 
 export class OprFeedProducer implements OfferProducer {
   readonly type = 'offerProducer';

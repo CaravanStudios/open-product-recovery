@@ -19,15 +19,13 @@ import {LocalKeySignerIntegration} from './auth/local/localkeysigner';
 import {LocalFileMultitenantIntegration} from './config/local/localfilehostconfigprovider';
 import {StaticMultitenantIntegration} from './config/statictenantnodeconfigprovider';
 import {TemplateHostIdExtractorIntegration} from './config/templatehostidextractor';
-import {StaticFeedConfigProviderIntegration} from './policy/staticfeedconfigprovider';
 import {StaticServerAccessControlListIntegration} from './policy/staticserveraccesscontrollist';
 import {UniversalAcceptListingPolicyIntegration} from './policy/universalacceptlistingpolicy';
 
-export const integrations = {
+export const CoreIntegrations = {
   StaticMultitenant: StaticMultitenantIntegration,
   LocalFileMultitenant: LocalFileMultitenantIntegration,
   UniversalListingPolicy: UniversalAcceptListingPolicyIntegration,
-  StaticFeeds: StaticFeedConfigProviderIntegration,
   LocalKeySigner: LocalKeySignerIntegration,
   LocalJwks: LocalJwksIntegration,
   StaticAccessControlList: StaticServerAccessControlListIntegration,

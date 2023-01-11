@@ -16,6 +16,6 @@
 
 import {SqlOprPersistentStorageIntegration} from './sqloprpersistentstorageintegration';
 
-export const integrations = {
+export const SqlIntegrations = {
   SqlStorage: SqlOprPersistentStorageIntegration,
 };

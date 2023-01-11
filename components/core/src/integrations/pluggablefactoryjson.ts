@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {Schema} from 'jsonschema';
 import {JsonMap} from '../util/jsonvalue';
 import {Pluggable} from './pluggable';
 import {PluggableFactory} from './pluggablefactory';

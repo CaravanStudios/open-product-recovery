@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import {Pluggable} from '../integrations/pluggable';
+import {
+  Pluggable,
+  PluggableTypeMap,
+  PluggableTypeName,
+} from '../integrations/pluggable';
 import {PluggableFactory} from '../integrations/pluggablefactory';
 import {PluggableFactorySet} from '../integrations/pluggablefactoryset';
 import {
@@ -22,72 +26,13 @@ import {
   PluggableFactoryJsonMapStanza,
   PluggableFactoryJsonStanza,
 } from '../integrations/pluggablefactoryjson';
-import {Simplify, ValueOf} from 'type-fest';
-import {integrations} from '../integrations';
-import {StaticMultitenantOptionsJson} from './statictenantnodeconfigprovider';
-import {Signer} from '../auth/signer';
-import {TenantNodeConfigJson} from './tenantnodeconfig';
-import {OfferListingPolicy} from '../coreapi';
+import {JsonValue, StringKeyOf, ValueOf} from 'type-fest';
+import {StatusError} from '../util/statuserror';
 
-type S = AllowedFactoriesOfType<typeof integrations, OfferListingPolicy>;
-type R = AllowedFactoryJsonsOfType<typeof integrations, Signer>;
-const nodeConfig: TenantNodeConfigJson<typeof integrations> = {
-  // jwks: {
-  //   moduleName: 'LocalJwks',
-  //   params: {
-  //     publicKeys: [],
-  //   },
-  // },
-  name: 'Example',
-  listingPolicy: {
-    moduleName: 'UniversalListingPolicy',
-    params: {
-      orgUrls: [],
-    },
-  },
-  accessControlList: {
-    moduleName: 'StaticAccessControlList',
-    params: {
-      allow: [],
-    },
-  },
-  signer: {
-    moduleName: 'LocalKeySigner',
-    params: {
-      privateKey: {},
-    },
-  },
-};
-
-type LegalFactories = AllowedFactoryNamed<
-  typeof integrations,
-  'StaticMultitenant'
->;
-type LegalStanza = Simplify<
-  LegalJsonMapStanza<typeof integrations, 'StaticMultitenant'>
->;
-
-const x: LegalStanza = {
-  moduleName: 'StaticMultitenant',
-  params: {
-    hosts: {},
-  },
-};
-
-// export type AllowedFactoriesOfType<
-//   Allowed extends PluggableFactorySet,
-//   T extends Pluggable
-// > = {
-//   [key in StringKeyOf<Allowed>]: Allowed[key] extends PluggableFactory<
-//     infer P,
-//     unknown,
-//     unknown
-//   >
-//     ? P extends T
-//       ? Allowed[key]
-//       : never
-//     : never;
-// };
+/**
+ * Filters the Allowed type into a map of factory keys to Pluggable factories
+ * that produce objects of the given type.
+ */
 export type AllowedFactoriesOfType<
   Allowed extends PluggableFactorySet,
   T extends Pluggable
@@ -99,6 +44,10 @@ export type AllowedFactoriesOfType<
     : never]: Allowed[key];
 };
 
+/**
+ * Transforms and filters the Allowed type into a map of factory keys to JSON
+ * config stanzas for the associated factory.
+ */
 export type AllowedFactoryJsonsOfType<
   Allowed extends PluggableFactorySet,
   T extends Pluggable
@@ -111,6 +60,10 @@ export type AllowedFactoryJsonsOfType<
     : never;
 };
 
+/**
+ * Returns the type of the configuration object used by the factory with the
+ * given name.
+ */
 export type FactoryConfig<
   Allowed extends PluggableFactorySet,
   FactoryName extends StringKeyOf<Allowed>
@@ -122,6 +75,9 @@ export type FactoryConfig<
   ? C
   : never;
 
+/**
+ * Returns the type of object created by the given factory.
+ */
 export type FactoryResult<T> = T extends PluggableFactory<
   infer P,
   unknown,
@@ -130,30 +86,47 @@ export type FactoryResult<T> = T extends PluggableFactory<
   ? P
   : never;
 
-export type StringKeyOf<T> = Extract<keyof T, string>;
-
+/**
+ * Returns the type of the factory with the given factory name.
+ */
 export type AllowedFactoryNamed<
   Allowed extends PluggableFactorySet,
-  ModuleName extends StringKeyOf<Allowed>
-> = ValueOf<Pick<Allowed, ModuleName>>;
+  FactoryName extends StringKeyOf<Allowed>
+> = ValueOf<Pick<Allowed, FactoryName>>;
 
+/**
+ * The interface for resolved values produced by a given factory name. Includes
+ * the output of the factory, the factory itself and the config json used to
+ * produce the value.
+ */
 export interface ResolvedPluggableResult<
   Allowed extends PluggableFactorySet,
-  ModuleName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>
+  FactoryName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>
 > {
-  result: FactoryResult<Allowed[ModuleName]>;
+  result: FactoryResult<Allowed[FactoryName]>;
   configJson: PluggableFactoryJsonStanza<
-    ModuleName,
-    FactoryConfig<Allowed, ModuleName>
+    FactoryName,
+    FactoryConfig<Allowed, FactoryName>
   >;
-  factory: Allowed[ModuleName];
+  factory: Allowed[FactoryName];
 }
 
+/**
+ * A type of the union of all legal JSON that could be used to configure the
+ * factory with the given name.
+ */
 export type LegalJsonStanza<
   Allowed extends PluggableFactorySet,
-  ModuleName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>
-> = PluggableFactoryJsonStanza<ModuleName, FactoryConfig<Allowed, ModuleName>>;
+  FactoryName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>
+> = PluggableFactoryJsonStanza<
+  FactoryName,
+  FactoryConfig<Allowed, FactoryName>
+>;
 
+/**
+ * The type of the JSON Map that could be used to configure the factory with the
+ * given name. Useful for debugging configuration typing issues.
+ */
 export type LegalJsonMapStanza<
   Allowed extends PluggableFactorySet,
   ModuleName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>
@@ -162,7 +135,10 @@ export type LegalJsonMapStanza<
   FactoryConfig<Allowed, ModuleName>
 >;
 
-export function extractModuleName<ModuleName extends string>(
+/**
+ * Extracts the factory name from the given pluggable JSON stanza.
+ */
+export function extractFactoryName<ModuleName extends string>(
   configJson: PluggableFactoryJsonStanza<ModuleName, unknown>
 ): ModuleName {
   if (typeof configJson === 'string') {
@@ -178,6 +154,9 @@ export function extractModuleName<ModuleName extends string>(
   }
 }
 
+/**
+ * Extracts the params from the given pluggable JSON stanza.
+ */
 export function extractParams<
   ModuleName extends StringKeyOf<Allowed>,
   Allowed extends PluggableFactorySet
@@ -200,55 +179,197 @@ export function extractParams<
   }
 }
 
-export async function constructPluggableFromConfig<
+/**
+ * Constructs a pluggable object from a JSON config.
+ */
+async function constructPluggableFromConfig<
   Allowed extends PluggableFactorySet,
-  ModuleName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>,
+  FactoryName extends StringKeyOf<Allowed> = StringKeyOf<Allowed>,
   ContextType = undefined
 >(
   configJson: LegalJsonStanza<Allowed>,
   allowed: Allowed,
+  expectedType: PluggableTypeName,
   context: ContextType
-): Promise<ResolvedPluggableResult<Allowed, ModuleName>> {
-  const moduleName = extractModuleName(configJson);
+): Promise<ResolvedPluggableResult<Allowed, FactoryName>> {
+  const factoryName = extractFactoryName(configJson);
   const params = extractParams(configJson);
-  const factory = allowed[moduleName];
+  const factory = allowed[factoryName];
+  if (!factory) {
+    throw new StatusError('No factory found named ' + factoryName);
+  }
   const val = await factory.construct(params, context, allowed);
-  val.moduleNameSource = moduleName;
+  if (val.type !== expectedType) {
+    throw new StatusError(
+      'Expected ' + expectedType + ' but factory constructed ' + val.type,
+      'CONFIG_ERROR_UNEXPECTED_FACTORY_OUTPUT_TYPE'
+    );
+  }
+  val.factoryNameSource = factoryName;
   return {
-    result: val as FactoryResult<Allowed[ModuleName]>,
+    result: val as FactoryResult<Allowed[FactoryName]>,
     configJson: configJson as PluggableFactoryJsonStanza<
-      ModuleName,
-      FactoryConfig<Allowed, ModuleName>
+      FactoryName,
+      FactoryConfig<Allowed, FactoryName>
     >,
-    factory: factory as Allowed[ModuleName],
+    factory: factory as Allowed[FactoryName],
   };
 }
 
-type PluggablesInCollection<T> = T extends Pluggable
-  ? T
-  : T extends Array<infer P extends Pluggable>
-  ? P
-  : never;
-
+/**
+ * The type of a JSON config, based on an interface containing pluggable
+ * objects.
+ * TODO(johndayrichter): This interface should be generated from a
+ * PluggableConfigDescription, rather than a plain interface.
+ */
 export type ConfigJson<T, Allowed extends PluggableFactorySet> = {
-  [key in keyof T]: T[key] extends Pluggable | Pluggable[] | undefined
-    ? ValueOf<
-        AllowedFactoryJsonsOfType<Allowed, PluggablesInCollection<T[key]>>
-      >
+  [key in keyof T]: Exclude<T[key], undefined> extends Pluggable
+    ? ValueOf<AllowedFactoryJsonsOfType<Allowed, Exclude<T[key], undefined>>>
+    : Exclude<T[key], undefined> extends Array<infer P extends Pluggable>
+    ? ValueOf<AllowedFactoryJsonsOfType<Allowed, P>>[]
     : T[key];
 };
 
+/**
+ * Extracts the Pluggable type name from a PluggableConfigDescription field
+ * value.
+ */
+export type DescFieldType<T> = T extends PluggableConfigurationFieldType
+  ? T
+  : T extends {type: infer N}
+  ? N
+  : never;
+
+/**
+ * Extracts whether a PluggableConfigDescription field is optional.
+ */
+export type DescFieldIsOptional<T> = T extends {isOptional: true} ? T : never;
+
+/**
+ * Extracts whether a PluggableConfigDescription field is required.
+ */
+export type DescFieldIsRequired<T> = T extends {isOptional: true} ? never : T;
+
+/**
+ * Extracts whether a PluggableConfigDescription field is an array.
+ */
+export type DescFieldIsArray<T> = T extends {isArray: true} ? T : never;
+
+/**
+ * Transforms a Pluggable type name into a type.
+ */
+export type PluggableConfigValueBaseType<T> =
+  DescFieldType<T> extends PluggableTypeName
+    ? PluggableTypeMap[DescFieldType<T>]
+    : DescFieldType<T> extends 'json'
+    ? JsonValue
+    : DescFieldType<T> extends 'string'
+    ? string
+    : DescFieldType<T> extends 'number'
+    ? number
+    : DescFieldType<T> extends 'boolean'
+    ? boolean
+    : never;
+
+/**
+ * Transforms a PluggableConfigDescription field value into an actual type.
+ */
+export type PluggableConfigValueType<T> = T extends DescFieldIsArray<T>
+  ? PluggableConfigValueBaseType<T>[]
+  : PluggableConfigValueBaseType<T>;
+
+/**
+ * Transforms a PluggableConfigDescription into a configuration interface.
+ */
+export type PluggableConfig<T extends PluggableConfigDescription> = {
+  [key in keyof T as T[key] extends DescFieldIsRequired<T[key]>
+    ? key
+    : never]: PluggableConfigValueType<T[key]>;
+} & {
+  [key in keyof T as T[key] extends DescFieldIsOptional<T[key]>
+    ? key
+    : never]?: PluggableConfigValueType<T[key]>;
+};
+
+/**
+ * The result of resolving a configuration JSON.
+ */
 export interface ResolutionResult<T> {
   result: T;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  allPluggables: Array<ResolvedPluggableResult<any, any>>;
+  allPluggables: Array<ResolvedPluggableResult<PluggableFactorySet>>;
   destroyAll(): Promise<void>;
+}
+
+/**
+ * The possible pluggable type names in a configuration field.
+ */
+export type PluggableConfigurationFieldType =
+  | PluggableTypeName
+  | 'json'
+  | 'string'
+  | 'number'
+  | 'boolean';
+
+export interface PluggableConfigurationField {
+  type: PluggableConfigurationFieldType;
+  isOptional?: boolean;
+  isArray?: boolean;
+}
+
+export interface PluggableConfigDescription {
+  [key: string]: PluggableConfigurationField | PluggableConfigurationFieldType;
+}
+
+export function getExpectedTypeName(
+  field: PluggableConfigurationField | PluggableConfigurationFieldType
+): PluggableConfigurationFieldType {
+  if (typeof field === 'string') {
+    return field;
+  } else {
+    return field.type;
+  }
+}
+
+export function isExpectedTypeOptional(
+  field: PluggableConfigurationField | PluggableConfigurationFieldType
+): boolean {
+  if (typeof field === 'string') {
+    return false;
+  } else {
+    return field.isOptional ?? false;
+  }
+}
+
+export function isExpectedTypeArray(
+  field: PluggableConfigurationField | PluggableConfigurationFieldType
+): boolean {
+  if (typeof field === 'string') {
+    return false;
+  } else {
+    return field.isArray ?? false;
+  }
+}
+
+export function isExpectedFieldTypePluggable(
+  type: PluggableConfigurationFieldType
+): type is PluggableTypeName {
+  return (
+    type !== 'json' &&
+    type !== 'boolean' &&
+    type !== 'number' &&
+    type !== 'string'
+  );
 }
 
 /**
  * Resolves a JSON configuration with pluggable configuration stanzas into an
  * object where all the pluggable config stanzas are resolved into constructed
  * Pluggable objects.
+ * TODO(johndayrichter): This module is an absolute mess. There are two very
+ * different mechanisms here for specifying the format of a configuration file,
+ * and the entire thing is very complex and unweildy. This needs to be
+ * re-written from the ground up.
  */
 export async function resolveConfigJson<
   ResultType,
@@ -256,39 +377,60 @@ export async function resolveConfigJson<
   X = undefined
 >(
   config: ConfigJson<ResultType, Allowed>,
+  configDesc: PluggableConfigDescription,
   allowed: Allowed,
   context?: X
 ): Promise<ResolutionResult<ResultType>> {
   const resultObj: Record<string, unknown> = {};
   const allPluggables: Array<ResolvedPluggableResult<Allowed>> = [];
   for (const key in config) {
+    const configDescFieldValue = configDesc[key];
+    if (!configDescFieldValue) {
+      throw new StatusError(
+        'Unexpected config key ' + key,
+        'CONFIG_ERROR_UNKNOWN_KEY'
+      );
+    }
+    const expectedType = getExpectedTypeName(configDescFieldValue);
     const configVal = config[key];
     let resultVal;
-    if (isPluggableFactoryJsonStanza(configVal, allowed)) {
-      resultVal = await constructPluggableFromConfig(
-        configVal as LegalJsonStanza<Allowed>,
-        allowed,
-        context
-      );
-      allPluggables.push(resultVal);
-      resultObj[key] = resultVal.result;
-    } else if (Array.isArray(configVal)) {
-      const newArray = [];
-      for (const subVal of configVal) {
-        if (isPluggableFactoryJsonStanza(configVal, allowed)) {
+    if (isExpectedFieldTypePluggable(expectedType)) {
+      if (isExpectedTypeArray(configDescFieldValue)) {
+        if (!Array.isArray(configVal)) {
+          throw new StatusError(
+            'Expected array for config key ' + key,
+            'CONFIG_ERROR_EXPECTED_ARRAY'
+          );
+        }
+        const newArray = [];
+        for (const subVal of configVal) {
           const subResultVal = await constructPluggableFromConfig(
-            configVal as LegalJsonStanza<Allowed>,
+            subVal as LegalJsonStanza<Allowed>,
             allowed,
+            expectedType,
             context
           );
           allPluggables.push(subResultVal);
           newArray.push(subResultVal.result);
-        } else {
-          newArray.push(subVal);
         }
+        resultObj[key] = newArray;
+      } else {
+        resultVal = await constructPluggableFromConfig(
+          configVal as LegalJsonStanza<Allowed>,
+          allowed,
+          expectedType,
+          context
+        );
+        allPluggables.push(resultVal);
+        resultObj[key] = resultVal.result;
       }
-      resultObj[key] = resultVal;
     } else {
+      if (expectedType !== 'json' && typeof configVal !== expectedType) {
+        throw new StatusError(
+          'Wrong type for config field ' + key,
+          'CONFIG_ERROR_BAD_VALUE_TYPE'
+        );
+      }
       resultObj[key] = configVal;
     }
   }

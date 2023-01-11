@@ -15,6 +15,7 @@
  */
 
 import {
+  PluggableFactorySet,
   StatusError,
   TenantNodeConfigJson,
   TenantNodeConfigProvider,
@@ -25,8 +26,9 @@ export interface CloudStorageTenantNodeConfigOptionsJson {
   bucket: string;
 }
 
-export class CloudStorageTenantNodeConfigProvider
-  implements TenantNodeConfigProvider
+export class CloudStorageTenantNodeConfigProvider<
+  Allowed extends PluggableFactorySet
+> implements TenantNodeConfigProvider<Allowed>
 {
   readonly type = 'tenantConfigProvider';
 
@@ -38,7 +40,7 @@ export class CloudStorageTenantNodeConfigProvider
 
   async getTenantConfig(
     hostId: string
-  ): Promise<TenantNodeConfigJson<unknown>> {
+  ): Promise<TenantNodeConfigJson<Allowed>> {
     try {
       return await getGcsJson({
         bucket: this.bucket,

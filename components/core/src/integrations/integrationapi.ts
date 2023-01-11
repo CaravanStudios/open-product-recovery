@@ -15,7 +15,6 @@
  */
 
 import {Offer, OfferHistory} from 'opr-models';
-import {OfferProducer} from '../coreapi';
 import {HandlerRegistration} from '../model/handlerregistration';
 import {Interval} from '../model/interval';
 import {OfferChange} from '../model/offerchange';
@@ -24,6 +23,7 @@ import {TimelineEntry} from '../model/timelineentry';
 import {CustomRequestHandler} from '../server/customrequesthandler';
 import {IRouter} from 'express';
 import {JsonValue} from '../util/jsonvalue';
+import {OfferProducer} from '../offerproducer/offerproducer';
 
 /**
  * An API used by OPR integrations. This API is passed to custom startup

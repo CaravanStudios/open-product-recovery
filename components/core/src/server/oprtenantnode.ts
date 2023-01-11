@@ -89,7 +89,6 @@ export class OprTenantNode {
     if (!config.hostOrgUrl) {
       throw new StatusError('Host org url must be set', 'NO_HOST_ORG_URL');
     }
-    console.log('Starting host with config', config);
     this.hostOrgUrl = config.hostOrgUrl;
     this.hostUrlRoot = config.hostUrlRoot;
     this.name = config.name;
@@ -99,12 +98,17 @@ export class OprTenantNode {
       mergeParams: true,
     });
     this.router.use('/', (req, res, next) => {
-      console.log('host received req at', req.url);
       next();
     });
     this.offerProducers = [...(config.producers ?? [])];
-    console.log('Feed configs', config.feedConfigs);
-    this.feedConfigs = [...(config.feedConfigs ?? [])];
+    this.feedConfigs = [...(config.feedConfigs ?? [])].map(f =>
+      typeof f === 'string'
+        ? {
+            organizationUrl: f,
+            maxUpdateFrequencyMillis: 10 * 60 * 1000 /* ten minutes */,
+          }
+        : (f as unknown as FeedConfig)
+    );
     this.listingPolicy = config.listingPolicy;
     this.signer = config.signer;
     this.orgFilePath = config.orgFilePath ?? '/org.json';
@@ -135,7 +139,6 @@ export class OprTenantNode {
       clock: this.clock,
       signer: this.signer,
     });
-    console.log('integrations in config', config.integrations);
     this.integrationInstallers = config.integrations ?? [];
     this.orgConfig = {
       name: this.name,
@@ -171,12 +174,11 @@ export class OprTenantNode {
 
   async start(): Promise<void> {
     const promises = [];
-    console.log('Starting with host integrations', this.integrationInstallers);
     for (const installer of this.integrationInstallers) {
       const path =
         installer.mountPath ??
         'integrations/' +
-          this.getPathFromModuleName(installer.moduleNameSource!);
+          this.getPathFromModuleName(installer.factoryNameSource!);
       const api = this.integrationApi.namespacedClone(path);
       promises.push(installer.install(api));
     }
@@ -352,10 +354,7 @@ export class OprTenantNode {
     const orgFilePath = this.orgFilePath;
 
     const orgJson = this.getOrgConfig();
-    console.log('Got orgJson', orgJson);
-    console.log('Mounted org file at', orgFilePath);
     this.router.get(orgFilePath, async (req, res) => {
-      console.log('Returning', orgJson);
       res.json(orgJson);
     });
   }

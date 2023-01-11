@@ -17,6 +17,6 @@
 import {CloudStorageTenantNodeConfigProviderIntegration} from './config/cloudstoragetenantnodeconfigproviderintegration';
 
 // TODO(johndayrichter): Add integrations for every pluggable in this module
-export const integrations = {
+export const GcsIntegrations = {
   GcsMultitenant: CloudStorageTenantNodeConfigProviderIntegration,
 };

@@ -91,6 +91,10 @@ export class IntegrationApiImpl implements IntegrationApi {
     if (!pathNamespace.endsWith('/')) {
       pathNamespace += '/';
     }
+    if (pathNamespace === '/') {
+      pathNamespace = '';
+    }
+    // TODO: Build a wrapper around the Router so installations can be logged.
     const newRouter = Router();
     (newRouter as unknown as Record<string, string>).cloneNamespace =
       pathNamespace;
@@ -253,7 +257,6 @@ export class IntegrationApiImpl implements IntegrationApi {
         reshareChain: reshareChain,
       }
     );
-    console.log('Received accept response', result);
     const acceptedOffer = (result as AcceptOfferResponse).offer;
     await this.fireChange({
       oldValue: acceptedOffer,

@@ -26,7 +26,7 @@ import {
 // The general pattern for building your own custom integration for your server.
 // First, export a map of keys to PluggableFactories. By convention, we name
 // this "integrations".
-export const integrations = {
+export const LocalIntegrations = {
   LocalMain: {
     // Integrations have a "construct" method that tells the module loader how
     // to build the object you're providing. In this case, we're constructing

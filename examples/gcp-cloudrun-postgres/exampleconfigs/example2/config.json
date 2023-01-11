@@ -1,12 +1,12 @@
 {
   "listingPolicy": {
-    "moduleName": "opr-core#UniversalListingPolicy",
+    "moduleName": "UniversalListingPolicy",
     "params": {
       "orgUrls": ["*"]
     }
   },
   "signer": {
-    "moduleName": "opr-core#LocalKeySigner",
+    "moduleName": "LocalKeySigner",
     "params": {
       "privateKey": {
         "kty": "RSA",
@@ -23,7 +23,7 @@
     }
   },
   "jwks": {
-    "moduleName": "opr-core#LocalJwks",
+    "moduleName": "LocalJwks",
     "params": {
       "publicKeys": [
         {
@@ -36,30 +36,22 @@
     }
   },
   "accessControlList": {
-    "moduleName": "opr-core#StaticAccessControlList",
+    "moduleName": "StaticAccessControlList",
     "params": {
       "allow": ["*"]
     }
   },
   "name": "ExampleServer2",
-  "feedConfigs": {
-    "moduleName": "opr-core#StaticFeeds",
-    "params": {
-      "feeds": ["https://openproductrecovery.org/hosts/example/org.json"]
-    }
-  },
+  "feedConfigs": ["https://openproductrecovery.org/orgs/example/org.json"],
   "integrations": [
     {
-      "moduleName": "./localintegrations",
+      "moduleName": "LocalMain",
       "params": {
         "serviceAccount": "opr-example-server-agent@open-product-recovery.iam.gserviceaccount.com"
       }
     },
     {
-      "moduleName": "./localintegrations#helloworld"
-    },
-    {
-      "moduleName": "./localintegrations#howdyworld",
+      "moduleName": "howdyworld",
       "params": {
         "mountPath": "howdy"
       }

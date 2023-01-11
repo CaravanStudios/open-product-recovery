@@ -30,13 +30,18 @@ import loglevel, {Logger} from '../util/loglevel';
 import {PersistentStorage} from '../database/persistentstorage';
 import {TenantNodeConfigProvider} from '../config/tenantnodeconfigprovider';
 import {OprTenantNode} from './oprtenantnode';
-import {ConfigJson, resolveConfigJson} from '../config/resolveconfigjson';
+import {
+  ConfigJson,
+  PluggableConfig,
+  resolveConfigJson,
+} from '../config/resolveconfigjson';
 import {TenantIdExtractor} from '../config/tenantidextractor';
 import {PluggableFactorySet} from '../integrations/pluggablefactoryset';
-import {PluggableFactory} from '../integrations/pluggablefactory';
-import {Pluggable} from '../integrations/pluggable';
 import {TenantNodeIntegrationInstaller} from '../integrations/tenantnodeintegrationinstaller';
-import {TenantNodeConfig} from '../config/tenantnodeconfig';
+import {
+  TenantNodeConfig,
+  TenantNodeUserConfigDesc,
+} from '../config/tenantnodeconfig';
 
 export type CustomStartupRoutine = (
   app: Express,
@@ -44,11 +49,7 @@ export type CustomStartupRoutine = (
   server: OprServer<any>
 ) => Promise<void>;
 
-export interface ServerConfig<Allowed extends PluggableFactorySet> {
-  storage: PersistentStorage;
-  hostSetup: TenantNodeConfigProvider<Allowed>;
-  hostMapping: TenantIdExtractor;
-  hostName?: string;
+export type ServerConfig = PluggableConfig<typeof ServerConfigDesc> & {
   app?: Express;
   clock?: Clock;
   logger?: Logger;
@@ -57,13 +58,23 @@ export interface ServerConfig<Allowed extends PluggableFactorySet> {
    * installed, but before the server actually begins listening for connections.
    */
   customStartupRoutines?: Array<CustomStartupRoutine>;
-}
+};
+
+export const ServerConfigDesc = {
+  storage: 'storage',
+  tenantSetup: 'tenantConfigProvider',
+  tenantMapping: 'tenantIdExtractor',
+  hostName: {
+    type: 'string',
+    isOptional: true,
+  },
+} as const;
 
 export class OprServer<T extends PluggableFactorySet> {
   readonly app: Express;
   private storage!: PersistentStorage;
-  private hostConfigProvider!: TenantNodeConfigProvider<T>;
-  private hostIdExtractor!: TenantIdExtractor;
+  private tenantConfigProvider!: TenantNodeConfigProvider<PluggableFactorySet>;
+  private tenantIdExtractor!: TenantIdExtractor;
   private hostName?: string;
   private server?: Server;
   private logger: Logger;
@@ -71,12 +82,9 @@ export class OprServer<T extends PluggableFactorySet> {
   private allowedPluginSet: T;
   private customStartupRoutines: Array<CustomStartupRoutine>;
   private isStarted = false;
-  private config: ConfigJson<ServerConfig<T>, T>;
+  private config: ConfigJson<ServerConfig, T>;
 
-  constructor(
-    config: ConfigJson<ServerConfig<T>, T>,
-    allowedPluginFactories: T
-  ) {
+  constructor(config: ConfigJson<ServerConfig, T>, allowedPluginFactories: T) {
     this.allowedPluginSet = allowedPluginFactories;
     this.config = config;
     this.logger = config.logger ?? loglevel.getLogger('OprServer');
@@ -93,18 +101,18 @@ export class OprServer<T extends PluggableFactorySet> {
   async start(port: number): Promise<void> {
     const resolved = await resolveConfigJson(
       this.config,
+      ServerConfigDesc,
       this.allowedPluginSet
     );
-    console.log('Resolved config', resolved);
-    this.hostIdExtractor = resolved.result.hostMapping;
-    this.hostConfigProvider = resolved.result.hostSetup;
+    this.tenantIdExtractor = resolved.result.tenantMapping;
+    this.tenantConfigProvider = resolved.result.tenantSetup;
     this.storage = resolved.result.storage;
     this.hostName = resolved.result.hostName;
 
     this.logger.info('Starting frontend server on port', port);
     return new Promise(acceptFn => {
       this.server = this.app.listen(port, async () => {
-        console.log('server is listening');
+        this.logger.info('server is listening');
         await this.initializeServer();
         acceptFn();
       });
@@ -157,7 +165,7 @@ export class OprServer<T extends PluggableFactorySet> {
           this.hostName ?? req.protocol + '://' + req.get('host');
         const fullUrl = hostName + req.originalUrl;
         // const hostId = this.hostConfigProvider.getHostId(fullUrl);
-        const hostId = this.hostIdExtractor.getTenantId(fullUrl);
+        const hostId = this.tenantIdExtractor.getTenantId(fullUrl);
         if (hostId === undefined) {
           next();
           return;
@@ -166,6 +174,7 @@ export class OprServer<T extends PluggableFactorySet> {
         try {
           hostConfig = await this.getHostConfig(hostId);
         } catch (e) {
+          this.logger.warn('Failed to load config for host', hostId, e);
           next();
           return;
         }
@@ -178,11 +187,10 @@ export class OprServer<T extends PluggableFactorySet> {
         );
         await host.start();
         res.on('finish', async () => {
-          console.log('Destroying host config for', host.hostOrgUrl);
           await host.destroy();
           await hostConfig.destroy();
         });
-        const hostUrlRoot = this.hostIdExtractor.getRootPathFromId(hostId);
+        const hostUrlRoot = this.tenantIdExtractor.getRootPathFromId(hostId);
         if (!fullUrl.startsWith(hostUrlRoot)) {
           throw new StatusError(
             `Unexpected different url roots: ${hostUrlRoot}, ${fullUrl}`,
@@ -210,8 +218,8 @@ export class OprServer<T extends PluggableFactorySet> {
 
   private async getHostConfig(hostId: string): Promise<TenantNodeConfig> {
     // TODO: Cache these in memory for a few minutes
-    let hostUrlRoot = this.hostIdExtractor.getRootPathFromId(hostId);
-    const configJson = await this.hostConfigProvider.getTenantConfig(hostId);
+    let hostUrlRoot = this.tenantIdExtractor.getRootPathFromId(hostId);
+    const configJson = await this.tenantConfigProvider.getTenantConfig(hostId);
     let orgFilePath = configJson.orgFilePath ?? './org.json';
     if (orgFilePath.startsWith('/')) {
       orgFilePath = '.' + orgFilePath;
@@ -220,9 +228,9 @@ export class OprServer<T extends PluggableFactorySet> {
       hostUrlRoot = hostUrlRoot + '/';
     }
     const hostOrgUrl = new URL(orgFilePath, hostUrlRoot).toString();
-    console.log('Resolving cloud config json', configJson, hostOrgUrl);
     const resolved = await resolveConfigJson(
       configJson,
+      TenantNodeUserConfigDesc,
       this.allowedPluginSet,
       {hostOrgUrl}
     );
@@ -236,10 +244,11 @@ export class OprServer<T extends PluggableFactorySet> {
       if (resolvedPluggable.result.type === 'integrationInstaller') {
         const installer =
           resolvedPluggable.result as TenantNodeIntegrationInstaller;
-        installer.mountPath = resolvedPluggable.configJson.mountPath;
+        installer.mountPath = (
+          resolvedPluggable.configJson as unknown as Record<string, string>
+        ).mountPath;
       }
     }
-    console.log('Resolved', resolved);
     return {
       ...resolved.result,
       hostOrgUrl: hostOrgUrl,
@@ -271,7 +280,7 @@ export class OprServer<T extends PluggableFactorySet> {
   }
 
   async ingest(): Promise<void> {
-    for await (const hostId of this.hostConfigProvider.getAllTenantIds()) {
+    for await (const hostId of this.tenantConfigProvider.getAllTenantIds()) {
       const hostConfig = await this.getHostConfig(hostId);
       const host = new OprTenantNode(hostConfig, this.storage);
       this.logger.info('Starting ingest on host', host.hostOrgUrl);

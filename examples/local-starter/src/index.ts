@@ -22,19 +22,14 @@
  * components, and can be used as a "partner" node for local development.
  */
 import {
-  AllowedFactoryNamed,
   generateKeys,
-  integrations as CoreIntegrations,
-  LegalJsonMapStanza,
-  LegalJsonStanza,
+  CoreIntegrations as CoreIntegrations,
   log,
   OprServer,
-  PluggableFactory,
-  StringKeyOf,
+  StaticMultitenantOptionsJson,
 } from 'opr-core';
-import {Pluggable} from 'opr-core/build/integrations/pluggable';
-import {PluggableFactorySet} from 'opr-core/build/integrations/pluggablefactoryset';
-import {integrations as SqlIntegrations} from 'opr-sql-database';
+import {SqlIntegrations} from 'opr-sql-database';
+import {LocalIntegrations} from './localintegrations';
 log.setLevel('WARN');
 
 // We need a main method because we want to use the "await" keyword,
@@ -57,11 +52,16 @@ async function main() {
   // code. Most production servers won't be configured in code like this.
   // Production servers will normally store configuration JSON in some kind of
   // cloud storage system or database.
+  const integrations = {
+    ...CoreIntegrations,
+    ...SqlIntegrations,
+    ...LocalIntegrations,
+  };
   const baseHostConfig = {
     // Set up a listing policy with a single 'wildcard' entry. This
     // tells the server that it should show offers to everyone.
     listingPolicy: {
-      moduleName: 'opr-core#UniversalListingPolicy',
+      moduleName: 'UniversalListingPolicy',
       params: {
         orgUrls: [
           // Example "real" entry
@@ -72,7 +72,7 @@ async function main() {
     },
     // Sets up a key signer with the private key we just generated.
     signer: {
-      moduleName: 'opr-core#LocalKeySigner',
+      moduleName: 'LocalKeySigner',
       params: {
         privateKey: PRIVATE_KEY,
       },
@@ -86,7 +86,7 @@ async function main() {
     },
     // Sets up which hosts can access the API on this host.
     accessControlList: {
-      moduleName: 'opr-core#StaticAccessControlList',
+      moduleName: 'StaticAccessControlList',
       params: {
         // Create an access control list that allows us to control which
         // organizations can talk to this server. For now, we'll add a
@@ -110,37 +110,6 @@ async function main() {
   };
 
   // Start a local in-memory server to track offers.
-  const mergedFactories = {...SqlIntegrations, ...CoreIntegrations};
-  type LegalFactoryNames = StringKeyOf<typeof mergedFactories>;
-  type FilteredFactories = Pick<typeof mergedFactories, 'SqlStorage'>;
-  type LegalFactories = AllowedFactoryNamed<
-    typeof mergedFactories,
-    'StaticMultitenant'
-  >;
-  const y = mergedFactories.StaticMultitenant;
-  const z: LegalFactories = mergedFactories.StaticMultitenant;
-
-  type LegalStanza = LegalJsonMapStanza<
-    typeof mergedFactories,
-    'StaticMultitenant'
-  >;
-  const x: LegalStanza = {
-    moduleName: 'StaticMultitenant',
-    params: {
-      hosts: {
-        main: {
-          ...baseHostConfig,
-          name: 'Example',
-        },
-      },
-    },
-  };
-
-  type TEST = typeof mergedFactories extends PluggableFactorySet<
-    PluggableFactory<Pluggable, unknown, unknown>
-  >
-    ? number
-    : never;
 
   const s = new OprServer(
     {
@@ -153,14 +122,13 @@ async function main() {
           dropSchema: true,
         },
       },
-      hostMapping: {
+      tenantMapping: {
         moduleName: 'TemplateHostIds',
         params: {
           urlTemplate: 'http://localhost:5000/$',
-          pap: 'rika',
         },
       },
-      hostSetup: {
+      tenantSetup: {
         // Use the StaticMultitenant driver to read host configurations. This
         // means this server supports multiple hosts, each of which is
         // configured in advance with host configuration read from memory.
@@ -173,41 +141,43 @@ async function main() {
             main: {
               ...baseHostConfig,
               name: 'MainExampleServer',
+              signer: {
+                moduleName: 'LocalKeySigner',
+                params: {
+                  privateKey: PRIVATE_KEY,
+                },
+              },
               feedConfigs: [
                 {
-                  moduleName: 'StaticFeeds',
-                  params: {
-                    feeds: ['http://localhost:5000/other/org.json'],
-                  },
+                  organizationUrl: 'http://localhost:5000/other/org.json',
+                  maxUpdateFrequencyMillis: 60000,
                 },
               ],
               // Install integrations. Integrations are really just installer
               // functions that get passed an instance of IntegrationApi. They
-              // can install new endpoints, data providers, and behaviors that occur
-              // when the offers on a server change.
+              // can install new endpoints, data providers, and behaviors that
+              // occur when the offers on a server change.
               integrations: ['LocalMain', 'helloworld'],
             },
-            // // Sets up a server at http://localhost:5000/other/org.json
-            // other: {
-            //   ...baseHostConfig,
-            //   name: 'OtherExampleServer',
-            //   feedConfigs: {
-            //     moduleName: 'StaticFeeds',
-            //     params: {
-            //       feeds: ['http://localhost:5000/main/org.json'],
-            //     },
-            //   },
-            //   // Install integrations. Integrations are really just installer
-            //   // functions that get passed an instance of IntegrationApi. They can
-            //   // install new endpoints, data providers, and behaviors that occur
-            //   // when the offers on a server change.
-            //   integrations: ['LocalMain', 'howdyworld'],
-            // },
+            // Sets up another tenant node at
+            // http://localhost:5000/other/org.json
+            other: {
+              ...baseHostConfig,
+              name: 'OtherExampleServer',
+              feedConfigs: ['http://localhost:5000/main/org.json'],
+              integrations: [
+                'LocalMain',
+                {
+                  moduleName: 'howdyworld',
+                  mountPath: '',
+                },
+              ],
+            },
           },
-        },
+        } as StaticMultitenantOptionsJson<typeof integrations>,
       },
     },
-    {...CoreIntegrations, ...SqlIntegrations}
+    integrations
   );
   await s.start(5000);
   // The server is up! Things to try:

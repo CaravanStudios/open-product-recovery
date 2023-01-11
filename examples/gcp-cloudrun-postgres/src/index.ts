@@ -17,11 +17,15 @@
 /**
  * A fake example server.
  */
-import {log, OprServer, Request, Response, ServerConfigJson} from 'opr-core';
+import {log, OprServer, Request, Response, CoreIntegrations} from 'opr-core';
 import yargs from 'yargs';
 import * as dotenv from 'dotenv';
 log.setLevel('WARN');
 import {DataSourceOptions, SqlOprPersistentStorage} from 'opr-sql-database';
+
+import {SqlIntegrations} from 'opr-sql-database';
+import {LocalIntegrations} from './localintegrations';
+import {GcsIntegrations} from 'opr-google-cloud';
 
 // Import any local environment variables from .env
 dotenv.config();
@@ -109,36 +113,45 @@ async function main() {
 
   const hostname = args.hostname ?? process.env.OPR_HOSTNAME ?? 'localhost';
 
+  const gcsHostFileBucket =
+    args.gcshostfilebucket ?? process.env.GCS_HOST_FILE_BUCKET;
+  if (!gcsHostFileBucket) {
+    throw new Error('No gcs host file bucket defined');
+  }
+
   // Start a local in-memory server to track offers.
-  const s = new OprServer({
-    storage: {
-      moduleName: 'opr-sql-database',
-      params: {
-        type: 'sqlite',
-        database: ':memory',
-        synchronize: true,
-        dropSchema: true,
+  const s = new OprServer(
+    {
+      storage: {
+        moduleName: 'SqlStorage',
+        params: getDbOptions(),
       },
-    },
-    hostMapping: {
-      moduleName: 'opr-core#TemplateHostIds',
-      params: {
-        // TODO: Fix this to take a template from an environment variable or
-        // command line param
-        urlTemplate: hostname + '/hosts/$',
+      tenantMapping: {
+        moduleName: 'TemplateHostIds',
+        params: {
+          // TODO: Fix this to take a template from an environment variable or
+          // command line param
+          urlTemplate: hostname + '/orgs/$',
+        },
       },
-    },
-    hostSetup: {
-      // Use the StaticMultitenant driver to read host configurations. This
-      // means this server supports multiple hosts, each of which is configured
-      // in advance with host configuration read from memory.
-      moduleName: 'opr-google-cloud#GcsMultitenant',
-      params: {
-        bucket: args.gcshostfilebucket ?? process.env.GCS_HOST_FILE_BUCKET,
+      tenantSetup: {
+        // Use the StaticMultitenant driver to read host configurations. This
+        // means this server supports multiple hosts, each of which is
+        // configured in advance with host configuration read from memory.
+        moduleName: 'GcsMultitenant',
+        params: {
+          bucket: gcsHostFileBucket,
+        },
       },
+      hostName: hostname,
     },
-    hostName: hostname,
-  } as ServerConfigJson);
+    {
+      ...CoreIntegrations,
+      ...SqlIntegrations,
+      ...GcsIntegrations,
+      ...LocalIntegrations,
+    }
+  );
 
   // Most customizations happen per-host, but we can also add global server
   // customizations.

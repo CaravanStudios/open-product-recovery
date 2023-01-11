@@ -16,7 +16,7 @@
 
 import {JwksProvider} from '../../auth/jwksprovider';
 import {JSONWebKeySet, JWK} from 'jose';
-import {PluggableFactory} from '../../coreapi';
+import {PluggableFactory} from '../../integrations/pluggablefactory';
 
 export class LocalJwksProvider implements JwksProvider {
   readonly type = 'jwksProvider';

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {PluggableFactory} from '../coreapi';
+import {PluggableFactory} from '../integrations/pluggablefactory';
 import {ServerAccessControlList} from './serveraccesscontrollist';
 
 export class StaticServerAccessControlList implements ServerAccessControlList {
@@ -27,7 +27,6 @@ export class StaticServerAccessControlList implements ServerAccessControlList {
     for (const entry of accessControlList) {
       this.accessControlList[entry] = true;
     }
-    console.log('Constructed ACL', this.accessControlList);
   }
 
   async isAllowed(organizationURL: string): Promise<boolean> {

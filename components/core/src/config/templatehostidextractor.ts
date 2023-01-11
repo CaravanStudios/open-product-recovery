@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import {PluggableFactory} from '../coreapi';
+import {PluggableFactory} from '../integrations/pluggablefactory';
 import {JsonMap} from '../util/jsonvalue';
-import {StatusError} from '../util/statuserror';
 import {TenantIdExtractor} from './tenantidextractor';
 
 export interface TemplateHostIdExtractorOptionsJson extends JsonMap {

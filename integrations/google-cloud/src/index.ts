@@ -19,7 +19,6 @@ export * from './auth/cloudstoragekeysigner';
 export * from './config/cloudstoragetenantnodeconfigprovider';
 export * from './integrations';
 export * from './net/authenticatedjsonfetcher';
-export * from './policy/cloudstoragefeedconfigprovider';
 export * from './policy/cloudstorageserveraccesscontrollist';
 export * from './util/gcs';
 export * from './offerproducer/googlesheetsofferproducer';

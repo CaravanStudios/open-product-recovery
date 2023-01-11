@@ -33,7 +33,6 @@ export const StaticMultitenantIntegration = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     json: StaticMultitenantOptionsJson<any>
   ): Promise<StaticTenantNodeConfigProvider<Allowed>> {
-    console.log('Constructing statichostconfigprovider with config', json);
     return new StaticTenantNodeConfigProvider(json);
   },
 };
