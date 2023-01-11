@@ -8,7 +8,7 @@ module.exports = {
   ignorePatterns: ['**/build/**', '**/*.js'],
   plugins: ['node', 'prettier', '@typescript-eslint', 'header'],
   rules: {
-    'prettier/prettier': 'error',
+    'prettier/prettier': 'off',
     'block-scoped-var': 'error',
     eqeqeq: 'error',
     'no-var': 'error',

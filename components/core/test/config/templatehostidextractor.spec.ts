@@ -25,23 +25,23 @@ describe('TemplateHostIdExtractor', () => {
       const hostIdExtractor = new TemplateHostIdExtractor({
         urlTemplate: 'https://$.example.org',
       });
-      let hostId = hostIdExtractor.getHostId(
+      let hostId = hostIdExtractor.getTenantId(
         'https://mst3k.example.org/org.json'
       );
       expect(hostId).to.equal('mst3k');
-      hostId = hostIdExtractor.getHostId(
+      hostId = hostIdExtractor.getTenantId(
         'https://opr_host-with_chars.example.org/org.json'
       );
       expect(hostId).to.equal('opr_host-with_chars');
       expect(() => {
-        hostIdExtractor.getHostId('https://example.org/index.html');
+        hostIdExtractor.getTenantId('https://example.org/index.html');
       }).to.throw;
     });
     it('path', () => {
       const hostIdExtractor = new TemplateHostIdExtractor({
         urlTemplate: 'https://opr.openproductrecovery.org/hosts/$',
       });
-      const hostId = hostIdExtractor.getHostId(
+      const hostId = hostIdExtractor.getTenantId(
         'https://opr.openproductrecovery.org/hosts/mst3k/api/list'
       );
       expect(hostId).to.equal('mst3k');
