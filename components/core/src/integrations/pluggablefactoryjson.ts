@@ -21,6 +21,31 @@ import {PluggableFactorySet} from './pluggablefactoryset';
 
 export type ModuleNameType = string;
 
+/**
+ * Defines the shape of a JSON config section that loads a PluggableFactory.
+ * This JSON can take 3 forms:
+ *
+ * 1) Map form:
+ * {
+ *   moduleName: 'SqlStorage',
+ *   params: {
+ *     type: 'sqlite',
+ *     database: ':memory:',
+ *   }
+ * }
+ *
+ * 2) Tuple form (in the style of eslint configs):
+ * [
+ *   'SqlStorage',
+ *   params: {
+ *     type: 'sqlite',
+ *     database: ':memory:',
+ *   }
+ * ]
+ *
+ * 3) Just a module name (only allowed if there are no params):
+ * 'UniversalListingPolicy'
+ */
 export type PluggableFactoryJsonStanza<
   ModuleName extends ModuleNameType,
   JsonFormat

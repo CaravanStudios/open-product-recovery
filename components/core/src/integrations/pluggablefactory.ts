@@ -24,7 +24,7 @@ export interface PluggableFactory<
   C = undefined,
   X = undefined
 > {
-  readonly schema?: Schema;
+  readonly configSchema?: Schema;
   construct<Allowed extends PluggableFactorySet>(
     config: C,
     context: X,

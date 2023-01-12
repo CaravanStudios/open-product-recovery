@@ -31,13 +31,13 @@ export class TemplateHostIdExtractor implements TenantIdExtractor {
   constructor(options: TemplateHostIdExtractorOptionsJson) {
     this.urlTemplate = options.urlTemplate;
     this.idExtractRegexp = new RegExp(
-      this.urlTemplate.replace('$', '([a-z0-9_-]+)')
+      this.urlTemplate.toLowerCase().replace('$', '([a-z0-9_-]+)')
     );
   }
 
   getTenantId(reqUrl: string): string | undefined {
     const result = this.idExtractRegexp.exec(reqUrl);
-    if (result && result.length > 0 && result[1]) {
+    if (result && result.length === 2 && result[1]) {
       return result[1];
     }
     return undefined;

@@ -37,32 +37,6 @@ export interface TenantNodeConfig extends TenantNodeUserConfig {
   destroy(): Promise<void>;
 }
 
-// User configurable tenant node options
-// export interface TenantNodeUserConfig {
-//   name: string;
-//   hostOrgUrl?: string;
-//   orgFilePath?: string;
-//   enrollmentURL?: string;
-//   jwksFilePath?: string;
-//   scopesDisabled?: boolean;
-//   listProductsPath?: string;
-//   acceptProductPath?: string;
-//   rejectProductPath?: string;
-//   reserveProductPath?: string;
-//   historyPath?: string;
-//   orgConfigProvider?: OrgConfigProvider;
-//   listingPolicy: OfferListingPolicy;
-//   signer: Signer;
-//   jwks?: JwksProvider;
-//   strictCorrectnessChecks?: boolean;
-//   defaultReservationTimeSecs?: number;
-//   accessControlList: ServerAccessControlList;
-//   feedConfigs?: FeedConfigOrName[];
-//   producers?: Array<OfferProducer>;
-//   verifier?: Verifier;
-//   integrations?: Array<TenantNodeIntegrationInstaller>;
-// }
-
 export type TenantNodeUserConfig = PluggableConfig<
   typeof TenantNodeUserConfigDesc
 >;

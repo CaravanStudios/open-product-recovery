@@ -164,7 +164,6 @@ export class OprServer<T extends PluggableFactorySet> {
         const hostName =
           this.hostName ?? req.protocol + '://' + req.get('host');
         const fullUrl = hostName + req.originalUrl;
-        // const hostId = this.hostConfigProvider.getHostId(fullUrl);
         const hostId = this.tenantIdExtractor.getTenantId(fullUrl);
         if (hostId === undefined) {
           next();

@@ -198,6 +198,8 @@ async function constructPluggableFromConfig<
   if (!factory) {
     throw new StatusError('No factory found named ' + factoryName);
   }
+  // TODO(johndayrichter): Validate the params against the factory's param
+  // schema.
   const val = await factory.construct(params, context, allowed);
   if (val.type !== expectedType) {
     throw new StatusError(

@@ -44,6 +44,7 @@ export class CloudStorageTenantNodeConfigProvider<
     try {
       return await getGcsJson({
         bucket: this.bucket,
+        // TODO(johndayrichter): Make this path configurable.
         path: `orgs/${hostId}/config.json`,
       });
     } catch (e) {

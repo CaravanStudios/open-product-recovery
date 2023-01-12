@@ -117,7 +117,7 @@ async function main() {
         moduleName: 'SqlStorage',
         params: {
           type: 'sqlite',
-          database: ':memory',
+          database: ':memory:',
           synchronize: true,
           dropSchema: true,
         },
@@ -157,7 +157,16 @@ async function main() {
               // functions that get passed an instance of IntegrationApi. They
               // can install new endpoints, data providers, and behaviors that
               // occur when the offers on a server change.
-              integrations: ['LocalMain', 'helloworld'],
+              integrations: [
+                'LocalMain',
+                // When an integration installs new endpoints, by default
+                // they are mounted at
+                // <baseTenantUrl>/integrations/<integrationName>/<mountpoint>
+                // This integration installs a new endpoint named "hello",
+                // which is available at
+                // http://localhost:5000/main/integrations/helloworld/hello
+                'helloworld',
+              ],
             },
             // Sets up another tenant node at
             // http://localhost:5000/other/org.json
@@ -167,6 +176,14 @@ async function main() {
               feedConfigs: ['http://localhost:5000/main/org.json'],
               integrations: [
                 'LocalMain',
+                // It's possible give a custom mount path for endpoints that
+                // are installed by an integration. In that case, the endpoint
+                // is mounted at
+                // <baseTenantUrl>/<mountPath>/<mountpoint>
+                // The following integration installs a new endpoint named
+                // "howdy", which will mounted at the custom mount path ''. The
+                // endpoint's final URL is
+                // http://localhost:5000/main/howdy
                 {
                   moduleName: 'howdyworld',
                   mountPath: '',
