@@ -102,7 +102,7 @@ export const LocalIntegrations = {
         type: 'integrationInstaller',
 
         async install(api: IntegrationApi) {
-          api.installCustomHandler('helloworld', {
+          api.installCustomHandler('hello', {
             method: ['GET', 'POST'],
             handle: async () => {
               return 'Hello world. From ' + api.hostOrgUrl;
@@ -118,7 +118,7 @@ export const LocalIntegrations = {
         type: 'integrationInstaller',
 
         async install(api: IntegrationApi) {
-          api.installCustomHandler('howdyworld', {
+          api.installCustomHandler('howdy', {
             method: ['GET', 'POST'],
             handle: async () => {
               return 'Howdy world. From ' + api.hostOrgUrl;
