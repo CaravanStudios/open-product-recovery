@@ -2,8 +2,8 @@
 
 An open protocol for exchanging and accepting recovered products.
 
-* **Version**: `0.5.0`
-* **Last Updated**: October 10, 2022
+* **Version**: `0.5.2`
+* **Last Updated**: November 18, 2022
 * **Drafted by**: John Richter & Mike Ryckman
 * **Initial draft**: May 18, 2022
 
@@ -16,7 +16,7 @@ An open protocol for exchanging and accepting recovered products.
   * [3.2. Organizations](#32-organizations)
   * [3.3. Responsibility](#33-responsibility)
 * [4. Security Concepts](#4-security-concepts)
-  * [4.1. Cryptographic Signing & Related Assumptions](#41-cryptographic-signing--related-assumptions)
+  * [4.1. Cryptographic Signing \& Related Assumptions](#41-cryptographic-signing--related-assumptions)
   * [4.2. Organization-Based Security](#42-organization-based-security)
   * [4.3. Organization Access Lists](#43-organization-access-lists)
   * [4.4. Friend of a Friend Sharing](#44-friend-of-a-friend-sharing)
@@ -28,8 +28,8 @@ An open protocol for exchanging and accepting recovered products.
     * [5.3.2. File Format](#532-file-format)
 * [6. REST API](#6-rest-api)
   * [6.1. Required and Optional Operations](#61-required-and-optional-operations)
-  * [6.2. Authentication & Authorization](#62-authentication--authorization)
-    * [6.2.1. Authenticating & Authorizing Requests](#621-authenticating--authorizing-requests)
+  * [6.2. Authentication \& Authorization](#62-authentication--authorization)
+    * [6.2.1. Authenticating \& Authorizing Requests](#621-authenticating--authorizing-requests)
       * [6.2.1.1. Access Tokens](#6211-access-tokens)
         * [6.2.1.1.1. Access Token Header](#62111-access-token-header)
         * [6.2.1.1.2. Access Token Payload](#62112-access-token-payload)
@@ -48,7 +48,9 @@ An open protocol for exchanging and accepting recovered products.
     * [6.3.2. `listProducts`](#632-listproducts)
       * [6.3.2.1. `SNAPSHOT` Format](#6321-snapshot-format)
       * [6.3.2.2. `DIFF` Format](#6322-diff-format)
-        * [6.3.2.2.1. Using `DIFF` Format Responses](#63221-using-diff-format-responses)
+        * [6.3.2.2.1. The `clear` Patch](#63221-the-clear-patch)
+        * [6.3.2.2.2. Targeting Offers with `StructuredOfferId`](#63222-targeting-offers-with-structuredofferid)
+        * [6.3.2.2.3. Using `DIFF` Format Responses](#63223-using-diff-format-responses)
       * [6.3.2.3. Reservation Considerations](#6323-reservation-considerations)
       * [6.3.2.4. Friend of a Friend `listProducts` Requests](#6324-friend-of-a-friend-listproducts-requests)
       * [6.3.2.5. `listProducts` Request Body](#6325-listproducts-request-body)
@@ -105,7 +107,7 @@ The more advanced technical solutions, such as API integrations, do not have thi
 3. **Lack of standards and reuse**: Each API is different, so every integration is unique and non-reusable.
 4. **Painful authorization model**: Many existing APIs assume that every API user must have an identity that is registered with the provider of the API, and they often assume that API user ids must originate from an identity system managed by the API provider themselves.
 5. **Restrictive trust model**: Most existing authorization models imply a particular trust model - a donor can only trust recipients that the donor knows, because the API requires prior knowledge of a user to authenticate them. However, this does not capture an important aspect of human-to-human donation networks: the friend of a friend model. In real life, human donors trust information about donations to organizations that re-share that information, and eventually connect a recipient directly to the donor. This cannot be done automatically in most existing APIs, because there is no way of authenticating the unfamiliar recipient against the donor's API without additional human intervention.
-6. **Push model**: Many food donation APIs are built on a donation-push model, wherein available donations must be posted via API to a large recipient organization. In practice, it is often particularly difficult for donor organizations to use this sort of model, because donor systems tend to be built on top of whatever inventory database is used to run the day-to-day operations
+6. **Push model**: Many food donation APIs are built on a donation-push model, wherein available donations must be posted via API to a large recipient organization. In practice, it is often particularly difficult for donor organizations to use this sort of model, because donor systems tend to be built on top of whatever inventory database is used to run the day-to-day operations.
 
 # 2. Design Objectives
 
@@ -128,7 +130,7 @@ Some real-world organizations will *re-share* offers by creating an offer feed t
 
 ## 3.1. Donation Offer
 
-A donation offer is a collection of goods that exists at some physical location. Although these offers are frequently referred to as "donations" in this and other related documents, a payment or other exchange may be necessary for an organization to take possession of an offer, but these transactions are out of scope for this design . The attributes and precise specification for describing a Donation Offer can be found in [The Open Product Recovery Description Format](opr_description_format.md).
+A donation offer is a collection of goods that exists at some physical location. Although these offers are frequently referred to as "donations" in this and other related documents, a payment or other exchange may be necessary for an organization to take possession of an offer, but these transactions are out of scope for this design . The attributes and precise specification for describing a Donation Offer can be found in [The Open Product Recovery Description Format](description_format.md).
 
 ## 3.2. Organizations
 
@@ -327,7 +329,7 @@ The issuing organization must be checked for authorization to succeed. The type 
 
 #### 6.2.2.1. Standard Requests
 
-Each organization must maintain a access control list of organizations that are allowed to make requests to its API endpoints. The recipient organization URL specified in the authorization token must exactly match an entry in the access control list for the request to succeed. If the recipient organization URL is not in the access control list, the request must fail with an HTTP 403 status (forbidden), with an optional human-readable error message explaining how to gain access to the access control list.
+Each organization must maintain an access control list of organizations that are allowed to make requests to its API endpoints. The recipient organization URL specified in the authorization token must exactly match an entry in the access control list for the request to succeed. If the recipient organization URL is not in the access control list, the request must fail with an HTTP 403 status (forbidden), with an optional human-readable error message explaining how to gain access to the access control list.
 
 The organization is entirely responsible for deciding how to implement this access control list, but an access control list of some sort must be maintained. API endpoints must never allow requests from wholly unknown organizations.
 
@@ -466,26 +468,54 @@ If `SNAPSHOT` format is requested, the server response must be in `SNAPSHOT` for
 
 #### 6.3.2.2. `DIFF` Format
 
-In `DIFF` format, the server returns a [JSON Patch array](https://jsonpatch.com/) that, when applied, updates a collection of offers from some earlier time to match the collection of offers on the server at the current moment.
+In `DIFF` format, the server returns a list of OfferPatch objects. An OfferPatch
+is either the string [`clear`](#the-clear-patch) or a JSON object containing two parameters:
+* `target` (`StructuredOfferId`) : A [StructuredOfferId](#targeting-offers-with-structuredofferid) that specifies an offer (or a particular version of an offer).
+* `patch` (`JSONPatch`) : A [JSON Patch array](https://jsonpatch.com/) that, when applied to the targeted offer, updates the offer from some earlier time to the current state.
 
 If `DIFF` format is requested, the server may respond with `DIFF` format. However, a server may be unable to respond to some `DIFF` format requests (particularly ones where the requested `diffStartTimestampUTC` parameter specifies a time in the distant past). In those cases, the server may respond in `SNAPSHOT` format.
 
 `DIFF` format requests require the `diffStartTimestampUTC` property to be specified in the request.
 
-##### 6.3.2.2.1. Using `DIFF` Format Responses
+##### 6.3.2.2.1. The `clear` Patch
 
-A [JSON patch](https://jsonpatch.com/) ([RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902/)) is an array of operation descriptions for modifying a JSON value. DIFF format is useful for organizations that store the offers read from another server, because DIFF format transfers the minimal information necessary to update a stored collection of offers to match the most recent state on a remote server.
+The first item in an `OfferPatch` list may be the string `clear`. This string indicates that the following `OfferPatch`es completely describe the entire offer collection. The `clear` patch means "delete all offers not explicitly created by the following patches".
 
-The JSON patches used in OPR apply to an entire collection of offers on a server, not individual offers. To apply JSON patch to an offer collection, first the collection must be transformed to a map of full offer ids to offers. To do this:
+##### 6.3.2.2.2. Targeting Offers with `StructuredOfferId`
 
-1. Let offerMap = `{}` (an empty JSON object)
-2. For each offer on the server:
-   1. Generate a full offer id by concatenating the offer's `offeredBy` field, a '#' symbol, and the offer `id`
-   2. let `offerMap[fullOfferId] = offer`
+A standard OfferPatch includes a `target` attribute that specifies which offer to modify. The `target` attribute contains a `StructuredOfferId` object, with the following fields:
 
-The JSON patch can then be applied to the resulting offer map using a [standard JSON patch library](https://jsonpatch.com/#libraries).
+* `id` (string) : The offer id.
+* `postingOrgUrl` (string) : The organization url of the org that made the offer. This field matches the `offeredBy` field of the offer.
+* `lastUpdateTimeUTC` (number) : The last update time of the targeted offer. This property allows a structured offer id to be applied *only* to a particular version of an offer.
 
-A malformed or buggy JSON patch may leave one or more offers in an invalid and unusable state. Therefore, servers must check every offer in the offer map after applying a JSON patch. If an offer is invalid after the patch is applied, the server should handle the malformed offer as if it had been deleted by the patch.
+If the `lastUpdateTimeUTC` field is specified, the `OfferPatch` will be applied *only* to an offer whose last update time (specified by the `offerUpdateUTC` field, or the `offerCreationUTC` field if the offer has never been updatde) matches the given timestamp. See [Using DIFF Format Responses](#63221-using-diff-format-responses) below for details on how to apply OfferPatches that are targed to a particular version of an offer.
+
+Implementations that create OfferPatches must decide whether to specify the `lastUpdateTimeUTC` field. In general, `lastUpdateTimeUTC` should only be specified when the OfferPatch *must* be applied to a particular version of an Offer to ensure that the Offer remains in a valid state.
+
+`lastUpdateTimeUTC` should *not* be specified when:
+
+* The patch updates the entire contents of the offer (i.e. the JSON Patch contains a single 'update' operation where the path is "").
+
+`lastUpdateTimeUTC` should *always* be specified when:
+
+* The patch includes `add` or `remove` operations on an array, because those operations may have highly unexpected results if applied to a different object than intended.
+* The offer may be modified multiple times, and those modifications may target different collections of fields.
+
+Implementations that generate patches must be very careful not to issue patches that could leave an Offer in a state that was never published by the original offering organization.
+
+##### 6.3.2.2.3. Using `DIFF` Format Responses
+
+To apply an `OfferPatch`:
+
+1) Check whether the `OfferPatch` is the value `clear`. If it is, delete the entire relevant collection of offers (for example, the cached list of offers from the OPR server that produced this patch)
+2) Look up the offer specified by the StructuredOfferId in the `target` field. If the offer cannot be found, the patch must be ignored.
+3) If the StructuredOfferId specifies the lastUpdateTimeUTC field, ensure that the offer's last update timestamp (or creation timestamp, if the offer has never been updated) matches the lastUpdateTimeUTC field. If it does not, the patch must be ignored.
+4) Apply the JSON Patch in the `patch` field to the Offer.
+
+A [JSON patch](https://jsonpatch.com/) ([RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902/)) is an array of operation descriptions for modifying a JSON value. A JSON patch can be applied to an offer using a [standard JSON patch library](https://jsonpatch.com/#libraries).
+
+A malformed or buggy JSON patch may leave an offer in an invalid and unusable state. If an offer is invalid after a patch is applied, that patch should be ignored. Note that every valid update to an offer should advance that offer's `offerUpdateUTC`. If a patch is applied and the Offer's `offerUpdateUTC` field does not change, the patch should be considered invalid and ignored.
 
 #### 6.3.2.3. Reservation Considerations
 
@@ -499,7 +529,7 @@ Friend-of-a-friend requests are not valid on the `listProducts` endpoint.
 
 The request body to the listProducts endpoint should be a JSON map with the following properties:
 
-* `pageToken` (`string`, optional) : A token indicating which page of the results to return. This must be a page token returned by a prior request to the `listProducts` endpoint.
+* `pageToken` (`string`, optional) : A token indicating which page of the results to return. This must be a page token returned by a prior request to the `listProducts` endpoint. Note that if a `pageToken` is specified, all other parameters are ignored, because the pageToken encodes all other information about the request. The page token format is unspecified and may change at any time.
 * `requestedResultFormat` (`string`, optional) : Requests that results are returned in `SNAPSHOT` or `DIFF` format (see [Response Body](#6326-listproducts-response-body) below for descriptions of these formats). The server is not required to honor a request for `DIFF` format; it may return results in `SNAPSHOT` format instead. The server must always honor a request for `SNAPSHOT` format. `DIFF` and `SNAPSHOT` are the only values permitted for this property.
 * `diffStartTimestampUTC` (`number`, required for `DIFF` format, ignored for `SNAPSHOT`) : The baseline time for a response in `DIFF` format. The `diff` field of the response will include a JSON patch to modify the offer set as of the requested time to the current offer set. If possible, callers should base this value on a timestamp received from the server they are calling, rather than a timestamp from their own clock, to avoid clock skew problems.
 * `maxResultsPerPage` (`number`, optional) - A requested maximum number of results per page. The server may ignore this parameter. If honored, this parameter applies to both the contents of `SNAPSHOT` and `DIFF` replies.
@@ -511,7 +541,7 @@ The listProducts endpoint returns a JSON object containing the following fields:
 * `responseFormat` (`string`) : Either the value `SNAPSHOT` or `DIFF`, indicating the format of the response. If `DIFF` format was requested, it is important to check this field, because the server may return a `SNAPSHOT` response even if `DIFF` format was requested.
 * `resultsTimestampUTC` (`number`) : The timestamp at which these results are current from the point of view of the server. Servers that are requesting results in `DIFF` format should provide this value as the `diffStartTimestampUTC` parameter of their next request to this server.
 * `nextPageToken` (`string`, optional) : The page token for the next page of results. If this field is missing, it means the current page is the last page of results.
-* `offers` (`Array<Offer>`, (always provided in `SNAPSHOT` format, always omitted in `DIFF` format) : An array of offers in JSON format. Offers are described in detail in [The Open Product Recovery Description Format](./opr_description_format.md).
+* `offers` (`Array<Offer>`, (always provided in `SNAPSHOT` format, always omitted in `DIFF` format) : An array of offers in JSON format. Offers are described in detail in [The Open Product Recovery Description Format](description_format.md).
 * `diff` (`JSONPatch`, always provided in `DIFF` format, always omitted in `SNAPSHOT` format) : A JSON patch object. When applied, this will transform the server's collection of offers at `diffStartTimestampUTC` to the server's current offer collection.
 
 In all `listOffers` responses, regardless of format, there are two fields in the Offer object that have special meaning to this Transfer API:
@@ -521,7 +551,7 @@ In all `listOffers` responses, regardless of format, there are two fields in the
 
 An offering organization should make a best effort to only include offers that can be accepted by the current recipient organization.
 
-An offering organization may choose to show any subset of its offers to any receipient organization.
+An offering organization may choose to show any subset of its offers to any recipient organization.
 
 #### 6.3.2.7. `listProducts` HTTP Response Directives
 
@@ -550,14 +580,14 @@ If the accept endpoint is called for an offer that is currently [reserved](#635-
 
 If the accept endpoint is called for an offer that does not exist, is expired, has been [rejected](#634-rejectproduct) by the calling organization, or is otherwise unavailable for acceptance, an HTTP 404 status (not found) must be returned.
 
-If a caller wants to ensure that they know the exact contents of the offer they are accepting, they may specify the `ifNotNewerThanTimestampUTC` parameter. If the offer's `lastUpdateTimestampUTC` is newer than this parameter, the accept request must fail, and the latest version of the offer must be returned in the [error message](#6333-acceptproduct-error-messages).
+If a caller wants to ensure that they know the exact contents of the offer they are accepting, they may specify the `ifNotNewerThanTimestampUTC` parameter. If the offer's `lastUpdateTimeUTC` is newer than this parameter, the accept request must fail, and the latest version of the offer must be returned in the [error message](#6333-acceptproduct-error-messages).
 
 #### 6.3.3.1. `acceptProduct` Request Body
 
 The request body should be a JSON map with the following properties:
 
 * `offerId` (`string`) : The id of the offer to accept.
-* `ifNotNewerThanTimestampUTC` (`number`, optional) : An optional timestamp indicating the latest version of the offer that the requesting organization is willing to accept. If the offer's `lastUpdateTimestampUTC` is newer than this timestamp, the request must fail. See [Accept Error Messages](#6333-acceptproduct-error-messages) below.
+* `ifNotNewerThanTimestampUTC` (`number`, optional) : An optional timestamp indicating the latest version of the offer that the requesting organization is willing to accept. If the offer's `lastUpdateTimeUTC` is newer than this timestamp, the request must fail. See [Accept Error Messages](#6333-acceptproduct-error-messages) below.
 * `reshareChain` (`Array<url>`, optional) : An optional array of JSON Web Tokens specifying the chain of resharing by which the current recipient organization discovered this offer. This field must be provided for offers that were received via resharing. See [Friend of a Friend Sharing](#44-friend-of-a-friend-sharing) for details.
 
 #### 6.3.3.2. `acceptProduct` Response Body
@@ -692,12 +722,15 @@ Friend-of-a-friend requests are not valid on the `acceptHistory` endpoint. Reque
 The request body to the acceptHistory endpoint must be a JSON map with the following properties:
 
 * `historySinceUTC` (`number`, optional) : An optional unix timestamp (milliseconds since the epoch UTC) indicating that the caller prefers to see the history of offers accepted after the requested time.
+* `pageToken` (`string`, optional) : A token indicating which page of the results to return. This must be a page token returned by a prior request to the `acceptHistory` endpoint. Note that if a `pageToken` is specified, all other parameters are ignored, because the pageToken encodes all other information about the request. The page token format is unspecified and may change at any time.
+* `maxResultsPerPage` (`number`, optional) - A requested maximum number of results per page. The server may ignore this parameter. If honored, this parameter applies to both the contents of `SNAPSHOT` and `DIFF` replies.
 
 #### 6.3.7.4. `acceptHistory` Response Body
 
 The response body must be a JSON object with the following properties:
 
 * `offerHistories` (`Array<`[`OfferHistory`](#63741-offerhistory-object)`>`) : An array of OfferHistory objects representing the history of accepted offers for the requesting organization.
+* `nextPageToken` (`string`, optional) : The page token for the next page of results. If this field is missing, it means the current page is the last page of results.
 
 ##### 6.3.7.4.1. OfferHistory Object
 

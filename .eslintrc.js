@@ -1,0 +1,112 @@
+module.exports = {
+  extends: [
+    'eslint:recommended',
+    'plugin:node/recommended',
+    'prettier',
+    'plugin:@typescript-eslint/recommended',
+  ],
+  ignorePatterns: ['**/build/**', '**/*.js'],
+  plugins: ['node', 'prettier', '@typescript-eslint', 'header'],
+  rules: {
+    'prettier/prettier': 'off',
+    'block-scoped-var': 'error',
+    eqeqeq: 'error',
+    'no-var': 'error',
+    'prefer-const': 'error',
+    'eol-last': 'error',
+    'prefer-arrow-callback': 'error',
+    'no-trailing-spaces': 'error',
+    quotes: ['warn', 'single', {avoidEscape: true}],
+    'max-len': [
+      'error',
+      {
+        code: 80,
+        tabWidth: 2,
+        ignorePattern: '^import .*',
+      },
+    ],
+    'header/header': [
+      2,
+      'block',
+      [
+        '*',
+        {pattern: ' * Copyright \\d{4} Google LLC'},
+        ' *',
+        ' * Licensed under the Apache License, Version 2.0 (the "License");',
+        ' * you may not use this file except in compliance with the License.',
+        ' * You may obtain a copy of the License at',
+        ' *',
+        ' *      http://www.apache.org/licenses/LICENSE-2.0',
+        ' *',
+        ' * Unless required by applicable law or agreed to in writing, software',
+        ' * distributed under the License is distributed on an "AS IS" BASIS,',
+        ' * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND' +
+          ', either express or implied.',
+        ' * See the License for the specific language governing permissions and',
+        ' * limitations under the License.',
+        ' '
+      ],
+    ],
+    'no-restricted-properties': [
+      'error',
+      {
+        object: 'describe',
+        property: 'only',
+      },
+      {
+        object: 'it',
+        property: 'only',
+      },
+    ],
+    'node/no-unpublished-import': [
+      'error',
+      {
+        allowModules: [
+          'mocha',
+          'chai',
+          'chai-as-promised',
+          'json-refs',
+          'json-schema-to-typescript',
+          'glob-promise',
+        ],
+      },
+    ],
+    'lines-between-class-members': [
+      'error',
+      'always',
+      {exceptAfterSingleLine: true},
+    ],
+  },
+  overrides: [
+    {
+      files: ['**/*.ts', '**/*.tsx'],
+      parser: '@typescript-eslint/parser',
+      extends: ['plugin:@typescript-eslint/recommended'],
+      rules: {
+        '@typescript-eslint/no-non-null-assertion': 'off',
+        '@typescript-eslint/no-use-before-define': 'off',
+        '@typescript-eslint/no-warning-comments': 'off',
+        '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/no-var-requires': 'off',
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/explicit-module-boundary-types': 'off',
+        '@typescript-eslint/ban-types': 'off',
+        '@typescript-eslint/camelcase': 'off',
+        'node/no-missing-import': 'off',
+        'node/no-empty-function': 'off',
+        'node/no-unsupported-features/es-syntax': 'off',
+        'node/no-missing-require': 'off',
+        'node/shebang': 'off',
+        'no-dupe-class-members': 'off',
+        'require-atomic-updates': 'off',
+        '@typescript-eslint/no-floating-promises': 'error',
+      },
+      parserOptions: {
+        ecmaVersion: 2018,
+        sourceType: 'module',
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json'],
+      },
+    },
+  ],
+};

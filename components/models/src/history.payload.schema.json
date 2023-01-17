@@ -1,0 +1,28 @@
+{
+    "$id" : "history.payload.schema.json",
+    "$schema" : "https://json-schema.org/draft/2020-12/schema",
+    "title" : "HistoryPayload",
+    "description" : "Payload for a request for offer history.",
+    "examples" : [
+      {},
+      {
+        "historySinceUTC" : 1660152248000,
+        "pageToken": "fakeToken"
+      }
+    ],
+    "additionalProperties" : false,
+    "properties" : {
+      "historySinceUTC" : {
+        "$ref" : "timestamp.schema.json"
+      },
+      "pageToken" : {
+        "type" : "string"
+      },
+      "maxResultsPerPage" : {
+        "type" : "number"
+      }
+    },
+    "required" : [
+    ],
+    "type" : "object"
+  }

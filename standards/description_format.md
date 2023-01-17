@@ -2,8 +2,8 @@
 
 This defines a standard JSON format for describing food (or other consumer products) that is available for transfer between organizations. This design doc does not specify how this standard format should be used, but it was designed as the primary datamodel for the transfer protocol described in Design Doc Proposal - The Open Product Recovery Transfer API.
 
-- **Version:** `0.5.0`
-- **Last Updated:** October 10, 2022
+- **Version:** `0.5.1`
+- **Last Updated:** October 31, 2022
 - **Drafted by:** John Richter & Mike Ryckman
 - **Initial draft:** May 18, 2022
 
@@ -119,7 +119,7 @@ A measurement is a data structure specifying some physical measurement of an ite
 | Unit Type                | Supported Units                                                                                     | Supported Dimensions                          | Sums in collections |
 | ------------------------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------- |
 | Physical extent          | centimeter<br/>foot<br/>inch<br/>meter yard                                                         | length<br/>depth<br/>width                    | no                  |
-| Liquid volume            | fluidonce<br/>gallon<br/>liter                                                                      | volume-liquid                                 | yes                 |
+| Liquid volume            | fluidounce<br/>gallon<br/>liter                                                                      | volume-liquid                                 | yes                 |
 | Spatial volume           | cubiccentimeter<br/>cubicfoot<br/>cubicinch<br/>cubicmeter<br/>pallet[^1]<br/>shippingcontainer[^2] | volume                                        | yes                 |
 | Weight                   | gram<br/>kilogram<br/>ounce pound                                                                   | weight                                        | yes                 |
 | Temperature Requirements | celsius<br/>fahrenheit                                                                              | temperature-max<br/>temperature-min<br/>ideal | no                  |
@@ -166,7 +166,7 @@ A product is a description of a single type of item (usually a food). Products a
   * `unitWeight` ([`Measurement`](#313-measurements), optional): The weight of a single item of this type. If specified, the given measurement object must specify a unit that measures the "weight" dimension. This weight is purely informational, and is used to indicate how a particular product contributes to the total weight of a bundle. It is not required that the weights of products in a bundle sum to the weight of that bundle as a whole, but the sum of the weights of products in a bundle should not exceed the weight of the whole bundle.
   * `otherUnitMeasurements` ([`Array<Measurement>`](#313-measurements), optional): A list of other measurements for a single item of this type. Each measurement must specify a different unit/dimension pairing.
   * `itemTypeIds` ([`Array<TypeIdentifier>`](#312-type-identifiers), optional): A list of up to 10 type identifiers describing this product. Each type identifier in the list must specify a different vocabulary id. The identifiers in this list must be synonyms to the extent possible given the vocabularies in use, although it is valid to specify terms at different levels of description in different vocabularies.
-  * `price` ([`Price`](#316-price), optional): A price that must be paid for this item to be transferred. This price is purely informational, and is used to indicate how a particular product contributes to the total price of a bundle. It is not required that the prices of products in a bundle sum to the price of the bundle as a whole, but the sum of the prices of products in a bundle should not exceed the weight of the whole bundle. If a product specifies a price, the top-level bundle that contains it must also specify a price.
+  * `price` ([`Price`](#316-price), optional): A price that must be paid for this item to be transferred. This price is purely informational, and is used to indicate how a particular product contributes to the total price of a bundle. It is not required that the prices of products in a bundle sum to the price of the bundle as a whole, but the sum of the prices of products in a bundle should not exceed the price of the whole bundle. If a product specifies a price, the top-level bundle that contains it must also specify a price.
   * `estimatedValue` ([`Price`](#316-price), optional): The estimated total value of this product. The total estimated value must equal or exceed the estimated values for all child products and bundles.
   * `expirationTimestampUTC` (`number`, optional): A unix timestamp (number of milliseconds since the epoch UTC) indicating when the products of this type will expire, that is, become unusable. This timestamp is purely informational, but if this product is part of a bundle, that bundle's expiration timestamp must be equal to or earlier than this timestamp.
   * `photoUris` (`Array<string>`, optional): A list of URIs containing up to 10 images of the product. Each URI may contain any number of characters, but the total number of characters in ALL photo URIs for a product must not exceed 1,000,000 characters.

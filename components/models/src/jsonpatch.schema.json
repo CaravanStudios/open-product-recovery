@@ -1,0 +1,20 @@
+{
+  "$id": "jsonpatch.schema.json",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "comment": "Copied and reformatted from source at https://json.schemastore.org/json-patch.json",
+  "description": "A JSON Patch array",
+  "examples": [
+    [
+      {
+        "op": "replace",
+        "path": "",
+        "value": {}
+      }
+    ]
+  ],
+  "items": {
+    "$ref" : "jsonpatchop.schema.json"
+  },
+  "title": "JSONPatch",
+  "type": "array"
+}

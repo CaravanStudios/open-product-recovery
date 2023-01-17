@@ -1,0 +1,35 @@
+{
+  "description": "Tests for producer locking",
+  "currentOrg": "https://citadelofdanas.org/org.json",
+  "tests": [
+    {
+      "description": "Lock and unlock with proper metadata",
+      "time": 1,
+      "calls": [
+        {
+          "op": "READPRODUCERMETADATA",
+          "organizationUrl": "https://citadelofdanas.org/org.json",
+          "expect": ["expect(result).to.be.undefined"]
+        },
+        {
+          "op": "WRITEPRODUCERMETADATA",
+          "metadata": {
+            "organizationUrl": "https://citadelofdanas.org/org.json",
+            "lastUpdateTimeUTC": 1,
+            "nextRunTimestampUTC": 10
+          }
+        },
+        {
+          "op": "READPRODUCERMETADATA",
+          "organizationUrl": "https://citadelofdanas.org/org.json",
+          "expectedMetadata": {
+            "organizationUrl": "https://citadelofdanas.org/org.json",
+            "lastUpdateTimeUTC": 1,
+            "nextRunTimestampUTC": 10
+          },
+          "expect": ["expect(result).to.deep.equal(expectedMetadata)"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "description": "Known offering orgs",
+  "hostOrgUrl": [
+    "https://citadelofdanas.org/org.json",
+    "https://fano.org/org.json"
+  ],
+  "tests": [
+    {
+      "description": "Simple getKnownOfferingOrgs",
+      "calls": [
+        {
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "offerUpdateUTC": 0
+          }
+        },
+        {
+          "op": "insertOrUpdateOfferInCorpus",
+          "corpusOrgUrl": "https://remoteorg.org/org.json",
+          "offer": {
+            "$model": "SimpleOffer",
+            "offeredBy": "https://madeup.org/org.json",
+            "offerUpdateUTC": 0
+          }
+        },
+        {
+          "op": "getKnownOfferingOrgs",
+          "expect": [
+            "expect(result.length).to.equal(2)",
+            "expect(result[0]).to.equal('https://citadelofdanas.org/org.json')",
+            "expect(result[1]).to.equal('https://madeup.org/org.json')"
+          ]
+        }
+      ]
+    }
+  ]
+}

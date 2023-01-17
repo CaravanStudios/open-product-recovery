@@ -1,0 +1,15 @@
+FROM node
+WORKDIR /usr
+COPY ./ ./
+RUN npx lerna bootstrap
+RUN mkdir ./deploy
+RUN cp -Lr ./examples/local-starter/package.json ./deploy
+RUN cp -Lr ./examples/local-starter/build ./deploy
+RUN cp -Lr ./examples/local-starter/node_modules ./deploy
+
+## this is stage two , where the app actually runs
+FROM node
+WORKDIR /usr
+COPY --from=0 /usr/deploy ./
+EXPOSE 8080
+CMD ["npm", "run", "start"]

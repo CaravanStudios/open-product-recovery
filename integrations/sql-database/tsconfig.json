@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./build",
+    "experimentalDecorators": true /* Enable experimental support for TC39 stage 2 draft decorators. */,
+    "emitDecoratorMetadata": true,
+    // NOTE: The following must be set to false for TypeORM
+    "strictPropertyInitialization": false /* Check for class properties that are declared but not set in the constructor. */
+  },
+  "include": ["./src/**/*.ts"]
+}
