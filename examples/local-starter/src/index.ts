@@ -30,7 +30,9 @@ import {
 } from 'opr-core';
 import {SqlIntegrations} from 'opr-sql-database';
 import {LocalIntegrations} from './localintegrations';
-log.setLevel('WARN');
+
+// Log level 'WARN' is better generally but 'DEBUG' can be helpful during setup
+log.setLevel('DEBUG');
 
 // We need a main method because we want to use the "await" keyword,
 // and it's not allowed in top-level script code. But we can declare an
@@ -183,7 +185,7 @@ async function main() {
                 // The following integration installs a new endpoint named
                 // "howdy", which will mounted at the custom mount path ''. The
                 // endpoint's final URL is
-                // http://localhost:5000/main/howdy
+                // http://localhost:5000/other/howdy
                 {
                   moduleName: 'howdyworld',
                   mountPath: '',
@@ -200,7 +202,9 @@ async function main() {
   // The server is up! Things to try:
   // See the MainExampleServer config at http://localhost:5000/main/org.json
   // See the OtherExampleServer config at  http://localhost:5000/other/org.json
-  // Read offers into the main server at http://localhost:5000/main/ingest
-  // Read offers into the other server at http://localhost:5000/other/ingest
+  // Ingest new/updated offers with the /ingest endpoint. Note we installed
+  // the /ingest endpoint through the "LocalMain" integration, so it's here:
+  // main: http://localhost:5000/main/integrations/localmain/ingest
+  // other: http://localhost:5000/other/integrations/localmain/ingest
 }
 void main();
