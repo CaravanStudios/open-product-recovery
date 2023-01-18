@@ -15,5 +15,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - run: docker build -f Dockerfile.dev -t example-opr ../..
-    - working-directory: examples/local-starter
+    - name: Run docker build
+      run: docker build -f Dockerfile.dev -t example-opr ../..
+      working-directory: examples/local-starter
