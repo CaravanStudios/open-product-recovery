@@ -48,6 +48,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@google-cloud/pubsub": "^3.2.1",
     "@google-cloud/storage": "^6.2.3",
     "google-auth-library": "^8.1.1",
     "googleapis": "^108.0.0",
