@@ -17,6 +17,8 @@ jobs:
       matrix:
         node-version: [14.x, 16.x, 18.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        test-command: [test, test-docker]
+        bootstrap-params: [--no-ci, --hoist --no-ci]
 
     steps:
     - uses: actions/checkout@v3
@@ -25,11 +27,5 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    # Do a non-hoisted build to ensure that there are no dependency errors.
-    - run: npx lerna bootstrap --no-ci
-    # Clean the build
-    - run: ./clean.sh
-    # Do a hoisted build to ensure that hoisted building works also.
-    - run: npx lerna bootstrap --hoist --no-ci
-    - run: npx lerna run test
-    - run: npx lerna run test-docker
+    - run: npx lerna bootstrap ${{ matrix.bootstrap-params }}
+    - run: npx lerna run ${{ matrix.test-command }}
