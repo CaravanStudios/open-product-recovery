@@ -15,8 +15,11 @@
  */
 
 import {CloudStorageTenantNodeConfigProviderIntegration} from './config/cloudstoragetenantnodeconfigproviderintegration';
+import {PubSubIntegration} from './pubsub/pubsub';
 
 // TODO(johndayrichter): Add integrations for every pluggable in this module
+// TODO(ryckmanat): Change language to 'GcpIntegrations'
 export const GcsIntegrations = {
   GcsMultitenant: CloudStorageTenantNodeConfigProviderIntegration,
+  PubSub: PubSubIntegration,
 };
