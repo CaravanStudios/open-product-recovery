@@ -1,6 +1,6 @@
 {
   "name": "opr-models",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "description": "Datamodels and schemas for Open Product Recovery",
   "main": "build/index.js",
   "types": "build/index.d.ts",

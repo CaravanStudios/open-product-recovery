@@ -20,7 +20,7 @@ import {StatusError} from '../../util/statuserror';
 import {importJWK, JWK, JWTPayload, SignJWT} from 'jose';
 import {Signer, IssueTokenOptions, SignChainOptions} from '../signer';
 import {ReshareChain} from 'opr-models';
-import {TenantNodeIntegrationContext} from '../../config/hostintegrationcontext';
+import {TenantNodeIntegrationContext} from '../../config/tenantnodeintegrationcontext';
 import {PluggableFactory} from '../../integrations/pluggablefactory';
 import {JsonMap} from '../../util/jsonvalue';
 
