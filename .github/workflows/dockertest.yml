@@ -1,0 +1,18 @@
+# This workflow will do a clean installation of node dependencies using lerna, cache/restore them, build the source code and run tests across different versions of node
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - run: cd examples/local-starter && docker build -f Dockerfile.dev -t example-opr ../..

@@ -17,7 +17,6 @@ jobs:
       matrix:
         node-version: [14.x, 16.x, 18.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-        test-command: [test, test-docker]
         bootstrap-params: [--no-ci, --hoist --no-ci]
 
     steps:
@@ -28,4 +27,4 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npx lerna bootstrap ${{ matrix.bootstrap-params }}
-    - run: npx lerna run ${{ matrix.test-command }}
+    - run: npx lerna run test
