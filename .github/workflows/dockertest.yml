@@ -15,5 +15,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - working-directory: examples/local-starter
     - run: docker build -f Dockerfile.dev -t example-opr ../..
+    - working-directory: examples/local-starter
