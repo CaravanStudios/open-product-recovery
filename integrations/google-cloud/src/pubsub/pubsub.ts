@@ -38,14 +38,14 @@ export const PubSubIntegration = {
 
         const postCallback = (err: ServiceError | null) => {
           if (err) {
-            logger.error(`Pubsub Callback Error: ${err}`);
+            logger.error(`Callback Error: ${err}`);
           }
         };
 
         const changeHandler = async (change: OfferChange) => {
           if (!json.events || json.events.includes(change.type)) {
             try {
-              logger.trace('Sending pubsub message');
+              logger.info('Sending message');
               const pubsub = new PubSub(json.clientConfig);
               const topic = pubsub.topic(json.topicNameOrId);
               const data = JSON.stringify({
@@ -62,7 +62,7 @@ export const PubSubIntegration = {
                 postCallback
               );
             } catch (error) {
-              logger.error(`Pubsub Error: ${error}`);
+              logger.error(`Error: ${error}`);
             }
           }
         };
