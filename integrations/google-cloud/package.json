@@ -1,6 +1,6 @@
 {
   "name": "opr-google-cloud",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Google Cloud Open Product Recovery Implementations",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -48,12 +48,13 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@google-cloud/pubsub": "^3.2.1",
     "@google-cloud/storage": "^6.2.3",
     "google-auth-library": "^8.1.1",
     "googleapis": "^108.0.0",
     "loglevel": "^1.8.0",
     "node-fetch": "^2.6.7",
-    "opr-core": "^0.7.0",
+    "opr-core": "^0.7.1",
     "opr-models": "^0.7.0"
   },
   "engines": {

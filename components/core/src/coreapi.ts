@@ -41,6 +41,7 @@ export * from './config/resolveconfigjson';
 export * from './config/statictenantnodeconfigprovider';
 export * from './config/templatehostidextractor';
 export * from './config/tenantnodeconfig';
+export * from './config/tenantnodeintegrationcontext';
 export * from './database/persistentstorage';
 export * from './database/transaction';
 export * as diff from './diff';
