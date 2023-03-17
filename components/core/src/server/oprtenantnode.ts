@@ -291,7 +291,7 @@ export class OprTenantNode {
           requestedResultFormat: 'SNAPSHOT',
         };
       }
-      result = await producer.produceOffers(listPayload);
+      result = await producer.produceOffers(listPayload, this.integrationApi);
       nextRunTimestampUTC = result.earliestNextRequestUTC;
       await this.offerModel.processUpdate(producer.id, result);
       await this.offerModel.writeOfferProducerMetadata({
