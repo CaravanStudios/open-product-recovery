@@ -26,6 +26,7 @@ import {OprNetworkClient} from '../net/oprnetworkclient';
 import {Clock} from '../util/clock';
 import {DefaultClock} from '../util/defaultclock';
 import {StatusError} from '../util/statuserror';
+import { IntegrationApi } from '../coreapi';
 
 export class OprFeedProducer implements OfferProducer {
   readonly type = 'offerProducer';
@@ -52,7 +53,7 @@ export class OprFeedProducer implements OfferProducer {
     this.logger = logger;
   }
 
-  async produceOffers(request: ListOffersPayload): Promise<OfferSetUpdate> {
+  async produceOffers(request: ListOffersPayload, integrationApi: IntegrationApi): Promise<OfferSetUpdate> {
     const result = await this.client.list(this.organizationUrl, request);
     let offers: AsyncIterable<Offer> | undefined;
     let patchOps: AsyncIterable<OfferPatch> | undefined;

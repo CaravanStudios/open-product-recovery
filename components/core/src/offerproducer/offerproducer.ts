@@ -15,6 +15,7 @@
  */
 
 import {ListOffersPayload, Offer, OfferPatch} from 'opr-models';
+import { IntegrationApi } from '../coreapi';
 import {Pluggable} from '../integrations/pluggable';
 
 export interface OfferSetUpdate {
@@ -31,5 +32,5 @@ export interface OfferProducer extends Pluggable {
 
   readonly id: string;
 
-  produceOffers(payload: ListOffersPayload): Promise<OfferSetUpdate>;
+  produceOffers(payload: ListOffersPayload, integrationApi: IntegrationApi): Promise<OfferSetUpdate>;
 }
