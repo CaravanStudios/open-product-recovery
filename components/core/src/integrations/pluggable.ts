@@ -35,7 +35,6 @@ export interface TenantNodePluggableTypeMap {
   signer: Signer;
   jwksProvider: JwksProvider;
   accessControlList: ServerAccessControlList;
-  feedConfigProvider: FeedConfig;
   offerProducer: OfferProducer;
   verifier: Verifier;
   integrationInstaller: TenantNodeIntegrationInstaller;
