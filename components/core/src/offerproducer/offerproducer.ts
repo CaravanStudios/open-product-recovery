@@ -32,5 +32,19 @@ export interface OfferProducer extends Pluggable {
 
   readonly id: string;
 
-  produceOffers(payload: ListOffersPayload, integrationApi: IntegrationApi): Promise<OfferSetUpdate>;
+  /**
+   * Produce a diffset of offers that the client should apply to its state.
+   * The response includes a page of the diffs starting at the timestamp passed
+   * in as diffStartTimestampUTC. The returned offers should be in chronological
+   * order.
+   *
+   * @param {ListOffersPayload} payload The request parameters.
+   * @param {IntegrationApi} [integrationApi] API to get server-level data.
+   * Only used for intra-server calls, not for RPC calls.
+   * @return {Promise<OfferSetUpdate>} Returned as a promise to allow for RPCs
+   * and IO.
+   * @memberof OfferProducer
+   */
+  produceOffers(payload: ListOffersPayload, integrationApi: IntegrationApi):
+      Promise<OfferSetUpdate>;
 }
