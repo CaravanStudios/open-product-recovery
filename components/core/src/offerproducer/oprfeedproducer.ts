@@ -53,8 +53,8 @@ export class OprFeedProducer implements OfferProducer {
     this.logger = logger;
   }
 
-  async produceOffers(request: ListOffersPayload, integrationApi: IntegrationApi):
-      Promise<OfferSetUpdate> {
+  async produceOffers(request: ListOffersPayload,
+      integrationApi: IntegrationApi): Promise<OfferSetUpdate> {
     const result = await this.client.list(this.organizationUrl, request);
     let offers: AsyncIterable<Offer> | undefined;
     let patchOps: AsyncIterable<OfferPatch> | undefined;
