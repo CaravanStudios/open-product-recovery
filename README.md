@@ -43,6 +43,24 @@ npx lerna bootstrap --hoist
 
 The --hoist flag is optional for local builds, but the --hoist flag is _required_ for library development. Hoisting creates a very different package-lock structure from non-hoisted repositories. We standardize on the hoisted versions in the repository to avoid churn.
 
+### Install dev-time dependencies
+
+#### eslint
+
+For linting, you will need to install eslint:
+
+```
+sudo npm install -g eslint
+```
+
+#### ts-node
+
+For building the schema, you will need to install ts-node locally:
+
+```
+npm install ts-node --save-dev
+```
+
 ### Run the unit tests
 
 Run
