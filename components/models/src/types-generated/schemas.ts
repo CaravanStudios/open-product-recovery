@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* eslint max-len: 0 */
+
 export {default as AcceptOfferPayload} from '../accept.payload.schema.json';
 export {default as AcceptOfferResponse} from '../accept.response.schema.json';
 export {default as DecodedAuthToken} from '../decodedauthtoken.schema.json';
