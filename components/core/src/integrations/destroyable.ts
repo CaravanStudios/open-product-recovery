@@ -15,6 +15,6 @@
  */
 
 
-export interface Pluggable {
+export interface Destroyable {
     destroy?(): Promise<void>;
   }
