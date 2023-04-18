@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-// DO NOT SUBMIT Update this type
-import {Something} from './something';
+import {HandlerRegistry} from './handlerregistry';
+import {ServerState} from './serverstate';
 import {Pluggable} from './pluggable';
 
 export type TenantNodeIntegrationUninstallFn = (
-  something: Something
+  handlerRegistry: HandlerRegistry,
+  serverState: ServerState
 ) => Promise<void>;
 
 export type TenantNodeIntegrationInstallFn = (
-  something: Something
+  handlerRegistry: HandlerRegistry,
+  serverState: ServerState
 ) => Promise<void>;
 
 export interface TenantNodeIntegrationInstaller extends Pluggable {
