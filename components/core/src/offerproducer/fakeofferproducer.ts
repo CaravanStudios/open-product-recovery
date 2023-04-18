@@ -56,7 +56,7 @@ export class FakeOfferProducer implements OfferProducer {
       options.expirationAgeMillis ?? 1000 * 60 * 60 * 24;
     this.minOfferCount = options.minOfferCount ?? 1;
     this.maxOfferCount = options.maxOfferCount ?? 24;
-    this.something = options.something;
+    this.offerManager = options.offerManager;
     this.random = options.random ?? create();
     this.descTemplates = options.descTemplates ?? DEFAULT_DESC_TEMPLATES;
   }
