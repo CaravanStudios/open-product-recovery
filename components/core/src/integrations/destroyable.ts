@@ -14,22 +14,7 @@
  * limitations under the License.
  */
 
-// DO NOT SUBMIT Update this type
-import {Something} from './something';
-import {Pluggable} from './pluggable';
 
-export type TenantNodeIntegrationUninstallFn = (
-  something: Something
-) => Promise<void>;
-
-export type TenantNodeIntegrationInstallFn = (
-  something: Something
-) => Promise<void>;
-
-export interface TenantNodeIntegrationInstaller extends Pluggable {
-  readonly type: 'integrationInstaller';
-
-  install: TenantNodeIntegrationInstallFn;
-  uninstall?: TenantNodeIntegrationUninstallFn;
-  mountPath?: string;
-}
+export interface Pluggable {
+    destroy?(): Promise<void>;
+  }

@@ -49,7 +49,7 @@ export const NotificationIntegrations {
       return {
         type: 'integrationInstaller',
 
-        async install(api: IntegrationApi) {
+        async install(handlerRegistry: HandlerRegistry) {
           api.registerChangeHandler(async change => {
             console.log(
               'An offer changed:',
@@ -268,7 +268,7 @@ export const HelloWorldPluggableFactory = {
     return {
       type: 'integrationInstaller',
 
-      async install(api: IntegrationApi) {
+      async install(handlerRegistry: HandlerRegistry) {
         api.installCustomHandler('greet', {
           method: ['GET', 'POST'],
           handle: async () => {

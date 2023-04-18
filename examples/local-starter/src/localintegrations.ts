@@ -17,9 +17,10 @@
 import {
   asyncIterableToArray,
   FakeOfferProducer,
-  IntegrationApi,
+  HandlerRegistry,
   OfferChange,
   PluggableFactory,
+  ServerState,
   TenantNodeIntegrationInstaller,
 } from 'opr-core';
 
@@ -38,15 +39,15 @@ export const LocalIntegrations = {
       return {
         type: 'integrationInstaller',
 
-        async install(api: IntegrationApi): Promise<void> {
-          api.installCustomHandler('ingest', {
+        async install(handlerRegistry: HandlerRegistry, offerManager: OfferManager, serverState: ServerState): Promise<void> {
+          handlerRegistry.installCustomHandler('ingest', {
             method: ['GET', 'POST'],
             handle: async () => {
               const changes = [] as Array<OfferChange>;
-              const changeHandler = api.registerChangeHandler(async change => {
+              const changeHandler = handlerRegistry.registerChangeHandler(async change => {
                 changes.push(change);
               });
-              await api.ingestOffers();
+              await offerManager.ingestOffers();
               changeHandler.remove();
               return changes;
             },
@@ -59,10 +60,10 @@ export const LocalIntegrations = {
           // real server, only admins and developers should be able to see this
           // information. Organizations should only see offers that are listed
           // for them.
-          api.installCustomHandler('myOffers', {
+          handlerRegistry.installCustomHandler('myOffers', {
             method: ['GET', 'POST'],
             handle: async () => {
-              return await asyncIterableToArray(api.getOffersFromThisHost());
+              return await asyncIterableToArray(offerManager.getOffersFromThisHost());
             },
           });
 
@@ -73,11 +74,11 @@ export const LocalIntegrations = {
           // real server, only admins and developers should be able to see this
           // information. Organizations should only see offers that are listed
           // for them.
-          api.installCustomHandler('theirOffers', {
+          handlerRegistry.installCustomHandler('theirOffers', {
             method: ['GET', 'POST'],
             handle: async () => {
               return await asyncIterableToArray(
-                api.getListedOffers(api.hostOrgUrl)
+                offerManager.getListedOffers(serverState.hostOrgUrl)
               );
             },
           });
@@ -85,10 +86,10 @@ export const LocalIntegrations = {
           // Here, we are only using one OfferProducer, the "FakeOfferProducer".
           // In this example, ingest() will call the FakeOfferProducer and
           // generate fake offers for testing/demo use.
-          api.installOfferProducer(
+          offerManager.installOfferProducer(
             new FakeOfferProducer({
-              sourceOrgUrl: api.hostOrgUrl,
-              integrationApi: api,
+              sourceOrgUrl: serverState.hostOrgUrl,
+              offerManager: offerManager,
             })
           );
         },
@@ -101,11 +102,11 @@ export const LocalIntegrations = {
       return {
         type: 'integrationInstaller',
 
-        async install(api: IntegrationApi) {
-          api.installCustomHandler('hello', {
+        async install(handlerRegistry: HandlerRegistr, offerManager: OfferManagery) {
+          handlerRegistry.installCustomHandler('hello', {
             method: ['GET', 'POST'],
             handle: async () => {
-              return 'Hello world. From ' + api.hostOrgUrl;
+              return 'Hello world. From ' + serverState.hostOrgUrl;
             },
           });
         },
@@ -117,11 +118,11 @@ export const LocalIntegrations = {
       return {
         type: 'integrationInstaller',
 
-        async install(api: IntegrationApi) {
-          api.installCustomHandler('howdy', {
+        async install(handlerRegistry: HandlerRegistry) {
+          handlerRegistry.installCustomHandler('howdy', {
             method: ['GET', 'POST'],
             handle: async () => {
-              return 'Howdy world. From ' + api.hostOrgUrl;
+              return 'Howdy world. From ' + serverState.hostOrgUrl;
             },
           });
         },

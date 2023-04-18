@@ -25,7 +25,10 @@ import {Interval} from '../model/interval';
 import {OfferChange} from '../model/offerchange';
 import {asStructuredId, getIdVersion, OfferId} from '../model/offerid';
 import {TimelineEntry} from '../model/timelineentry';
-import {IntegrationApi} from '../integrations/integrationapi';
+import {Destroyable} from '../integrations/destroyable';
+import {HandlerRegistry} from '../integrations/handlerregistry';
+import {OfferManager} from '../integrations/offermanager';
+import {ServerState} from '../integrations/serverstate';
 import {OprNetworkClient} from '../net/oprnetworkclient';
 import {PersistentStorage} from '../database/persistentstorage';
 import {CustomRequestHandler} from './customrequesthandler';
@@ -55,7 +58,7 @@ export interface IntegrationApiImplOptions {
  * storage, model, network and server functionality necessary to build a useful
  * integration.
  */
-export class IntegrationApiImpl implements IntegrationApi {
+export class IntegrationApiImpl implements HandlerRegistry, OfferManager, ServerState, Destroyable {
   readonly hostOrgUrl: string;
   private storage: PersistentStorage;
   private netClient?: OprNetworkClient;
@@ -66,7 +69,7 @@ export class IntegrationApiImpl implements IntegrationApi {
   private modelRegistration: HandlerRegistration;
   private changeHandlers: Array<(change: OfferChange) => Promise<void>>;
   private router: Router;
-  private children: IntegrationApi[];
+  private children: Destroyable[];
 
   constructor(options: IntegrationApiImplOptions) {
     this.hostOrgUrl = options.hostOrgUrl;

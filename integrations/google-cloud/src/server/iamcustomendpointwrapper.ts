@@ -17,7 +17,8 @@ import type {Request} from 'express';
 import {
   CustomRequestHandler,
   CustomRequestMethod,
-  IntegrationApi,
+  OfferManager,
+  ServerState,
 } from 'opr-core';
 import {IamAccessControlList} from './iamaccesscontrollist';
 import {checkIamAuth} from './checkiamauth';
@@ -41,10 +42,11 @@ export class IamCustomEndpointWrapper implements CustomRequestHandler {
   async handle(
     body: unknown,
     req: Request,
-    integrationClient: IntegrationApi
+    offerManager: OfferManager,
+    serverState: ServerState
   ): Promise<unknown> {
     await checkIamAuth(req, this.acl);
-    return await this.delegate.handle(body, req, integrationClient);
+    return await this.delegate.handle(body, req, offerManager, serverState);
   }
 
   static wrap(delegate: CustomRequestHandler, acl: IamAccessControlList) {

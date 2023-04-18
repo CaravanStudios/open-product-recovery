@@ -33,7 +33,7 @@ export const PubSubIntegration = {
     return {
       type: 'integrationInstaller',
 
-      async install(api: IntegrationApi): Promise<void> {
+      async install(handlerRegistry: HandlerRegistry): Promise<void> {
         const logger = loglevel.getLogger('PubSub');
 
         const postCallback = (err: ServiceError | null) => {
@@ -67,7 +67,7 @@ export const PubSubIntegration = {
           }
         };
 
-        api.registerChangeHandler(changeHandler);
+        handlerRegistry.registerChangeHandler(changeHandler);
       },
     };
   },

@@ -20,7 +20,6 @@ import {Interval} from '../model/interval';
 import {OfferChange} from '../model/offerchange';
 import {OfferId} from '../model/offerid';
 import {TimelineEntry} from '../model/timelineentry';
-import {CustomRequestHandler} from '../server/customrequesthandler';
 import {IRouter} from 'express';
 import {JsonValue} from '../util/jsonvalue';
 import {OfferProducer} from '../offerproducer/offerproducer';
@@ -29,27 +28,7 @@ import {OfferProducer} from '../offerproducer/offerproducer';
  * An API used by OPR integrations. This API is passed to custom startup
  * routines and custom handlers.
  */
-export interface IntegrationApi {
-  readonly hostOrgUrl: string;
-
-  /**
-   * Stores a key-value pair. If a value already exists at the given key, it
-   * will be replaced and the old value returned.
-   */
-  storeValue(key: string, value: JsonValue): Promise<JsonValue | undefined>;
-
-  /**
-   * Deletes all values stored with the given key prefix. Returns the number of
-   * keys deleted if supported by the storage driver.
-   */
-  clearAllValues(keyPrefix: string): Promise<number | undefined>;
-
-  /**
-   * Returns all values for the given host where the key starts with the given
-   * prefix.
-   */
-  getValues(keyPrefix: string): AsyncIterable<JsonValue>;
-
+export interface OfferManager {
   /**
    * Returns the latest version of an offer (or a specific version of an offer,
    * if requested using a versioned offer id) if it is in stable storage. Note
@@ -138,24 +117,5 @@ export interface IntegrationApi {
     sinceTimestampUTC?: number
   ): AsyncIterable<OfferHistory>;
 
-  /**
-   * Registers a change handler.
-   */
-  registerChangeHandler(
-    handlerFn: (change: OfferChange) => Promise<void>
-  ): HandlerRegistration;
-
-  /**
-   * Returns the Express server running OPR. This can be used to install custom
-   * middleware or perform other bare-metal customizations to the server. You
-   * can easily break an OPR node by messing with the underlying server, so
-   * only touch this if you really know what you're doing.
-   */
-  getExpressRouter(): IRouter;
-
-  installCustomHandler(path: string, handler: CustomRequestHandler): void;
-
   installOfferProducer(producer: OfferProducer): void;
-
-  destroy(): void;
 }
