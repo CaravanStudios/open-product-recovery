@@ -422,7 +422,7 @@ export class IntegrationApiImpl implements HandlerRegistry, OfferManager, Server
     }
     const expressHandler = async (req: Request, res: Response) => {
       this.logger.info('Called custom handler', path);
-      res.json(await handler.handle(req.body as unknown, req, this));
+      res.json(await handler.handle(req.body as unknown, req, this, this));
     };
     path = path.startsWith('/') ? path : '/' + path;
     const methods = Array.isArray(handler.method)
