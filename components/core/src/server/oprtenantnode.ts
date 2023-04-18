@@ -180,7 +180,7 @@ export class OprTenantNode {
         'integrations/' +
           this.getPathFromModuleName(installer.factoryNameSource!);
       const api = this.integrationApiImpl.namespacedClone(path);
-      promises.push(installer.install(api));
+      promises.push(installer.install(api, api));
     }
     await Promise.all(promises);
     this.isStartedInternal = true;

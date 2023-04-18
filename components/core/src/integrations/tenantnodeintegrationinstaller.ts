@@ -19,13 +19,11 @@ import {ServerState} from './serverstate';
 import {Pluggable} from './pluggable';
 
 export type TenantNodeIntegrationUninstallFn = (
-  handlerRegistry: HandlerRegistry,
-  serverState: ServerState
+  handlerRegistry: HandlerRegistry
 ) => Promise<void>;
 
 export type TenantNodeIntegrationInstallFn = (
-  handlerRegistry: HandlerRegistry,
-  serverState: ServerState
+  handlerRegistry: HandlerRegistry
 ) => Promise<void>;
 
 export interface TenantNodeIntegrationInstaller extends Pluggable {
