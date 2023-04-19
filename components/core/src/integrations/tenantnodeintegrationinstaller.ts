@@ -15,7 +15,6 @@
  */
 
 import {HandlerRegistry} from './handlerregistry';
-import {ServerState} from './serverstate';
 import {Pluggable} from './pluggable';
 
 export type TenantNodeIntegrationUninstallFn = (
