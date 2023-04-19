@@ -20,7 +20,6 @@ import * as path from 'path';
 import {Resolver, ResolverOptions} from '../json/resolver';
 import {
   createArtificialLocation,
-  JsonObject,
   parsePathSync,
   SourcedJsonArray,
   SourcedJsonObject,
