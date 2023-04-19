@@ -15,7 +15,6 @@
  */
 
 import {Offer} from 'opr-models';
-import {Pluggable} from '../integrations/pluggable';
 import {PluggableFactory} from '../integrations/pluggablefactory';
 import {Listing} from '../model/listing';
 import {asAsyncGetter, AsyncGetter} from '../util/asyncgetter';
