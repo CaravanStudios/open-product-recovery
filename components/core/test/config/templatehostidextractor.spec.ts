@@ -15,8 +15,7 @@
  */
 
 import 'mocha';
-import chai, {expect} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import {expect} from 'chai';
 import {TemplateHostIdExtractor} from '../../src/config/templatehostidextractor';
 
 describe('TemplateHostIdExtractor', () => {

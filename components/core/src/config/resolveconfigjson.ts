@@ -22,7 +22,6 @@ import {
 import {PluggableFactory} from '../integrations/pluggablefactory';
 import {PluggableFactorySet} from '../integrations/pluggablefactoryset';
 import {
-  isPluggableFactoryJsonStanza,
   PluggableFactoryJsonMapStanza,
   PluggableFactoryJsonStanza,
 } from '../integrations/pluggablefactoryjson';
