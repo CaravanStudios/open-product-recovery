@@ -15,7 +15,7 @@
  */
 
 import 'mocha';
-import {OfferModelTestConfig, PersistentTestConfig} from 'opr-core-testutil';
+import {OfferModelTestConfig} from 'opr-core-testutil';
 import {DataDrivenTest, SourcedJsonObject} from 'opr-devtools';
 import {PostgresTestingLauncher} from '../src/postgrestestinglauncher';
 import {SqlOprPersistentStorage} from '../src/sqloprpersistentstorage';

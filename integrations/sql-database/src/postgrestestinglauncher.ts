@@ -18,7 +18,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import process from 'node:process';
 import {ChildProcessWithoutNullStreams, execSync, spawn} from 'child_process';
-import net from 'net';
 import os from 'os';
 import {getFreePort, log, Logger} from 'opr-core';
 

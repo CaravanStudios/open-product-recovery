@@ -16,7 +16,7 @@
 
 import 'mocha';
 import {DataDrivenTest, SourcedJsonObject} from 'opr-devtools';
-import {Clock, log, OfferListingPolicy, OfferModel, Signer} from 'opr-core';
+import {Clock, OfferListingPolicy, OfferModel, Signer} from 'opr-core';
 import {OfferModelTestConfig} from 'opr-core-testutil';
 import {PostgresTestingLauncher} from '../src/postgrestestinglauncher';
 import {SqlOfferModel} from '../src/sqloffermodel';

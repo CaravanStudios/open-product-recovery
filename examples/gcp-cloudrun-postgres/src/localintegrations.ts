@@ -24,7 +24,6 @@ import {
   StatusError,
   TenantNodeIntegrationInstaller,
 } from 'opr-core';
-import {IamCustomEndpointWrapper} from 'opr-google-cloud';
 
 export interface LocalIntegrationOptions {
   serviceAccount?: string;

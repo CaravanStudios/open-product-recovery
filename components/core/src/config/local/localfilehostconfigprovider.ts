@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {PluggableFactory} from '../../integrations/pluggablefactory';
 import {TenantNodeConfigProvider} from '../tenantnodeconfigprovider';
 import {StatusError} from '../../util/statuserror';
 import {JsonMap} from '../../util/jsonvalue';
