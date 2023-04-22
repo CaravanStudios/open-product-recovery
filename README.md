@@ -33,6 +33,10 @@ subdirectories to find out more about the libraries in each component.
 
 ## How do I get started?
 
+### Join the Discord
+
+Join the discussion at http://chat.opr.dev/ for support.
+
 ### Install deps and build
 
 First, run lerna bootstrap to install all package dependencies and compile local libraries in the correct order.
