@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Google LLC
+ * Copyright 2023 The Open Product Recovery Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 import {Offer} from 'opr-models';
-import {Pluggable} from '../integrations/pluggable';
 import {PluggableFactory} from '../integrations/pluggablefactory';
 import {Listing} from '../model/listing';
 import {asAsyncGetter, AsyncGetter} from '../util/asyncgetter';

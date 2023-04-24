@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2023 The Open Product Recovery Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 // This test is meant to be run manually by datadriventest.spec.ts
 import 'mocha';
-import {expect} from 'chai';
 import {DataDrivenTest} from '../../../src/test/datadriventest';
 import {ToyConfig} from '../toytestconfig';
 

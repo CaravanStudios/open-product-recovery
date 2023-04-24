@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2023 The Open Product Recovery Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import 'mocha';
 import {DataDrivenTest, SourcedJsonObject} from 'opr-devtools';
-import {Clock, log, OfferListingPolicy, OfferModel, Signer} from 'opr-core';
+import {Clock, OfferListingPolicy, OfferModel, Signer} from 'opr-core';
 import {OfferModelTestConfig} from 'opr-core-testutil';
 import {PostgresTestingLauncher} from '../src/postgrestestinglauncher';
 import {SqlOfferModel} from '../src/sqloffermodel';
