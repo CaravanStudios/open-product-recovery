@@ -38,6 +38,7 @@ import {NextFunction, Request, Response, Router} from 'express';
 import {JsonValue} from '../util/jsonvalue';
 import {OprTenantNode} from './oprtenantnode';
 import {HostApi} from '../integrations/hostapi';
+import {KeyValueApi} from '../integrations/keyvalueapi';
 import {ServerApi} from '../integrations/serverapi';
 
 export interface IntegrationApiImplOptions {
@@ -56,7 +57,7 @@ export interface IntegrationApiImplOptions {
  * storage, model, network and server functionality necessary to build a useful
  * integration.
  */
-export class IntegrationApiImpl implements IntegrationApi, HostApi, ServerApi {
+export class IntegrationApiImpl implements KeyValueApi, HostApi, ServerApi {
   readonly hostOrgUrl: string;
   private storage: PersistentStorage;
   private netClient?: OprNetworkClient;
@@ -67,7 +68,7 @@ export class IntegrationApiImpl implements IntegrationApi, HostApi, ServerApi {
   private modelRegistration: HandlerRegistration;
   private changeHandlers: Array<(change: OfferChange) => Promise<void>>;
   private router: Router;
-  private children: IntegrationApi[];
+  private children: KeyValueApi[];
 
   constructor(options: IntegrationApiImplOptions) {
     this.hostOrgUrl = options.hostOrgUrl;

@@ -18,11 +18,11 @@ import {KeyValueApi} from './keyvalueapi';
 import {Pluggable} from './pluggable';
 
 export type TenantNodeIntegrationUninstallFn = (
-  integrationApi: KeyValueApi
+  keyValueApi: KeyValueApi
 ) => Promise<void>;
 
 export type TenantNodeIntegrationInstallFn = (
-  integrationApi: KeyValueApi
+  keyValueApi: KeyValueApi
 ) => Promise<void>;
 
 export interface TenantNodeIntegrationInstaller extends Pluggable {
