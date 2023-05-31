@@ -25,7 +25,6 @@ import {Interval} from '../model/interval';
 import {OfferChange} from '../model/offerchange';
 import {asStructuredId, getIdVersion, OfferId} from '../model/offerid';
 import {TimelineEntry} from '../model/timelineentry';
-import {IntegrationApi} from '../integrations/keyvalueapi';
 import {OprNetworkClient} from '../net/oprnetworkclient';
 import {PersistentStorage} from '../database/persistentstorage';
 import {CustomRequestHandler} from './customrequesthandler';
