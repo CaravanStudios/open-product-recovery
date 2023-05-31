@@ -14,21 +14,6 @@
  * limitations under the License.
  */
 
-import {KeyValueApi} from './keyvalueapi';
-import {Pluggable} from './pluggable';
-
-export type TenantNodeIntegrationUninstallFn = (
-  integrationApi: KeyValueApi
-) => Promise<void>;
-
-export type TenantNodeIntegrationInstallFn = (
-  integrationApi: KeyValueApi
-) => Promise<void>;
-
-export interface TenantNodeIntegrationInstaller extends Pluggable {
-  readonly type: 'integrationInstaller';
-
-  install: TenantNodeIntegrationInstallFn;
-  uninstall?: TenantNodeIntegrationUninstallFn;
-  mountPath?: string;
+export interface Destroyable {
+    destroy(): void;
 }

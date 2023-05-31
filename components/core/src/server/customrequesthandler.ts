@@ -15,7 +15,7 @@
  */
 
 import type {Request} from 'express';
-import {IntegrationApi} from '../integrations/integrationapi';
+import {IntegrationApi} from '../integrations/keyvalueapi';
 
 export type CustomRequestMethod = 'POST' | 'GET';
 

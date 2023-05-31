@@ -21,7 +21,7 @@ import {Clock} from '../util/clock';
 import {DefaultClock} from '../util/defaultclock';
 import getUuid from '../util/randomuuid';
 import {OfferProducer, OfferSetUpdate} from './offerproducer';
-import {IntegrationApi} from '../integrations/integrationapi';
+import {KeyValueApi} from '../integrations/keyvalueapi';
 
 /**
  * A fake offer producer for testing and prototyping. This offer producer
@@ -252,7 +252,7 @@ export interface FakeOfferProducerOptions {
    * reference to the client, but this fake offer producer needs to look up
    * existing offers to decide when to create/update new offers.
    */
-  integrationApi: IntegrationApi;
+  keyValueApi: KeyValueApi;
 
   /**
    * A random number generator. The caller may provide a random number generator
