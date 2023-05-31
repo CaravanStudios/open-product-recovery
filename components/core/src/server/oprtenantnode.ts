@@ -75,7 +75,7 @@ export class OprTenantNode {
   private jwksProvider?: JwksProvider;
   private accessControlList: ServerAccessControlList;
   private integrationInstallers: TenantNodeIntegrationInstaller[];
-  private integrationApiImpl: IntegrationApiImpl;
+  private integrationApi: IntegrationApiImpl;
 
   private defaultReservationTimeSecs: number;
   private strictCorrectnessChecks: boolean;
@@ -155,7 +155,7 @@ export class OprTenantNode {
     this.logger =
       config.logger ?? loglevel.getLogger(`OprHost ${this.hostOrgUrl}`);
     this.strictCorrectnessChecks = config.strictCorrectnessChecks ?? false;
-    this.integrationApiImpl = new IntegrationApiImpl({
+    this.integrationApi = new IntegrationApiImpl({
       host: this,
       hostOrgUrl: this.hostOrgUrl,
       model: this.offerModel,
@@ -179,8 +179,8 @@ export class OprTenantNode {
         installer.mountPath ??
         'integrations/' +
           this.getPathFromModuleName(installer.factoryNameSource!);
-      const api = this.integrationApiImpl.namespacedClone(path);
-      promises.push(installer.install(api, api));
+      const api = this.integrationApi.namespacedClone(path);
+      promises.push(installer.install(api));
     }
     await Promise.all(promises);
     this.isStartedInternal = true;
@@ -189,10 +189,10 @@ export class OprTenantNode {
   async destroy(): Promise<void> {
     await Promise.all(
       this.integrationInstallers.map(async f =>
-        f.uninstall ? await f.uninstall(this.integrationApiImpl) : undefined
+        f.uninstall ? await f.uninstall(this.integrationApi) : undefined
       )
     );
-    this.integrationApiImpl.destroy();
+    this.integrationApi.destroy();
   }
 
   installOfferProducer(offerProducer: OfferProducer): void {

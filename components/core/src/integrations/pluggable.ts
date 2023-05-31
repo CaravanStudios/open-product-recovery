@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {Destroyable} from './destroyable';
 import {JwksProvider} from '../auth/jwksprovider';
 import {Signer} from '../auth/signer';
 import {OfferListingPolicy} from '../policy/offerlistingpolicy';
@@ -54,7 +53,8 @@ export type PluggableTypeName =
   | ServerPluggableTypeName
   | TenantNodePluggableTypeName;
 
-export interface Pluggable extends Destroyable {
+export interface Pluggable {
   readonly type: PluggableTypeName;
   factoryNameSource?: string;
+  destroy?(): Promise<void>;
 }

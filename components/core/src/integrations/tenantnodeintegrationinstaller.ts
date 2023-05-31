@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import {HandlerRegistry} from './handlerregistry';
+import {IntegrationApi} from './integrationapi';
 import {Pluggable} from './pluggable';
 
 export type TenantNodeIntegrationUninstallFn = (
-  handlerRegistry: HandlerRegistry
+  integrationApi: IntegrationApi
 ) => Promise<void>;
 
 export type TenantNodeIntegrationInstallFn = (
-  handlerRegistry: HandlerRegistry
+  integrationApi: IntegrationApi
 ) => Promise<void>;
 
 export interface TenantNodeIntegrationInstaller extends Pluggable {

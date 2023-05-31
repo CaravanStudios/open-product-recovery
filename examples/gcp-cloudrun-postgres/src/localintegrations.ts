@@ -18,11 +18,9 @@ import {
   asyncIterableToArray,
   CustomRequestHandler,
   FakeOfferProducer,
-  HandlerRegistry,
+  IntegrationApi,
   OfferChange,
-  OfferManager,
   PluggableFactory,
-  ServerState,
   StatusError,
   TenantNodeIntegrationInstaller,
 } from 'opr-core';
@@ -54,20 +52,20 @@ export const LocalIntegrations = {
         // use this name as a type, not a regular name.
         type: 'integrationInstaller' as const,
 
-        async install(handlerRegistry: HandlerRegistry, offerManager: OfferManager, serverState: ServerState): Promise<void> {
+        async install(api: IntegrationApi): Promise<void> {
           const ingestHandler: CustomRequestHandler = {
             method: ['GET', 'POST'],
             handle: async () => {
               const changes = [] as Array<OfferChange>;
-              const changeHandler = handlerRegistry.registerChangeHandler(async change => {
+              const changeHandler = api.registerChangeHandler(async change => {
                 changes.push(change);
               });
-              await offerManager.ingestOffers();
+              await api.ingestOffers();
               changeHandler.remove();
               return changes;
             },
           };
-          handlerRegistry.installCustomHandler(
+          api.installCustomHandler(
             'ingest',
             ingestHandler
             // IamCustomEndpointWrapper.wrap(ingestHandler, {
@@ -85,10 +83,10 @@ export const LocalIntegrations = {
           // real server, only admins and developers should be able to see this
           // information. Organizations should only see offers that are listed
           // for them.
-          handlerRegistry.installCustomHandler('myOffers', {
+          api.installCustomHandler('myOffers', {
             method: ['GET', 'POST'],
             handle: async () => {
-              return await asyncIterableToArray(offerManager.getOffersFromThisHost());
+              return await asyncIterableToArray(api.getOffersFromThisHost());
             },
           });
 
@@ -99,11 +97,11 @@ export const LocalIntegrations = {
           // real server, only admins and developers should be able to see this
           // information. Organizations should only see offers that are listed
           // for them.
-          handlerRegistry.installCustomHandler('theirOffers', {
+          api.installCustomHandler('theirOffers', {
             method: ['GET', 'POST'],
             handle: async () => {
               return await asyncIterableToArray(
-                offerManager.getListedOffers(offerManagerr.hostOrgUrl)
+                api.getListedOffers(api.hostOrgUrl)
               );
             },
           });
@@ -111,10 +109,10 @@ export const LocalIntegrations = {
           // Here, we are only using one OfferProducer, the "FakeOfferProducer".
           // In this example, ingest() will call the FakeOfferProducer and
           // generate fake offers for testing/demo use.
-          offerManager.installOfferProducer(
+          api.installOfferProducer(
             new FakeOfferProducer({
-              sourceOrgUrl: offerManager.hostOrgUrl,
-              offerManager: offerManager,
+              sourceOrgUrl: api.hostOrgUrl,
+              integrationApi: api,
             })
           );
         },
@@ -127,11 +125,11 @@ export const LocalIntegrations = {
       return {
         type: 'integrationInstaller',
 
-        async install(handlerRegistry: HandlerRegistry) {
-          handlerRegistry.installCustomHandler('greet', {
+        async install(api: IntegrationApi) {
+          api.installCustomHandler('greet', {
             method: ['GET', 'POST'],
             handle: async () => {
-              return 'Hello world. From ' + offerManager.hostOrgUrl;
+              return 'Hello world. From ' + api.hostOrgUrl;
             },
           });
         },
@@ -143,11 +141,11 @@ export const LocalIntegrations = {
       return {
         type: 'integrationInstaller',
 
-        async install(handlerRegistry: HandlerRegistry) {
-          handlerRegistry.installCustomHandler('greet', {
+        async install(api: IntegrationApi) {
+          api.installCustomHandler('greet', {
             method: ['GET', 'POST'],
             handle: async () => {
-              return 'Howdy world. From ' + offerManager.hostOrgUrl;
+              return 'Howdy world. From ' + api.hostOrgUrl;
             },
           });
         },

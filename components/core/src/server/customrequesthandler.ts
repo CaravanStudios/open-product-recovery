@@ -15,8 +15,7 @@
  */
 
 import type {Request} from 'express';
-import {OfferManager} from './integrations/offermanager';
-import {ServerState} from './integrations/serverstate';
+import {IntegrationApi} from '../integrations/integrationapi';
 
 export type CustomRequestMethod = 'POST' | 'GET';
 
@@ -34,7 +33,6 @@ export interface CustomRequestHandler {
   handle(
     body: unknown,
     request: Request,
-    offerManager: OfferManager,
-    serverState: ServerState
+    client: IntegrationApi
   ): Promise<unknown>;
 }

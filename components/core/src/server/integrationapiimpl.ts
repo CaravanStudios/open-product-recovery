@@ -25,10 +25,7 @@ import {Interval} from '../model/interval';
 import {OfferChange} from '../model/offerchange';
 import {asStructuredId, getIdVersion, OfferId} from '../model/offerid';
 import {TimelineEntry} from '../model/timelineentry';
-import {Destroyable} from '../integrations/destroyable';
-import {HandlerRegistry} from '../integrations/handlerregistry';
-import {OfferManager} from '../integrations/offermanager';
-import {ServerState} from '../integrations/serverstate';
+import {IntegrationApi} from '../integrations/integrationapi';
 import {OprNetworkClient} from '../net/oprnetworkclient';
 import {PersistentStorage} from '../database/persistentstorage';
 import {CustomRequestHandler} from './customrequesthandler';
@@ -58,7 +55,7 @@ export interface IntegrationApiImplOptions {
  * storage, model, network and server functionality necessary to build a useful
  * integration.
  */
-export class IntegrationApiImpl implements HandlerRegistry, OfferManager, ServerState, Destroyable {
+export class IntegrationApiImpl implements IntegrationApi {
   readonly hostOrgUrl: string;
   private storage: PersistentStorage;
   private netClient?: OprNetworkClient;
@@ -69,7 +66,7 @@ export class IntegrationApiImpl implements HandlerRegistry, OfferManager, Server
   private modelRegistration: HandlerRegistration;
   private changeHandlers: Array<(change: OfferChange) => Promise<void>>;
   private router: Router;
-  private children: Destroyable[];
+  private children: IntegrationApi[];
 
   constructor(options: IntegrationApiImplOptions) {
     this.hostOrgUrl = options.hostOrgUrl;
@@ -422,7 +419,7 @@ export class IntegrationApiImpl implements HandlerRegistry, OfferManager, Server
     }
     const expressHandler = async (req: Request, res: Response) => {
       this.logger.info('Called custom handler', path);
-      res.json(await handler.handle(req.body as unknown, req, this, this));
+      res.json(await handler.handle(req.body as unknown, req, this));
     };
     path = path.startsWith('/') ? path : '/' + path;
     const methods = Array.isArray(handler.method)
