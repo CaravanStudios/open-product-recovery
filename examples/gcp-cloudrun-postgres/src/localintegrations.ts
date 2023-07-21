@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Google LLC
+ * Copyright 2023 The Open Product Recovery Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import {
   StatusError,
   TenantNodeIntegrationInstaller,
 } from 'opr-core';
-import {IamCustomEndpointWrapper} from 'opr-google-cloud';
 
 export interface LocalIntegrationOptions {
   serviceAccount?: string;

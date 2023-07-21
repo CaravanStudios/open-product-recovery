@@ -11,4 +11,6 @@
 
 # IDE Settings
 .vscode/*
+.idea/*
 # !.vscode/settings.json # Optional example we could enable if we want to share settings
+.DS_Store

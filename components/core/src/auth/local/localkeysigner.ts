@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2023 The Open Product Recovery Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@ import {importJWK, JWK, JWTPayload, SignJWT} from 'jose';
 import {Signer, IssueTokenOptions, SignChainOptions} from '../signer';
 import {ReshareChain} from 'opr-models';
 import {TenantNodeIntegrationContext} from '../../config/tenantnodeintegrationcontext';
-import {PluggableFactory} from '../../integrations/pluggablefactory';
-import {JsonMap} from '../../util/jsonvalue';
 
 const DEFAULT_TOKEN_MAX_AGE_MILLIS = 10 * 60 * 1000; // 10 minutes
 

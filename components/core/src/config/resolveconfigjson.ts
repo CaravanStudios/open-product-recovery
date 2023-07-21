@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Google LLC
+ * Copyright 2023 The Open Product Recovery Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import {
 import {PluggableFactory} from '../integrations/pluggablefactory';
 import {PluggableFactorySet} from '../integrations/pluggablefactoryset';
 import {
-  isPluggableFactoryJsonStanza,
   PluggableFactoryJsonMapStanza,
   PluggableFactoryJsonStanza,
 } from '../integrations/pluggablefactoryjson';

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2023 The Open Product Recovery Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import glob from 'glob-promise';
 
 const LICENSE_HEADER =
   '/**\n' +
-  ' * Copyright 2022 Google LLC\n' +
+  ' * Copyright 2023 The Open Product Recovery Authors\n' +
   ' *\n' +
   ' * Licensed under the Apache License, Version 2.0 (the "License");\n' +
   ' * you may not use this file except in compliance with the License.\n' +
@@ -39,6 +39,7 @@ const LICENSE_HEADER =
   ' * See the License for the specific language governing permissions and\n' +
   ' * limitations under the License.\n' +
   ' */\n';
+const IGNORE_MAX_LEN = '/* eslint max-len: 0 */\n';
 
 const program = new Command();
 
@@ -204,6 +205,7 @@ async function main() {
     '/* DO NOT EDIT - Automatically generated from json schema files */\n'
   );
   compiledTypes.unshift(LICENSE_HEADER);
+  schemaImports.unshift(IGNORE_MAX_LEN);
   schemaImports.unshift(LICENSE_HEADER);
 
   if (options.typefile) {
@@ -219,4 +221,5 @@ async function main() {
     );
   }
 }
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 main();
