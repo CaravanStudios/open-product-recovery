@@ -1,7 +1,7 @@
 FROM node
 WORKDIR /usr
 COPY ./ ./
-RUN npx lerna bootstrap
+RUN npx lerna@^6.0.3 bootstrap
 RUN mkdir ./deploy
 RUN cp -Lr ./examples/local-starter/package.json ./deploy
 RUN cp -Lr ./examples/local-starter/build ./deploy
