@@ -26,5 +26,5 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npx lerna bootstrap ${{ matrix.bootstrap-params }}
-    - run: npx lerna run test
+    - run: npx lerna@^6.0.3 bootstrap ${{ matrix.bootstrap-params }}
+    - run: npx lerna@^6.0.3 run test
