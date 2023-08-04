@@ -17,7 +17,7 @@
 import {
   TenantNodeIntegrationInstaller,
   TenantNodeIntegrationContext,
-  IntegrationApi,
+  HostApi,
   OfferChange,
   OfferChangeType,
   PluggableFactory,
@@ -33,7 +33,7 @@ export const PubSubIntegration = {
     return {
       type: 'integrationInstaller',
 
-      async install(api: IntegrationApi): Promise<void> {
+      async install(api: HostApi): Promise<void> {
         const logger = loglevel.getLogger('PubSub');
 
         const postCallback = (err: ServiceError | null) => {
