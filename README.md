@@ -39,13 +39,13 @@ Join the discussion at http://chat.opr.dev/ for support.
 
 ### Install deps and build
 
-First, run lerna bootstrap to install all package dependencies and compile local libraries in the correct order.
+First, run npm install from the root directory to install packages.
 
 ```console
-npx lerna bootstrap --hoist
+npm install
 ```
 
-The --hoist flag is optional for local builds, but the --hoist flag is _required_ for library development. Hoisting creates a very different package-lock structure from non-hoisted repositories. We standardize on the hoisted versions in the repository to avoid churn.
+The repo uses npm workspaces to organize the various packages. As changes are made 
 
 ### Run the unit tests
 

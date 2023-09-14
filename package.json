@@ -1,5 +1,6 @@
 {
-  "private": true,
+  "name": "@opr/monorepo",
+  "private": false,
   "scripts": {
     "lintchanged": "eslint $(git diff --diff-filter=ACMRTUXB --name-only HEAD | grep '.*\\.ts$' | xargs)"
   },
@@ -19,5 +20,15 @@
   },
   "engines": {
     "node": ">=12.0.0"
-  }
+  },
+  "workspaces": [
+    "components/core",
+    "components/core-testutil",
+    "components/devtools",
+    "components/models",
+    "integrations/google-cloud",
+    "integrations/sql-database",
+    "examples/gcp-cloudrun-postgres",
+    "examples/local-starter"
+  ]
 }
