@@ -1,7 +1,7 @@
 FROM node
 WORKDIR /usr
 COPY ./ ./
-RUN npm install
+RUN sh ./setup.sh
 RUN mkdir ./deploy
 RUN cp -Lr ./examples/local-starter/package.json ./deploy
 RUN cp -Lr ./examples/local-starter/build ./deploy

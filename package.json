@@ -22,10 +22,10 @@
     "node": ">=12.0.0"
   },
   "workspaces": [
+    "components/models",
+    "components/devtools",
     "components/core",
     "components/core-testutil",
-    "components/devtools",
-    "components/models",
     "integrations/google-cloud",
     "integrations/sql-database",
     "examples/gcp-cloudrun-postgres",
