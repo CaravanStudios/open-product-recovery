@@ -39,13 +39,17 @@ Join the discussion at http://chat.opr.dev/ for support.
 
 ### Install deps and build
 
-First, run npm install from the root directory to install packages.
+First, run the setup script to install packages and compile the workspaces
 
 ```console
-npm install
+sh ./setup.sh
 ```
 
-The repo uses npm workspaces to organize the various packages. As changes are made 
+The repo originally used lerna to manage the packages in the monorepo
+but recently moved to using npm workspaces. This broke a few things
+and other issues are waiting on fixes from core npm. Fixes are in
+progress to bring back testable linting and automatic tests through
+github actions.
 
 ### Run the unit tests
 
@@ -58,6 +62,7 @@ npx lerna run test
 from the root directory to run all the unit tests. If you want to run the Postgres tests in opr-sql-database, you need to have a working installation of Postgres and the `initdb`, `postgres` and `psql` commands must be in your `PATH` environment variable. If those commands aren't available, the Postgres tests will be skipped.
 
 ### Devcontainer
+
 If you use [VScode](https://code.visualstudio.com/), install the [devcontainer extention](https://code.visualstudio.com/docs/devcontainers/containers) as well as [docker desktop](https://www.docker.com/). VS code will helpfully ask if you'd like to re-open the project in a devcontainer, which should, after downloading and setting up a whole bunch of stuff, drop you right into a prompt that is ready to run `npx lerna run test`
 
 ### Read the standards
