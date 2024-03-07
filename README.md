@@ -39,17 +39,16 @@ Join the discussion at http://chat.opr.dev/ for support.
 
 ### Install deps and build
 
-First, run the setup script to install packages and compile the workspaces
+We recommend Node versions >=18.x, due to compatability issues with Lerna.
+
+First, run the setup script to install packages and compile the workspaces.
+Note that there are a few known issues with the install process that the
+setup script is designed to overcome. We highly recommend you use this
+for your package installation and setup.
 
 ```console
 sh ./setup.sh
 ```
-
-The repo originally used lerna to manage the packages in the monorepo
-but recently moved to using npm workspaces. This broke a few things
-and other issues are waiting on fixes from core npm. Fixes are in
-progress to bring back testable linting and automatic tests through
-github actions.
 
 ### Run the unit tests
 
