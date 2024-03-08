@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Google LLC
+ * Copyright 2023 The Open Product Recovery Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,7 @@
 import {JwksProvider} from '../auth/jwksprovider';
 import {Signer} from '../auth/signer';
 import {OfferListingPolicy} from '../policy/offerlistingpolicy';
-import {JsonMap} from '../util/jsonvalue';
 import {ServerAccessControlList} from '../policy/serveraccesscontrollist';
-import {FeedConfig} from '../policy/feedconfig';
 import {OfferProducer} from '../offerproducer/offerproducer';
 import {Verifier} from '../auth/verifier';
 import {TenantNodeIntegrationInstaller} from './tenantnodeintegrationinstaller';
@@ -35,7 +33,6 @@ export interface TenantNodePluggableTypeMap {
   signer: Signer;
   jwksProvider: JwksProvider;
   accessControlList: ServerAccessControlList;
-  feedConfigProvider: FeedConfig;
   offerProducer: OfferProducer;
   verifier: Verifier;
   integrationInstaller: TenantNodeIntegrationInstaller;

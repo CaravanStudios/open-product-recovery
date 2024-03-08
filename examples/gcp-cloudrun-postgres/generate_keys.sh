@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2022 Google LLC
+# Copyright 2023 The Open Product Recovery Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cd ../../opr-core
-npx run generatekeypair -- --publicfile opr-public-key.json --privatefile opr-private-key.json
+cd ../../components/core
+npm run generatekeypair -- --publicfile opr-public-key.json --privatefile opr-private-key.json
 gsutil cp opr-public-key.json gs://$1-config/publickeys/opr-public-key.json
 gsutil cp opr-private-key.json gs://$1-config/opr-private-key.json
 rm opr-public-key.json

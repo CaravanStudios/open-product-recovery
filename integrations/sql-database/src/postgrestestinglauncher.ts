@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2023 The Open Product Recovery Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import process from 'node:process';
 import {ChildProcessWithoutNullStreams, execSync, spawn} from 'child_process';
-import net from 'net';
 import os from 'os';
 import {getFreePort, log, Logger} from 'opr-core';
 
