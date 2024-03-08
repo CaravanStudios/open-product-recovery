@@ -39,13 +39,16 @@ Join the discussion at http://chat.opr.dev/ for support.
 
 ### Install deps and build
 
-First, run lerna bootstrap to install all package dependencies and compile local libraries in the correct order.
+We recommend Node versions >=18.x, due to compatability issues with Lerna.
+
+First, run the setup script to install packages and compile the workspaces.
+Note that there are a few known issues with the install process that the
+setup script is designed to overcome. We highly recommend you use this
+for your package installation and setup.
 
 ```console
-npx lerna bootstrap --hoist
+sh ./setup.sh
 ```
-
-The --hoist flag is optional for local builds, but the --hoist flag is _required_ for library development. Hoisting creates a very different package-lock structure from non-hoisted repositories. We standardize on the hoisted versions in the repository to avoid churn.
 
 ### Run the unit tests
 
@@ -58,6 +61,7 @@ npx lerna run test
 from the root directory to run all the unit tests. If you want to run the Postgres tests in opr-sql-database, you need to have a working installation of Postgres and the `initdb`, `postgres` and `psql` commands must be in your `PATH` environment variable. If those commands aren't available, the Postgres tests will be skipped.
 
 ### Devcontainer
+
 If you use [VScode](https://code.visualstudio.com/), install the [devcontainer extention](https://code.visualstudio.com/docs/devcontainers/containers) as well as [docker desktop](https://www.docker.com/). VS code will helpfully ask if you'd like to re-open the project in a devcontainer, which should, after downloading and setting up a whole bunch of stuff, drop you right into a prompt that is ready to run `npx lerna run test`
 
 ### Read the standards

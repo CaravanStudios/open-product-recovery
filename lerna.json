@@ -1,10 +1,15 @@
 {
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
   "packages": [
-    ".",
-    "components/*",
-    "integrations/*",
-    "examples/*"
+    "components/models",
+    "components/devtools",
+    "components/core",
+    "components/core-testutil",
+    "integrations/google-cloud",
+    "integrations/sql-database",
+    "examples/gcp-cloudrun-postgres",
+    "examples/local-starter"
   ],
-  "version": "0.7.1"
+  "version": "0.7.1",
+  "workspaces": true
 }

@@ -1,5 +1,6 @@
 {
-  "private": true,
+  "name": "@opr/monorepo",
+  "private": false,
   "scripts": {
     "lintchanged": "eslint $(git diff --diff-filter=ACMRTUXB --name-only HEAD | grep '.*\\.ts$' | xargs)"
   },
@@ -7,11 +8,12 @@
     "@typescript-eslint/eslint-plugin": "^5.42.0",
     "@typescript-eslint/parser": "^5.44.0",
     "eslint": "^8.25.0",
-    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-header": "^3.1.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "lerna": "^6.0.3"
+    "lerna": "^8.1.2",
+    "prettier": "^3.2.5"
   },
   "repository": {
     "type": "git",
@@ -19,5 +21,15 @@
   },
   "engines": {
     "node": ">=12.0.0"
-  }
+  },
+  "workspaces": [
+    "components/models",
+    "components/devtools",
+    "components/core",
+    "components/core-testutil",
+    "integrations/google-cloud",
+    "integrations/sql-database",
+    "examples/gcp-cloudrun-postgres",
+    "examples/local-starter"
+  ]
 }
