@@ -1,11 +1,11 @@
 FROM node
 WORKDIR /usr
 COPY ./ ./
-RUN npx lerna@^6.0.3 bootstrap
+RUN sh ./setup.sh
 RUN mkdir ./deploy
 RUN cp -Lr ./examples/local-starter/package.json ./deploy
 RUN cp -Lr ./examples/local-starter/build ./deploy
-RUN cp -Lr ./examples/local-starter/node_modules ./deploy
+RUN cp -Lr ./node_modules ./deploy
 
 ## this is stage two , where the app actually runs
 FROM node
