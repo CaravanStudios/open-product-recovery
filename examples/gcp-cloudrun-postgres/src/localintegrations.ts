@@ -18,7 +18,7 @@ import {
   asyncIterableToArray,
   CustomRequestHandler,
   FakeOfferProducer,
-  IntegrationApi,
+  HostApi,
   OfferChange,
   PluggableFactory,
   StatusError,
@@ -52,7 +52,7 @@ export const LocalIntegrations = {
         // use this name as a type, not a regular name.
         type: 'integrationInstaller' as const,
 
-        async install(api: IntegrationApi): Promise<void> {
+        async install(api: HostApi): Promise<void> {
           const ingestHandler: CustomRequestHandler = {
             method: ['GET', 'POST'],
             handle: async () => {
@@ -112,7 +112,7 @@ export const LocalIntegrations = {
           api.installOfferProducer(
             new FakeOfferProducer({
               sourceOrgUrl: api.hostOrgUrl,
-              integrationApi: api,
+              hostApi: api,
             })
           );
         },
@@ -125,7 +125,7 @@ export const LocalIntegrations = {
       return {
         type: 'integrationInstaller',
 
-        async install(api: IntegrationApi) {
+        async install(api: HostApi) {
           api.installCustomHandler('greet', {
             method: ['GET', 'POST'],
             handle: async () => {
@@ -141,7 +141,7 @@ export const LocalIntegrations = {
       return {
         type: 'integrationInstaller',
 
-        async install(api: IntegrationApi) {
+        async install(api: HostApi) {
           api.installCustomHandler('greet', {
             method: ['GET', 'POST'],
             handle: async () => {
