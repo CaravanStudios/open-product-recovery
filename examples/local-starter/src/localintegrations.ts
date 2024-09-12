@@ -17,7 +17,7 @@
 import {
   asyncIterableToArray,
   FakeOfferProducer,
-  IntegrationApi,
+  HostApi,
   OfferChange,
   PluggableFactory,
   TenantNodeIntegrationInstaller,
@@ -38,7 +38,7 @@ export const LocalIntegrations = {
       return {
         type: 'integrationInstaller',
 
-        async install(api: IntegrationApi): Promise<void> {
+        async install(api: HostApi): Promise<void> {
           api.installCustomHandler('ingest', {
             method: ['GET', 'POST'],
             handle: async () => {
@@ -88,7 +88,7 @@ export const LocalIntegrations = {
           api.installOfferProducer(
             new FakeOfferProducer({
               sourceOrgUrl: api.hostOrgUrl,
-              integrationApi: api,
+              hostApi: api,
             })
           );
         },
@@ -101,7 +101,7 @@ export const LocalIntegrations = {
       return {
         type: 'integrationInstaller',
 
-        async install(api: IntegrationApi) {
+        async install(api: HostApi) {
           api.installCustomHandler('hello', {
             method: ['GET', 'POST'],
             handle: async () => {
@@ -117,7 +117,7 @@ export const LocalIntegrations = {
       return {
         type: 'integrationInstaller',
 
-        async install(api: IntegrationApi) {
+        async install(api: HostApi) {
           api.installCustomHandler('howdy', {
             method: ['GET', 'POST'],
             handle: async () => {

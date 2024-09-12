@@ -105,7 +105,7 @@ async function main() {
       },
     },
     // NOTE: You can install offer producers in the config as well, but
-    // some offer producers need a handle to the IntegrationApi. That
+    // some offer producers need a handle to the HostApi. That
     // kind of offer producer should be installed through an integration. See
     // integrations.ts for an example of an offer producer installed through an
     // integration.
@@ -156,7 +156,7 @@ async function main() {
                 },
               ],
               // Install integrations. Integrations are really just installer
-              // functions that get passed an instance of IntegrationApi. They
+              // functions that get passed an instance of HostApi. They
               // can install new endpoints, data providers, and behaviors that
               // occur when the offers on a server change.
               integrations: [

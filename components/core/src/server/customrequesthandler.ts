@@ -15,7 +15,7 @@
  */
 
 import type {Request} from 'express';
-import {IntegrationApi} from '../integrations/integrationapi';
+import {HostApi} from '../integrations/hostapi';
 
 export type CustomRequestMethod = 'POST' | 'GET';
 
@@ -33,6 +33,6 @@ export interface CustomRequestHandler {
   handle(
     body: unknown,
     request: Request,
-    client: IntegrationApi
+    client: HostApi
   ): Promise<unknown>;
 }

@@ -38,7 +38,7 @@ If you know what you're doing and simply want guidance on how to accomplish a pa
 
 ### Sending Notifications
 
-Once of the most common integrations involves sending some sort of electronic notification when a significant event happens. This is done via the [`IntegrationApi`](https://github.com/google/open-product-recovery/blob/main/components/core/src/integrations/integrationapi.ts) method `registerChangeHandler`.
+Once of the most common integrations involves sending some sort of electronic notification when a significant event happens. This is done via the [`HostApi`](https://github.com/google/open-product-recovery/blob/main/components/core/src/integrations/hostapi.ts) method `registerChangeHandler`.
 
 A simple notification system might look like this:
 
@@ -49,7 +49,7 @@ export const NotificationIntegrations {
       return {
         type: 'integrationInstaller',
 
-        async install(api: IntegrationApi) {
+        async install(api: HostApi) {
           api.registerChangeHandler(async change => {
             console.log(
               'An offer changed:',
@@ -77,7 +77,7 @@ The possible event types are:
 - `REMOTE_REJECT` - An offer was rejected BY this node.
 - `REMOTE_RESERVE` - An offer was reserved BY this node.
 
-Note that these events only fire on the server instance where the event was initiated, and all of these events are initiated by some method on an `IntegrationApi`. For example, the `ADD` event will be fired on the server instance that called `IntegrationApi.ingest()` to discover the new offer. The `REMOTE_ACCEPT` event will only fire on the server instance that called `IntegrationApi.accept()` to accept the offer. This is handy, because this means you do not need to worry about handling redundant events in environments where there may be multiple instances of the server running.
+Note that these events only fire on the server instance where the event was initiated, and all of these events are initiated by some method on an `HostApi`. For example, the `ADD` event will be fired on the server instance that called `HostApi.ingest()` to discover the new offer. The `REMOTE_ACCEPT` event will only fire on the server instance that called `HostApi.accept()` to accept the offer. This is handy, because this means you do not need to worry about handling redundant events in environments where there may be multiple instances of the server running.
 
 ### Reading Offers from an Inventory System
 
@@ -268,7 +268,7 @@ export const HelloWorldPluggableFactory = {
     return {
       type: 'integrationInstaller',
 
-      async install(api: IntegrationApi) {
+      async install(api: HostApi) {
         api.installCustomHandler('greet', {
           method: ['GET', 'POST'],
           handle: async () => {
@@ -288,7 +288,7 @@ If you need to declare the type of your PluggableFactory, see the [`PluggableFac
 
 ### Using the Tenant Node URL in a PluggableFactory
 
-Many integrations can get the tenant node org URL from the `IntegrationApi` object. But some integrations need that information in `PluggableFactory.construct()` while they're building the `Pluggable` object. In those cases, you need the rarely-used second agurment to `PluggableFactory.construct`: the context argument.
+Many integrations can get the tenant node org URL from the `HostApi` object. But some integrations need that information in `PluggableFactory.construct()` while they're building the `Pluggable` object. In those cases, you need the rarely-used second agurment to `PluggableFactory.construct`: the context argument.
 
 The context argument contains information relevant to the context in which the factory is being called. Today, this is always information about the current tenant node, and it always has the type [`TenantNodeIntegrationContext`](https://github.com/google/open-product-recovery/blob/main/components/core/src/config/tenantnodeintegrationcontext.ts).
 
