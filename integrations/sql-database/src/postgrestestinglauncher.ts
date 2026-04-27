@@ -146,9 +146,9 @@ export class PostgresTestingLauncher {
   }
 
   private async initDb(): Promise<void> {
-    execSync(`${this.postgresInitDbPath} -D ${this.dbPath} -A trust`, {
-      stdio: 'ignore',
-    });
+      execSync(`${this.postgresInitDbPath} -D ${this.dbPath} -A password`, {
+        stdio: 'ignore',
+      });
   }
 
   async start(): Promise<void> {
